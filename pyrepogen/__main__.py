@@ -54,13 +54,13 @@ def main():
     
 #     print(args.repo_path)
     
-#     logger.warn("Wath out!")
-#     logger.info("I told you")
-#     logger.tip("This is a tip")
-#     mod1_msg()
-#     logger.tip("This is a tip2")
-#     logger.wizard("Input file name")
-#     logger.checkpoint("This is checkpoitn")
+    logger.warn("Wath out!")
+    logger.info("I told you")
+    logger.tip("This is a tip")
+    mod1_msg()
+    logger.tip("This is a tip2")
+    logger.wizard("Input file name")
+    logger.checkpoint("This is checkpoitn")
     
     
 def set_logger(args):

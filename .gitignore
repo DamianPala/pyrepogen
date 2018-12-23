@@ -115,3 +115,4 @@ dmypy.json
 
 
 # --User gitignore--
+/tests/tests_setups/prepare_test

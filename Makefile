@@ -67,6 +67,13 @@ lint:
 doc:
 	$(PYTHON) -m flake8
 	
+	
+coverage:
+	@coverage run -m pytest tests && ([ $$? -eq 0 ]) || echo ""
+	@coverage html
+	@coverage report -m	
+
+	
 clean:
 	$(RM) -rf build/
 	$(RM) -rf dist/
