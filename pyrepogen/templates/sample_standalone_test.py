@@ -1,0 +1,10 @@
+#!/usr/bin/env python
+# -*- coding: utf-8 -*-
+
+import pytest
+
+from sample_standalone import get_sum
+
+
+def test_get_sum():
+    assert get_sum(2, 3) == 5, "The get_sum does not work as a sum"

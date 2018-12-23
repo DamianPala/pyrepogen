@@ -1,0 +1,1 @@
+Add pyreqs to discover requirements, parse output, add minimal version, add pbr if package.
