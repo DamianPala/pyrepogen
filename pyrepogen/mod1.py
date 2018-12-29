@@ -1,13 +1,11 @@
-'''
-Created on 20.12.2018
+#!/usr/bin/env python
+# -*- coding: utf-8 -*-
 
-@author: Haz
-'''
 
-from .logger import get_logger
+import logging
 
-logger = get_logger(__name__)
+_logger = logging.getLogger(__name__)
 
 
 def mod1_msg():
-    logger.info("Hello from mod1!")
+    _logger.info("Hello from mod1!")

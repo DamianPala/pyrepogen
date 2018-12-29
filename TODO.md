@@ -1,2 +1,2 @@
-Add pyreqs to discover requirements, parse output, add minimal version, add pbr if package.
-Set logger as package scope object with once settings
+Add add minimal version, add pbr if package.
+Add setup.cfg read and valid module

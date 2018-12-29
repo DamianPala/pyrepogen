@@ -116,3 +116,5 @@ dmypy.json
 
 # --User gitignore--
 /tests/tests_setups/prepare_test
+/tests/tests_setups/colreqs_test/test_write_requirements_dev_SHOULD_not_overwriting_reqs_if_exists/requirements.txt
+/tests/tests_setups/colreqs_test/test_write_requirements_dev_SHOULD_not_overwriting_reqs_if_exists/requirements-dev.txt

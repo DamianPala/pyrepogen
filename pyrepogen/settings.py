@@ -1,17 +1,21 @@
+#!/usr/bin/env python
+# -*- coding: utf-8 -*-
+
 
 REQUIREMENTS_FILENAME = 'requirements.txt'
 REQUIREMENTS_DEV_FILENAME = 'requirements-dev.txt'
 
 
 REQUIREMENTS = [
-    'pbr',
     'setuptools',
 ]
 
 REQUIREMENTS_DEV = [
     'Sphinx',
     'pytest',
-    'flake8'
+    'flake8',
+    'coverage',
+    'tox',
 ]
 
 
@@ -19,21 +23,34 @@ TEMPLATES_DIRNAME = 'templates'
 
 DOCS_DIRNAME = 'docs'
 TESTS_DIRNAME = 'tests'
+DISTRIBUTION_DIRNAME = 'dist'
 REPOASSIST_DIRNAME = 'repoassist'
+GIT_DIRNAME = '.git'
 
+SETUP_CFG_FILENAME = 'setup.cfg'
+SETUP_CFG_STANDALONE_FILENAME = 'setup_standalone.cfg'
+SETUP_CFG_PACKAGE_FILENAME = 'setup_package.cfg'
+CHANGELOG_FILENAME = 'ChangeLog'
+AUTHORS_FILENAME = 'AUTHORS'
 GITIGNORE_FILENAME = '.gitignore'
 README_FILENAME = 'README.md'
 TODO_FILENAME = 'TODO.md'
 LICENSE_FILENAME = 'LICENSE'
+MAKEFILE_FILENAME = 'Makefile'
+MAKEFILE_STANDALONE_FILENAME = 'Makefile_standalone'
+MAKEFILE_PACKAGE_FILENAME = 'Makefile_package'
 CONFTEST_FILENAME = 'conftest.py'
 STANDALONE_SAMPLE_FILENAME = 'sample_standalone.py'
 STANDALONE_SAMPLE_TEST_FILENAME = 'sample_standalone_test.py'
+TOX_STANDALONE_FILENAME = 'tox_standalone.ini'
 TOX_FILENAME = 'tox.ini'
 PYINIT_FILENAME = '__init__.py'
 SAMPLE_MODULE_FILENAME = 'module.py'
 REPOASSIST_MAIN_FILENAME = 'repoassist_main.py'
 REPOASSIST_TARGET_MAIN_FILENAME = '__main__.py'
 COLREQS_FILENAME = 'colreqs.py'
+SETTINGS_FILENAME = 'settings.py'
+LOGGER_FILENAME = 'logger.py'
 
 STANDALONE_REPO_FILES_TO_GEN = [
     README_FILENAME,
@@ -42,10 +59,13 @@ STANDALONE_REPO_FILES_TO_GEN = [
     CONFTEST_FILENAME,
     STANDALONE_SAMPLE_FILENAME,
     STANDALONE_SAMPLE_TEST_FILENAME,
-    TOX_FILENAME,
+    TOX_STANDALONE_FILENAME,
     PYINIT_FILENAME,
     REQUIREMENTS_FILENAME,
-    REQUIREMENTS_DEV_FILENAME
+    REQUIREMENTS_DEV_FILENAME,
+    MAKEFILE_FILENAME,
+    LICENSE_FILENAME,
+    SETUP_CFG_FILENAME
 ]
 
 STANDALONE_REPO_DIRS_TO_GEN = [
@@ -58,4 +78,15 @@ REPOASSIST_FILES = [
     PYINIT_FILENAME,
     REPOASSIST_MAIN_FILENAME,
     COLREQS_FILENAME,
+    SETTINGS_FILENAME,
+    LOGGER_FILENAME
+]
+
+CONFIG_MANDATORY_FIELDS = [
+    'repo_name',
+    'project_name',
+    'author',
+    'author_email',
+    'short_description',
+    'year',
 ]

@@ -6,11 +6,11 @@ TEST_PATH  := ./tests
 default: prepare
 
 prepare:
-	$(PYTHON) -m pip install --user -r requirements-dev.txt
-	$(PYTHON) -m pip install --user -r requirements.txt
+	$(PYTHON) -m pip install -r requirements-dev.txt
+	$(PYTHON) -m pip install -r requirements.txt
 
 release:
-	$(PYTHON) setup.py sdist
+	$(PYTHON) -m repoassist release
 	
 test:
 	$(PYTHON) -m pytest $(TEST_PATH) --color=yes
@@ -18,8 +18,8 @@ test:
 lint:
 	$(PYTHON) -m flake8
 	
-doc:
 #TODO:
+doc:
 	$(PYTHON) -m flake8
 
 coverage:
@@ -27,8 +27,11 @@ coverage:
 	@coverage html
 	@coverage report -m	
 	
+install_reqs:
+	$(PYTHON) -m pip install --user -r requirements.txt
+
 update_reqs:
-	@echo "test"
+	@$(PYTHON) -m repoassist update_reqs	
 	
 clean:
 	$(RM) -rf build/
@@ -43,11 +46,9 @@ help:
 	@echo
 	@echo "Targets:"
 	@echo "make prepare"
-	@echo "	Prepare development environment based on requirements.txt and requirements-dev.txt, use only once"
+	@echo "	Prepare a development environment based on the requirements.txt and requirements-dev.txt, use only once"
 	@echo "make release"
-	@echo "	Release the package"
-	@echo "make install"
-	@echo "	Install the package"
+	@echo "	Release the standalone script"
 	@echo "make test"
 	@echo "	Run tests"
 	@echo "make lint"

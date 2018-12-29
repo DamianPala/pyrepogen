@@ -1,22 +1,31 @@
+#!/usr/bin/env python
+# -*- coding: utf-8 -*-
+
+
+import logging
 from pathlib import Path
+from pipreqs import pipreqs
 
-from . import utils
-from pyrepogen import settings
+from . import settings
 
 
-def collect_reqs_min(path):
-    reqs_equal = collect_reqs_specific(path)
+_logger = logging.getLogger(__name__)
+
+
+def collect_reqs_min(cwd='.'):
+    reqs_equal = collect_reqs_specific(cwd)
     return _transform_to_min(reqs_equal)
 
 
-def collect_reqs_latest(path):
-    reqs_equal = collect_reqs_specific(path)
+def collect_reqs_latest(cwd='.'):
+    reqs_equal = collect_reqs_specific(cwd)
     return _transform_to_latest(reqs_equal)
 
 
-def collect_reqs_specific(path):
+def collect_reqs_specific(cwd='.'):
     reqs = []
-    raw_reqs = utils.execute_cmd_and_split_lines_to_list(['pipreqs', '--print', path])[:-1] 
+    ignore_dirs = [str(Path(cwd).resolve() / settings.REPOASSIST_DIRNAME)]
+    raw_reqs = pipreqs.get_all_imports(str(cwd), extra_ignore_dirs=ignore_dirs)
     for item in raw_reqs:
         if 'INFO' not in item:
             reqs.append(item)
@@ -24,18 +33,36 @@ def collect_reqs_specific(path):
     return reqs
 
 
-def write_requirements(reqs, path):
-    with open(Path(path) / settings.REQUIREMENTS_FILENAME) as file:
+def write_requirements(reqs, cwd='.'):
+    file_path = Path(cwd) / settings.REQUIREMENTS_FILENAME
+    file_exists = True if file_path.exists() else False
+    
+    with open(file_path, 'w') as file:
         for reg in reqs:
-            file.writeline(reg)
+            file.write("{}\n".format(reg))
+            
+        if file_exists:
+            _logger.info("{} file updated.".format(settings.REQUIREMENTS_FILENAME))
+        else:
+            _logger.info("{} file prepared.".format(settings.REQUIREMENTS_FILENAME))
+            
+    return file_path
 
 
-def write_requirements_dev(path):
-    with open(Path(path) / settings.REQUIREMENTS_DEV_FILENAME) as file:
-        for req in settings.DEV_REQUIREMENTS:
-            file.writeline(req)
-
-
+def write_requirements_dev(cwd='.'):
+    file_path = Path(cwd) / settings.REQUIREMENTS_DEV_FILENAME
+    
+    try:
+        with open(file_path, 'x') as file:
+            for reg in settings.REQUIREMENTS_DEV:
+                file.write("{}\n".format(reg))
+                _logger.info("{} file prepared.".format(settings.REQUIREMENTS_DEV_FILENAME))
+    except FileExistsError:
+        _logger.warning("{} file already exists, not overwritten.".format(settings.REQUIREMENTS_DEV_FILENAME))
+            
+    return file_path
+            
+            
 def _transform_to_min(reqs):
     final_reqs = []
     for req in reqs:
@@ -57,3 +84,4 @@ def _transform_to_latest(reqs):
         final_reqs.append(splitted[0]) 
         
     return final_reqs
+

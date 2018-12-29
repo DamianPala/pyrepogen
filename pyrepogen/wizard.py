@@ -1,8 +1,5 @@
-'''
-Created on 20.12.2018
-
-@author: Haz
-'''
+#!/usr/bin/env python
+# -*- coding: utf-8 -*-
 
 
 def get_data(name, msg):

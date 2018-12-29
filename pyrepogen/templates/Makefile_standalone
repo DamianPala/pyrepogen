@@ -1,0 +1,65 @@
+PYTHON     := python
+RM		   := rm
+TEST_PATH  := ./tests
+
+
+default: prepare
+
+prepare:
+	@$(PYTHON) -m pip install -r requirements-dev.txt
+	@$(PYTHON) -m pip install -r requirements.txt
+
+release:
+	@$(PYTHON) -m repoassist release
+	
+test:
+	@$(PYTHON) -m pytest $(TEST_PATH) --color=yes
+	
+tox:
+	@tox
+
+lint:
+	@$(PYTHON) -m flake8
+	
+#TODO:
+doc:
+	@$(PYTHON) -m flake8
+
+coverage:
+	@coverage run -m pytest tests && ([ $$? -eq 0 ]) || echo ""
+	@coverage html
+	@coverage report -m	
+	
+install_reqs:
+	@$(PYTHON) -m pip install --user -r requirements.txt
+
+update_reqs:
+	@$(PYTHON) -m repoassist update_reqs	
+	
+clean:
+	$(RM) -rf build/
+	$(RM) -rf dist/
+	$(RM) -rf *.egg-info
+	$(RM) -rf AUTHORS
+	$(RM) -rf ChangeLog
+
+help:
+	@echo "Usage:"
+	@echo "	make <target> [flags...]"
+	@echo
+	@echo "Targets:"
+	@echo "make prepare"
+	@echo "	Prepare a development environment based on the requirements.txt and requirements-dev.txt, use only once"
+	@echo "make release"
+	@echo "	Release the standalone script"
+	@echo "make test"
+	@echo "	Run tests"
+	@echo "make tox"
+	@echo "	Run tox"
+	@echo "make lint"
+	@echo "	Run linter"
+	@echo "make clean"
+	@echo "	Clean build and distribution"
+	
+
+.PHONY: default prepare release install test lint clean help
