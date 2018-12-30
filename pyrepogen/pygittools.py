@@ -12,7 +12,7 @@ def init(cwd='.'):
 
 
 def add(path, cwd='.'):
-    return _execute_cmd_and_strip(['git', 'add', path], cwd)
+    return _execute_cmd_and_strip(['git', 'add', str(path)], cwd)
 
 
 def commit(msg, cwd='.'):

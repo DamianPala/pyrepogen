@@ -1,65 +1,28 @@
-PYTHON     := python
-RM		   := rm
-TEST_PATH  := ./tests
-
-
-default: prepare
-
-prepare:
-	@$(PYTHON) -m pip install -r requirements-dev.txt
-	@$(PYTHON) -m pip install -r requirements.txt
-
-release:
-	@$(PYTHON) -m repoassist release
+{% extends "Makefile_standalone_base" %}
+{% block cloud_targets %}
+	{% if options.cloud %}
+upload:
+	@echo "Run Package Uploader!"
+	@$(PYTHON) -m repoassist upload
 	
-test:
-	@$(PYTHON) -m pytest $(TEST_PATH) --color=yes
+list_cloud:
+	@echo "List buckets on the cloud server!"
+	@$(PYTHON) -m repoassist list_cloud
 	
-tox:
-	@tox
-
-lint:
-	@$(PYTHON) -m flake8
+download_package:
+	@echo "Run Package Downloader!"
+	@$(PYTHON) -m repoassist download_package
 	
-#TODO:
-doc:
-	@$(PYTHON) -m flake8
+	{% endif %}
+{% endblock %}
 
-coverage:
-	@coverage run -m pytest tests && ([ $$? -eq 0 ]) || echo ""
-	@coverage html
-	@coverage report -m	
-	
-install_reqs:
-	@$(PYTHON) -m pip install --user -r requirements.txt
-
-update_reqs:
-	@$(PYTHON) -m repoassist update_reqs	
-	
-clean:
-	$(RM) -rf build/
-	$(RM) -rf dist/
-	$(RM) -rf *.egg-info
-	$(RM) -rf AUTHORS
-	$(RM) -rf ChangeLog
-
-help:
-	@echo "Usage:"
-	@echo "	make <target> [flags...]"
-	@echo
-	@echo "Targets:"
-	@echo "make prepare"
-	@echo "	Prepare a development environment based on the requirements.txt and requirements-dev.txt, use only once"
-	@echo "make release"
-	@echo "	Release the standalone script"
-	@echo "make test"
-	@echo "	Run tests"
-	@echo "make tox"
-	@echo "	Run tox"
-	@echo "make lint"
-	@echo "	Run linter"
-	@echo "make clean"
-	@echo "	Clean build and distribution"
-	
-
-.PHONY: default prepare release install test lint clean help
+{% block cloud_targets_help %}
+	{% if options.cloud %}
+	@echo "make upload"
+	@echo "	Upload the release and client packages to the cloud server."
+	@echo "make list_cloud"
+	@echo "	List buckets on the cloud server."
+	@echo "make download_package"
+	@echo "	Download specified package from the cloud server."
+	{% endif %}
+{% endblock %}

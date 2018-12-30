@@ -5,25 +5,35 @@
 import shutil
 import logging
 import jinja2
+import configparser
+import datetime
 from pathlib import Path
+from pprint import pprint
 
 from . import settings
 from . import exceptions
+from . import utils
 from pyrepogen import PARDIR
 
 
 _logger = logging.getLogger(__name__)
 
+
 def generate_standalone_repo(config, cwd='.', options=None):
+    _logger.info("Generate repository files...")
+    
     paths = []
-    paths.extend(generate_standalone_repo_dirs(cwd))
-    paths.extend(generate_standalone_repo_files(config, cwd, options))
+    Path(cwd).mkdir(parents=True, exist_ok=True)
+    paths.extend(_generate_standalone_repo_dirs(cwd))
+    paths.extend(_generate_standalone_repo_files(config, cwd, options))
     paths.extend(_prepare_repoasist(cwd, options))
+    
+    _logger.info("Repository files generated.")
     
     return paths
 
 
-def generate_standalone_repo_dirs(cwd='.'):
+def _generate_standalone_repo_dirs(cwd='.'):
     paths = []
     for dirname in settings.STANDALONE_REPO_DIRS_TO_GEN:
         try:
@@ -36,8 +46,8 @@ def generate_standalone_repo_dirs(cwd='.'):
     return paths
 
 
-def generate_standalone_repo_files(config, cwd='.', options=None):
-    _validate_config(config)
+def _generate_standalone_repo_files(config, cwd='.', options=None):
+    utils.validate_config(config['metadata'])
     
     paths = []
     for filename in settings.STANDALONE_REPO_FILES_TO_GEN:
@@ -46,12 +56,12 @@ def generate_standalone_repo_files(config, cwd='.', options=None):
         elif filename == settings.REQUIREMENTS_DEV_FILENAME:
             paths.extend(_prepare_requirements(Path(cwd) / filename, settings.REQUIREMENTS_DEV, cwd, options))
         elif filename == settings.TOX_STANDALONE_FILENAME:
-            write_file_from_template(settings.TOX_STANDALONE_FILENAME, Path(cwd) / settings.TOX_FILENAME, 
-                                     {'tests_dirname': settings.TESTS_DIRNAME}, cwd, options)
+            paths.extend(write_file_from_template(settings.TOX_STANDALONE_FILENAME, Path(cwd) / settings.TOX_FILENAME, 
+                                     {'tests_dirname': settings.TESTS_DIRNAME}, cwd, options))
         elif filename == settings.LICENSE_FILENAME:
-            write_file_from_template(filename, Path(cwd) / filename, config, cwd, options)
+            paths.extend(write_file_from_template(filename, Path(cwd) / filename, config['metadata'], cwd, options))
         elif filename == settings.SETUP_CFG_FILENAME:
-            write_file_from_template(settings.SETUP_CFG_STANDALONE_FILENAME, Path(cwd) / filename, config, cwd, options)
+            paths.extend(write_file_from_template(settings.SETUP_CFG_STANDALONE_FILENAME, Path(cwd) / filename, config['metadata'], cwd, options))
         elif filename == settings.GITIGNORE_FILENAME:
             paths.extend(_copy_template_file(filename, Path(cwd) / filename, cwd, options))
         elif filename == settings.STANDALONE_SAMPLE_FILENAME:
@@ -61,7 +71,7 @@ def generate_standalone_repo_files(config, cwd='.', options=None):
         elif filename == settings.PYINIT_FILENAME:
             paths.extend(_copy_template_file(settings.SAMPLE_MODULE_FILENAME, Path(cwd) / settings.TESTS_DIRNAME / filename, cwd, options))
         elif filename == settings.MAKEFILE_FILENAME:
-            paths.extend(_copy_template_file(settings.MAKEFILE_STANDALONE_FILENAME, Path(cwd) / filename, cwd, options))
+            paths.extend(write_file_from_template(settings.MAKEFILE_STANDALONE_FILENAME, Path(cwd) / filename, config['metadata'], cwd, options))
         elif filename == settings.LICENSE_FILENAME:
             paths.extend(_copy_template_file(settings.LICENSE_FILENAME, Path(cwd) / filename, cwd, options))
         else:
@@ -142,6 +152,14 @@ def _prepare_repoasist(cwd, options=None):
             paths.extend(_copy_file(filename, Path(cwd) / settings.REPOASSIST_DIRNAME / filename, cwd, options))
         elif filename == settings.LOGGER_FILENAME:
             paths.extend(_copy_file(filename, Path(cwd) / settings.REPOASSIST_DIRNAME / filename, cwd, options))
+        elif filename == settings.RELEASE_FILENAME:
+            paths.extend(_copy_file(filename, Path(cwd) / settings.REPOASSIST_DIRNAME / filename, cwd, options))
+        elif filename == settings.EXCEPTIONS_FILENAME:
+            paths.extend(_copy_file(filename, Path(cwd) / settings.REPOASSIST_DIRNAME / filename, cwd, options))
+        elif filename == settings.UTILS_FILENAME:
+            paths.extend(_copy_file(filename, Path(cwd) / settings.REPOASSIST_DIRNAME / filename, cwd, options))
+        elif filename == settings.PYGITTOOLS_FILENAME:
+            paths.extend(_copy_file(filename, Path(cwd) / settings.REPOASSIST_DIRNAME / filename, cwd, options))
         elif filename == settings.PYINIT_FILENAME:
             paths.extend(_copy_template_file(settings.SAMPLE_MODULE_FILENAME, Path(cwd) / settings.REPOASSIST_DIRNAME / filename, cwd, options))
         else:
@@ -153,9 +171,9 @@ def _prepare_repoasist(cwd, options=None):
 def write_file_from_template(template_filename, dst, keywords, cwd='.', options=None):
     if (options and options.force) or (not Path(dst).exists()):
         templateLoader = jinja2.FileSystemLoader(searchpath=str(Path(PARDIR) / settings.TEMPLATES_DIRNAME))
-        templateEnv = jinja2.Environment(loader=templateLoader)
+        templateEnv = jinja2.Environment(loader=templateLoader, trim_blocks=True, lstrip_blocks=True)
         template = templateEnv.get_template(template_filename)
-        template.stream(keywords).dump(str(dst))
+        template.stream(keywords, options=options).dump(str(dst))
         
         _logger.info("{} file generated.".format(Path(dst).relative_to(cwd)))
          
@@ -166,7 +184,3 @@ def write_file_from_template(template_filename, dst, keywords, cwd='.', options=
         return []
     
     
-def _validate_config(config):
-    for field in settings.CONFIG_MANDATORY_FIELDS:
-        if field not in config:
-            raise exceptions.ConfigError("The {} field not found in the config!".format(field))
