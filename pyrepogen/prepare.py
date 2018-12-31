@@ -52,7 +52,7 @@ def _generate_standalone_repo_files(config, cwd='.', options=None):
     paths = []
     for filename in settings.STANDALONE_REPO_FILES_TO_GEN:
         if filename == settings.REQUIREMENTS_FILENAME:
-            paths.extend(_prepare_requirements(Path(cwd) / filename, settings.REQUIREMENTS, cwd, options))
+            paths.extend(_prepare_requirements(Path(cwd) / filename, settings.REQUIREMENTS_STANDALONE, cwd, options))
         elif filename == settings.REQUIREMENTS_DEV_FILENAME:
             paths.extend(_prepare_requirements(Path(cwd) / filename, settings.REQUIREMENTS_DEV, cwd, options))
         elif filename == settings.TOX_STANDALONE_FILENAME:
@@ -73,7 +73,10 @@ def _generate_standalone_repo_files(config, cwd='.', options=None):
         elif filename == settings.MAKEFILE_FILENAME:
             paths.extend(write_file_from_template(settings.MAKEFILE_STANDALONE_FILENAME, Path(cwd) / filename, config['metadata'], cwd, options))
         elif filename == settings.LICENSE_FILENAME:
-            paths.extend(_copy_template_file(settings.LICENSE_FILENAME, Path(cwd) / filename, cwd, options))
+            paths.extend(_copy_template_file(filename, Path(cwd) / filename, cwd, options))
+        elif filename == settings.CLOUD_CREDENTIALS_FILENAME:
+            if options and options.cloud:
+                paths.extend(_copy_template_file(filename, Path(cwd) / filename, cwd))
         else:
             paths.extend(_generate_empty_file(Path(cwd) / filename, cwd, options))
             
@@ -159,6 +162,10 @@ def _prepare_repoasist(cwd, options=None):
         elif filename == settings.UTILS_FILENAME:
             paths.extend(_copy_file(filename, Path(cwd) / settings.REPOASSIST_DIRNAME / filename, cwd, options))
         elif filename == settings.PYGITTOOLS_FILENAME:
+            paths.extend(_copy_file(filename, Path(cwd) / settings.REPOASSIST_DIRNAME / filename, cwd, options))
+        elif filename == settings.CLOUD_FILENAME:
+            paths.extend(_copy_file(filename, Path(cwd) / settings.REPOASSIST_DIRNAME / filename, cwd, options))
+        elif filename == settings.WIZARD_FILENAME:
             paths.extend(_copy_file(filename, Path(cwd) / settings.REPOASSIST_DIRNAME / filename, cwd, options))
         elif filename == settings.PYINIT_FILENAME:
             paths.extend(_copy_template_file(settings.SAMPLE_MODULE_FILENAME, Path(cwd) / settings.REPOASSIST_DIRNAME / filename, cwd, options))

@@ -30,7 +30,8 @@ def main():
     parser = argparse.ArgumentParser(formatter_class=argparse.RawDescriptionHelpFormatter,
                                      description="Python Repo Generator",
                                      epilog="""Available commands: ...""")
-    parser.add_argument('repo_path', nargs='?', action='store', default=None, help="Repo name or path to the directory when repository will be generated. If directory does not exist then will be created.")
+    parser.add_argument('repo_path', nargs='?', action='store', default=None, 
+                        help="Repo name or path to the directory when repository will be generated. If directory does not exist then will be created.")
     parser.add_argument('-q', '--quiet', dest='quiet', action='store_true', default=False, help="Disable output")
     parser.add_argument('-d', '--debug', dest='debug', action='store_true', default=False, help="Enable debug output")
     parser.add_argument('-f', '--force', dest='force', action='store_true', default=False, help="Override existing files.")

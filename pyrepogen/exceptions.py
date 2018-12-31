@@ -22,6 +22,16 @@ class FileGenerationError(PyRepoGenError):
 class FileNotFoundError(PyRepoGenError):
     pass
 
+class NameError(PyRepoGenError):
+    pass
+
 class ReleaseMetadataError(PyRepoGenError):
     pass
+
+class CredentialsError(PyRepoGenError):
+    pass
+
+class BucketNotFoudError(PyRepoGenError):
+    pass
+
 

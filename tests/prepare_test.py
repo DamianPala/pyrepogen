@@ -65,6 +65,11 @@ def test_generate_standalone_repo_SHOULD_generate_repo_tree_properly():
         'repoassist/colreqs.py',
         'repoassist/settings.py',
         'repoassist/logger.py',
+        'repoassist/release.py',
+        'repoassist/pygittools.py',
+        'repoassist/utils.py',
+        'repoassist/exceptions.py',
+        'cloud_credentials.txt',
     }
     
     config = {
@@ -78,7 +83,11 @@ def test_generate_standalone_repo_SHOULD_generate_repo_tree_properly():
         },
     }
     
-    paths = prepare.generate_standalone_repo(config, cwd)
+    args = Args
+    args.force = False
+    args.cloud = True
+    
+    paths = prepare.generate_standalone_repo(config, cwd, options=args)
     paths = {path.relative_to(cwd).as_posix() for path in paths}
     pprint(paths)
     
@@ -220,26 +229,3 @@ def test_generate_standalone_repo_SHOULD_generate_makefile_with_cloud_properly()
         
     assert "make upload" in makefile_content
     
-
-def test_read_setup_cfg_SHOULD_read_config_properly():
-    cwd = TESTS_SETUPS_PATH / 'test_read_setup_cfg_SHOULD_read_config_properly'
-    Path(cwd).mkdir(parents=True, exist_ok=True)
-    
-    expected_config = {
-        'metadata': {
-            'author': 'Damian',
-            'author_email': 'damian@mail.com',
-            'home_page': 'page.com',
-            'maintainer': 'Mike',
-            'maintainer_email': 'mike@mail.com',
-            'project_name': 'sample_project',
-            'repo_name': 'sample-repo',
-            'short_description': 'This is a sample project',
-            'year': '2018'
-        },    
-    }
-    
-    config = prepare.read_setup_cfg(cwd)
-    pprint(config)
-    
-    assert config == expected_config

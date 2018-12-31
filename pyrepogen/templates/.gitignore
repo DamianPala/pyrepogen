@@ -117,3 +117,4 @@ dmypy.json
 # --User gitignore--
 /AUTHORS
 /ChangeLog
+cloud_credentials.txt
