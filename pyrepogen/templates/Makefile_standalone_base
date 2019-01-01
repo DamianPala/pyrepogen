@@ -3,6 +3,12 @@ RM		   := rm
 TEST_PATH  := ./tests
 
 
+ifeq (format,$(firstword $(MAKECMDGOALS)))
+FORMAT_ARGS := $(wordlist 2,$(words $(MAKECMDGOALS)),$(MAKECMDGOALS))
+$(eval $(FORMAT_ARGS):;@:)
+endif
+
+
 default: prepare
 
 prepare:
@@ -37,6 +43,9 @@ update_reqs:
 	@$(PYTHON) -m repoassist update_reqs
 	
 {% block cloud_targets %}{% endblock %}
+format:
+	@$(PYTHON) -m repoassist format $(FORMAT_ARGS)
+
 clean:
 	$(RM) -rf build/
 	$(RM) -rf dist/
@@ -64,4 +73,4 @@ help:
 	@echo "	Clean build and distribution"
 	
 
-.PHONY: default prepare release install test lint clean help
+.PHONY: default prepare release install test lint clean format help

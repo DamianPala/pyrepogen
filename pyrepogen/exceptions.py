@@ -34,4 +34,9 @@ class CredentialsError(PyRepoGenError):
 class BucketNotFoudError(PyRepoGenError):
     pass
 
+class NotAFileError(PyRepoGenError):
+    pass
+
+class FileExistsError(PyRepoGenError):
+    pass
 

@@ -2,6 +2,8 @@
 # -*- coding: utf-8 -*-
 
 
+SUGGESTED_INITIAL_RELEASE_TAG = '0.1.0'
+
 REQUIREMENTS_FILENAME = 'requirements.txt'
 REQUIREMENTS_DEV_FILENAME = 'requirements-dev.txt'
 
@@ -15,9 +17,11 @@ REQUIREMENTS_PACKAGE = [
 REQUIREMENTS_DEV = [
     'Sphinx',
     'pytest',
-    'flake8',
+    'flake8>=3.6.0',
+    'pycodestyle>=2.4.0'
     'coverage',
     'tox',
+    'hacking'
 ]
 
 
@@ -62,6 +66,7 @@ UTILS_FILENAME = 'utils.py'
 PYGITTOOLS_FILENAME = 'pygittools.py'
 CLOUD_FILENAME = 'cloud.py'
 WIZARD_FILENAME = 'wizard.py'
+FORMATTER_FILENAME = 'formatter.py'
 CLOUD_CREDENTIALS_FILENAME = "cloud_credentials.txt"
 
 STANDALONE_REPO_FILES_TO_GEN = [
@@ -99,6 +104,7 @@ REPOASSIST_FILES = [
     PYGITTOOLS_FILENAME,
     CLOUD_FILENAME,
     WIZARD_FILENAME,
+    FORMATTER_FILENAME,
 ]
 
 CONFIG_MANDATORY_FIELDS = [

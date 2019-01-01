@@ -12,6 +12,7 @@ from . import colreqs
 from . import release
 from . import exceptions
 from . import cloud
+from . import formatter
 
 
 _packagename = (Path(inspect.getfile(inspect.currentframe())) / '..').resolve().name
@@ -29,6 +30,8 @@ def main():
     subparsers.add_parser('upload', help="Upload a release package to the cloud.")
     subparsers.add_parser('list_cloud', help="List buckets on the cloud server.")
     subparsers.add_parser('download_package', help="Download package from the cloud server.")
+    format_parser = subparsers.add_parser('format', help="Format a python source file using autopep8.")
+    format_parser.add_argument('path', action='store', default=None, help="Path to the python source file.")
 
     args = parser.parse_args()
     
@@ -46,11 +49,13 @@ def main():
             elif command == 'release':
                 release.make_release(cwd)
             elif command == 'upload':
-                cloud.upload_to_cloud()
+                cloud.upload_to_cloud(cwd)
             elif command == 'list_cloud':
-                cloud.list_cloud()
+                cloud.list_cloud(cwd)
             elif command == 'download_package':
-                cloud.download_package()
+                cloud.download_package(cwd)
+            elif command == 'format':
+                formatter.format_file(args.path, cwd=cwd)
             else:
                 _logger.error("Invalid command.")
         except exceptions.PyRepoGenError as e:

@@ -167,6 +167,8 @@ def _prepare_repoasist(cwd, options=None):
             paths.extend(_copy_file(filename, Path(cwd) / settings.REPOASSIST_DIRNAME / filename, cwd, options))
         elif filename == settings.WIZARD_FILENAME:
             paths.extend(_copy_file(filename, Path(cwd) / settings.REPOASSIST_DIRNAME / filename, cwd, options))
+        elif filename == settings.FORMATTER_FILENAME:
+            paths.extend(_copy_file(filename, Path(cwd) / settings.REPOASSIST_DIRNAME / filename, cwd, options))
         elif filename == settings.PYINIT_FILENAME:
             paths.extend(_copy_template_file(settings.SAMPLE_MODULE_FILENAME, Path(cwd) / settings.REPOASSIST_DIRNAME / filename, cwd, options))
         else:
