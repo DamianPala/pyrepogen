@@ -65,9 +65,11 @@ def _generate_standalone_repo_files(config, cwd='.', options=None):
         elif filename == settings.GITIGNORE_FILENAME:
             paths.extend(_copy_template_file(filename, Path(cwd) / filename, cwd, options))
         elif filename == settings.STANDALONE_SAMPLE_FILENAME:
-            paths.extend(_copy_template_file(filename, Path(cwd) / filename, cwd, options))
+            paths.extend(_copy_template_file(filename, Path(cwd) / utils.get_module_name_with_suffix(config['metadata']['project_name']), 
+                                             cwd, options))
         elif filename == settings.STANDALONE_SAMPLE_TEST_FILENAME:
-            paths.extend(_copy_template_file(filename, Path(cwd) / settings.TESTS_DIRNAME / filename, cwd, options))
+            paths.extend(write_file_from_template(filename, Path(cwd) / settings.TESTS_DIRNAME / utils.get_module_name_with_suffix(config['metadata']['project_name'] + '_test'), 
+                                                  config['metadata'], cwd, options))
         elif filename == settings.PYINIT_FILENAME:
             paths.extend(_copy_template_file(settings.SAMPLE_MODULE_FILENAME, Path(cwd) / settings.TESTS_DIRNAME / filename, cwd, options))
         elif filename == settings.MAKEFILE_FILENAME:

@@ -2,6 +2,9 @@
 # -*- coding: utf-8 -*-
 
 
+from enum import Enum
+
+
 SUGGESTED_INITIAL_RELEASE_TAG = '0.1.0'
 
 REQUIREMENTS_FILENAME = 'requirements.txt'
@@ -107,7 +110,12 @@ REPOASSIST_FILES = [
     FORMATTER_FILENAME,
 ]
 
+class ProjectType(Enum):
+    PACKAGE = 'package'
+    SCRIPT = 'script'
+
 CONFIG_MANDATORY_FIELDS = [
+    'project_type',
     'repo_name',
     'project_name',
     'author',

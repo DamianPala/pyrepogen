@@ -4,7 +4,7 @@
 
 import pytest
 
-from sample_standalone import get_sum
+from {{project_name}} import get_sum
 
 
 def test_get_sum():

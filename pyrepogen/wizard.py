@@ -22,7 +22,7 @@ def choose_bool(name, msg):
     return True if choose_one(name, msg, ['y', 'n']) == 'y' else False
 
 
-def is_checkpoint_ok(name, msg, choices, valid_value):
+def is_checkpoint_ok(name, msg, choices=['y', 'n'], valid_value='y'):
     choice = choose_one(name, msg, choices)
             
     return True if choice == valid_value else False

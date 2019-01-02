@@ -57,7 +57,7 @@ def read_setup_cfg(cwd='.'):
     
     config = configparser.ConfigParser()
     if not config.read(filepath, 'utf-8'):
-        raise exceptions.FileNotFoundError("{} file not found!".format(filepath.name), logger=_logger)
+        raise exceptions.FileNotFoundError("{} file not found!".format(filepath.name), _logger)
     
     for section in config.sections():
         config_dict[section] = {}
@@ -75,5 +75,9 @@ def read_setup_cfg(cwd='.'):
 def validate_config(config):
     for field in settings.CONFIG_MANDATORY_FIELDS:
         if field not in config:
-            raise exceptions.ConfigError("The {} field not found in the config!".format(field), logger=_logger)
+            raise exceptions.ConfigError("The {} field not found in the config!".format(field), _logger)
+        
+def get_module_name_with_suffix(module_name):
+    return "{}.py".format(module_name)
+
         

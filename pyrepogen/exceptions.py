@@ -25,6 +25,9 @@ class FileNotFoundError(PyRepoGenError):
 class NameError(PyRepoGenError):
     pass
 
+class ValueError(PyRepoGenError):
+    pass
+
 class ReleaseMetadataError(PyRepoGenError):
     pass
 
@@ -38,5 +41,14 @@ class NotAFileError(PyRepoGenError):
     pass
 
 class FileExistsError(PyRepoGenError):
+    pass
+
+class ReleaseCheckoutError(PyRepoGenError):
+    pass
+
+class ReleaseTagError(PyRepoGenError):
+    pass
+
+class VersionNotFoundError(PyRepoGenError):
     pass
 

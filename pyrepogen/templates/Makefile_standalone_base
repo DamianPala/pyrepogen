@@ -47,6 +47,7 @@ format:
 	@$(PYTHON) -m repoassist format $(FORMAT_ARGS)
 
 clean:
+#TODO: pycache ant pytest casche clean
 	$(RM) -rf build/
 	$(RM) -rf dist/
 	$(RM) -rf *.egg-info

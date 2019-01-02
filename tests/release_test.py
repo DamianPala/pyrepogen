@@ -4,11 +4,12 @@ import inspect
 import shutil
 import os
 import stat
+import re
 from pathlib import Path
 from pprint import pprint
 from pbr import git
 
-from pyrepogen import prepare, settings, logger, release, pygittools, exceptions
+from pyrepogen import (prepare, settings, logger, release, pygittools, exceptions, utils)
 
 
 TESTS_SETUPS_PATH = Path(inspect.getframeinfo(inspect.currentframe()).filename).parent / 'tests_setups/release_test'
@@ -19,6 +20,7 @@ _logger = logger.create_logger()
 
 class Args:
     force = True
+    cloud = False
 
 def _error_remove_readonly(_action, name, _exc):
     os.chmod(name, stat.S_IWRITE)
@@ -64,6 +66,7 @@ def test_make_release_SHOULD_prepare_release_properly():
     
     config = {
         'metadata': {
+            'project_type': 'script',
             'repo_name': 'sample-repo',
             'project_name': 'sample_project',
             'author': 'Damian', 
@@ -89,7 +92,7 @@ def test_make_release_SHOULD_prepare_release_properly():
     pygittools.commit("Initial Commit", cwd)
     pygittools.set_tag(cwd, '0.1.0', "First Release")
     
-    archive_name = release.make_release(cwd)
+    archive_name = release.make_release(prompt=False, cwd=cwd)
     unpack_dir = Path(cwd) / Path(archive_name).stem
     
     if (unpack_dir.exists()):
@@ -120,7 +123,7 @@ def test_make_release_SHOULD_rise_error_when_no_commit():
     pygittools.init(cwd)
     
     try:
-        release.make_release(cwd)
+        release.make_release(prompt=False, cwd=cwd)
     except exceptions.ReleaseMetadataError as e:
         assert "Retrieving latest commit hash error" in str(e)
             
@@ -134,6 +137,7 @@ def test_make_release_SHOULD_rise_error_when_no_release_tag():
     
     config = {
         'metadata': {
+            'project_type': 'script',
             'repo_name': 'sample-repo',
             'project_name': 'sample_project',
             'author': 'Damian', 
@@ -153,8 +157,118 @@ def test_make_release_SHOULD_rise_error_when_no_release_tag():
     pygittools.commit("Initial Commit", cwd)
     
     try:
-        release.make_release(cwd)
+        release.make_release(prompt=False, cwd=cwd)
     except exceptions.ReleaseMetadataError as e:
         assert "Retrieving release tag error" in str(e)
             
+            
+@pytest.mark.skipif(SKIP_ALL_MARKED, reason="Skipped on request")
+def test_update_version_standalone_SHOULD_update_version_properly():
+    cwd = TESTS_SETUPS_PATH / 'test_update_version_standalone_SHOULD_update_version_properly'
+    if Path(cwd).exists():
+        shutil.rmtree(Path(cwd), ignore_errors=False, onerror=_error_remove_readonly)
+    Path(cwd).mkdir(parents=True, exist_ok=True)
+    
+    config = {
+        'metadata': {
+            'project_type': 'script',
+            'repo_name': 'sample-repo',
+            'project_name': 'sample_project',
+            'author': 'Damian', 
+            'author_email': 'mail@mail.com',
+            'short_description': 'This is a sample project',
+            'year': '2018',
+        },
+    }
+    
+    options = Args()
+    options.force = True
+    
+    prepare.generate_standalone_repo(config, cwd, options)
+    release._update_version_standalone('1.2.3-alpha.4', cwd)
+    
+    project_name = config['metadata']['project_name']
+    project_module_name = utils.get_module_name_with_suffix(project_name)
+    with open(cwd / project_module_name, 'r') as file:
+        content = file.read()
+        m = re.search(release._VERSION_REGEX, content)
+        assert m.group(0) == "__version__ = '1.2.3-alpha.4'"
+        
+    if Path(cwd).exists():
+        shutil.rmtree(Path(cwd), ignore_errors=False, onerror=_error_remove_readonly)
+        
+        
+@pytest.mark.skipif(SKIP_ALL_MARKED, reason="Skipped on request")
+def test_update_version_standalone_SHOULD_rise_error_when_no_project_module():
+    cwd = TESTS_SETUPS_PATH / 'test_update_version_standalone_SHOULD_rise_error_when_no_project_module'
+    if Path(cwd).exists():
+        shutil.rmtree(Path(cwd), ignore_errors=False, onerror=_error_remove_readonly)
+    Path(cwd).mkdir(parents=True, exist_ok=True)
+    
+    config = {
+        'metadata': {
+            'project_type': 'script',
+            'repo_name': 'sample-repo',
+            'project_name': 'sample_project',
+            'author': 'Damian', 
+            'author_email': 'mail@mail.com',
+            'short_description': 'This is a sample project',
+            'year': '2018',
+        },
+    }
+    
+    options = Args()
+    options.force = True
+    
+    project_name = config['metadata']['project_name']
+    project_module_name = utils.get_module_name_with_suffix(project_name)
+    
+    prepare.generate_standalone_repo(config, cwd, options)
+    (cwd / project_module_name).unlink()
+    
+    try:
+        release._update_version_standalone('1.2.3-alpha.4', cwd)
+    except exceptions.FileNotFoundError as e:
+        assert "Project module file sample_project.py not found" in str(e)
+        
+    if Path(cwd).exists():
+        shutil.rmtree(Path(cwd), ignore_errors=False, onerror=_error_remove_readonly)
+        
+        
+@pytest.mark.skipif(SKIP_ALL_MARKED, reason="Skipped on request")
+def test_update_version_standalone_SHOULD_rise_error_when_no_version_in_module():
+    cwd = TESTS_SETUPS_PATH / 'test_update_version_standalone_SHOULD_rise_error_when_no_project_module'
+    if Path(cwd).exists():
+        shutil.rmtree(Path(cwd), ignore_errors=False, onerror=_error_remove_readonly)
+    Path(cwd).mkdir(parents=True, exist_ok=True)
+    
+    config = {
+        'metadata': {
+            'project_type': 'script',
+            'repo_name': 'sample-repo',
+            'project_name': 'sample_project',
+            'author': 'Damian', 
+            'author_email': 'mail@mail.com',
+            'short_description': 'This is a sample project',
+            'year': '2018',
+        },
+    }
+    
+    options = Args()
+    options.force = True
+    
+    project_name = config['metadata']['project_name']
+    project_module_name = utils.get_module_name_with_suffix(project_name)
+    
+    prepare.generate_standalone_repo(config, cwd, options)
+    with open(cwd / project_module_name, 'w'):
+        pass
+    
+    try:
+        release._update_version_standalone('1.2.3-alpha.4', cwd)
+    except exceptions.VersionNotFoundError as e:
+        assert "__version__ variable not found in the sample_project.py file" in str(e)
+        
+    if Path(cwd).exists():
+        shutil.rmtree(Path(cwd), ignore_errors=False, onerror=_error_remove_readonly)
     

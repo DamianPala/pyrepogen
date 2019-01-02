@@ -55,7 +55,8 @@ def main():
                 config['metadata'] = {}
                 
                 if not IS_DEBUG:
-                    project_type = wizard.choose_one(__name__, "Python package or standalone script layout?", ['package', 'script'])
+                    project_type = wizard.choose_one(__name__, "Python package or standalone script layout?", [settings.ProjectType.PACKAGE.value, settings.ProjectType.SCRIPT.value])
+                    config['metadata']['project_type'] = project_type
                     is_cloud = wizard.choose_bool(__name__, "Create a cloud server feature?")
                     is_sample_layout = wizard.choose_bool(__name__, "Generate sample python files?")
                     config['metadata']['repo_name'] = wizard.get_data(__name__, "Enter repository name")
@@ -77,9 +78,9 @@ def main():
                     dest_dir = _get_dest_dir('sandbox')
                     project_type = 'script'
                 
-                if project_type == 'package':
+                if project_type == settings.ProjectType.PACKAGE.value:
                     pass
-                elif project_type == 'script':
+                elif project_type == settings.ProjectType.SCRIPT.value:
                     prepare.generate_standalone_repo(config, cwd=dest_dir, options=args)
                 else:
                     sys.exit("Unknown project type.")
