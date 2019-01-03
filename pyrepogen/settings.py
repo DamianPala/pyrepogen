@@ -3,6 +3,7 @@
 
 
 from enum import Enum
+from pathlib import Path
 
 
 SUGGESTED_INITIAL_RELEASE_TAG = '0.1.0'
@@ -42,7 +43,7 @@ RELEASE_PACKAGE_SUFFIX = "_release"
 SETUP_CFG_FILENAME = 'setup.cfg'
 SETUP_CFG_STANDALONE_FILENAME = 'setup_standalone.cfg'
 SETUP_CFG_PACKAGE_FILENAME = 'setup_package.cfg'
-CHANGELOG_FILENAME = 'ChangeLog'
+CHANGELOG_FILENAME = 'CHANGELOG.md'
 AUTHORS_FILENAME = 'AUTHORS'
 GITIGNORE_FILENAME = '.gitignore'
 README_FILENAME = 'README.md'
@@ -92,7 +93,8 @@ STANDALONE_REPO_FILES_TO_GEN = [
 STANDALONE_REPO_DIRS_TO_GEN = [
     DOCS_DIRNAME,
     TESTS_DIRNAME,
-    REPOASSIST_DIRNAME
+    REPOASSIST_DIRNAME,
+    str(Path(REPOASSIST_DIRNAME) / TEMPLATES_DIRNAME)
 ]
 
 REPOASSIST_FILES = [
@@ -108,11 +110,16 @@ REPOASSIST_FILES = [
     CLOUD_FILENAME,
     WIZARD_FILENAME,
     FORMATTER_FILENAME,
+    CHANGELOG_FILENAME,
 ]
 
 class ProjectType(Enum):
     PACKAGE = 'package'
     SCRIPT = 'script'
+    
+class ChangelogType(Enum):
+    GENERATED = 'generated'
+    PREPARED = 'prepared'
 
 CONFIG_MANDATORY_FIELDS = [
     'project_type',
@@ -121,5 +128,6 @@ CONFIG_MANDATORY_FIELDS = [
     'author',
     'author_email',
     'short_description',
+    'changelog_type',
     'year',
 ]

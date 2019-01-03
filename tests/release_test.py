@@ -15,6 +15,19 @@ from pyrepogen import (prepare, settings, logger, release, pygittools, exception
 TESTS_SETUPS_PATH = Path(inspect.getframeinfo(inspect.currentframe()).filename).parent / 'tests_setups/release_test'
 SKIP_ALL_MARKED = False
 
+_DEFAULT_CONFIG = {
+    'metadata': {
+        'project_type': settings.ProjectType.SCRIPT.value,
+        'repo_name': 'sample-repo',
+        'project_name': 'sample_project',
+        'author': 'Damian', 
+        'author_email': 'mail@mail.com',
+        'short_description': 'This is a sample project',
+        'changelog_type': settings.ChangelogType.GENERATED.value,
+        'year': '2018',
+    },
+}
+
 _logger = logger.create_logger()
 
 
@@ -46,9 +59,9 @@ def test_generate_file_pbr_SHOULD_generate_file_properly():
     pygittools.add(str(Path(cwd) / 'file.txt'), cwd)
     pygittools.commit("Initial Commit", cwd)
     
-    release._generate_file_pbr(settings.CHANGELOG_FILENAME, git.write_git_changelog, cwd)
+    release._generate_file_pbr('ChangeLog', git.write_git_changelog, cwd)
     
-    with open(Path(cwd) / settings.CHANGELOG_FILENAME, 'r') as file:
+    with open(Path(cwd) / 'ChangeLog', 'r') as file:
         changelog_content = file.read()
         
     if Path(cwd).exists():
@@ -64,22 +77,10 @@ def test_make_release_SHOULD_prepare_release_properly():
         shutil.rmtree(Path(cwd), ignore_errors=False, onerror=_error_remove_readonly)
     Path(cwd).mkdir(parents=True, exist_ok=True)
     
-    config = {
-        'metadata': {
-            'project_type': 'script',
-            'repo_name': 'sample-repo',
-            'project_name': 'sample_project',
-            'author': 'Damian', 
-            'author_email': 'mail@mail.com',
-            'short_description': 'This is a sample project',
-            'year': '2018',
-        },
-    }
-    
     options = Args()
     options.force = True
     
-    paths = prepare.generate_standalone_repo(config, cwd, options)
+    paths = prepare.generate_standalone_repo(_DEFAULT_CONFIG, cwd, options)
     expected_paths = {path.relative_to(cwd).as_posix() for path in paths}
     expected_paths.add(settings.AUTHORS_FILENAME)
     expected_paths.add(settings.CHANGELOG_FILENAME)
@@ -120,12 +121,17 @@ def test_make_release_SHOULD_rise_error_when_no_commit():
     options = Args()
     options.force = True
     
+    prepare.generate_standalone_repo(_DEFAULT_CONFIG, cwd, options)
+    
     pygittools.init(cwd)
     
     try:
         release.make_release(prompt=False, cwd=cwd)
     except exceptions.ReleaseMetadataError as e:
         assert "Retrieving latest commit hash error" in str(e)
+        
+    if Path(cwd).exists():
+        shutil.rmtree(Path(cwd), ignore_errors=False, onerror=_error_remove_readonly)
             
 
 @pytest.mark.skipif(SKIP_ALL_MARKED, reason="Skipped on request")
@@ -135,17 +141,7 @@ def test_make_release_SHOULD_rise_error_when_no_release_tag():
         shutil.rmtree(Path(cwd), ignore_errors=False, onerror=_error_remove_readonly)
     Path(cwd).mkdir(parents=True, exist_ok=True)
     
-    config = {
-        'metadata': {
-            'project_type': 'script',
-            'repo_name': 'sample-repo',
-            'project_name': 'sample_project',
-            'author': 'Damian', 
-            'author_email': 'mail@mail.com',
-            'short_description': 'This is a sample project',
-            'year': '2018',
-        },
-    }
+    config = _DEFAULT_CONFIG
     
     options = Args()
     options.force = True
@@ -169,17 +165,7 @@ def test_update_version_standalone_SHOULD_update_version_properly():
         shutil.rmtree(Path(cwd), ignore_errors=False, onerror=_error_remove_readonly)
     Path(cwd).mkdir(parents=True, exist_ok=True)
     
-    config = {
-        'metadata': {
-            'project_type': 'script',
-            'repo_name': 'sample-repo',
-            'project_name': 'sample_project',
-            'author': 'Damian', 
-            'author_email': 'mail@mail.com',
-            'short_description': 'This is a sample project',
-            'year': '2018',
-        },
-    }
+    config = _DEFAULT_CONFIG
     
     options = Args()
     options.force = True
@@ -205,17 +191,7 @@ def test_update_version_standalone_SHOULD_rise_error_when_no_project_module():
         shutil.rmtree(Path(cwd), ignore_errors=False, onerror=_error_remove_readonly)
     Path(cwd).mkdir(parents=True, exist_ok=True)
     
-    config = {
-        'metadata': {
-            'project_type': 'script',
-            'repo_name': 'sample-repo',
-            'project_name': 'sample_project',
-            'author': 'Damian', 
-            'author_email': 'mail@mail.com',
-            'short_description': 'This is a sample project',
-            'year': '2018',
-        },
-    }
+    config = _DEFAULT_CONFIG
     
     options = Args()
     options.force = True
@@ -242,17 +218,7 @@ def test_update_version_standalone_SHOULD_rise_error_when_no_version_in_module()
         shutil.rmtree(Path(cwd), ignore_errors=False, onerror=_error_remove_readonly)
     Path(cwd).mkdir(parents=True, exist_ok=True)
     
-    config = {
-        'metadata': {
-            'project_type': 'script',
-            'repo_name': 'sample-repo',
-            'project_name': 'sample_project',
-            'author': 'Damian', 
-            'author_email': 'mail@mail.com',
-            'short_description': 'This is a sample project',
-            'year': '2018',
-        },
-    }
+    config = _DEFAULT_CONFIG
     
     options = Args()
     options.force = True

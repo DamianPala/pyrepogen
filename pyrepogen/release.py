@@ -25,30 +25,36 @@ _VERSION_REGEX = r"__version__ *= *['|\"]\S+"
 class ReleaseAction(Enum):
     MAKE_RELEASE = 'rel'
     REGENERATE = 'reg'
+    
 
 def make_release(prompt=True, cwd='.'):
     _logger.info("Preparing Release Package...")
     release_files_paths = []
+    config_metadata = utils.read_setup_cfg(cwd)['metadata']
     
     if prompt:
-        action = _release_checkout()
+        action = _release_checkout(config_metadata)
         if action == ReleaseAction.MAKE_RELEASE:
-            project_type = utils.read_setup_cfg(cwd)['metadata']['project_type']
             new_release_tag = _prompt_release_metadata(cwd)
             new_release_msg = _prompt_release_msg()
             
-            if project_type == settings.ProjectType.SCRIPT.value:
+            if config_metadata['project_type'] == settings.ProjectType.SCRIPT.value:
 #                 TODO: check if updated file has not changed - git
                 _update_version_standalone(new_release_tag, cwd)
+            else:
+                pass
+            
+
             
             return
-            update_changelog()
-            update_authors()
             commit_and_push_release_update()
             
     release_metadata = _get_release_metadata(cwd)
-    release_files_paths.append(_generate_changelog(cwd))
-    release_files_paths.append(_generate_authors(cwd))
+    if config_metadata['changelog_type'] == settings.ChangelogType.GENERATED.value:
+        release_files_paths.append(_update_changelog(cwd))
+    else:
+        release_files_paths.append(Path(cwd).resolve() / settings.CHANGELOG_FILENAME)
+    release_files_paths.append(_update_authors(cwd))
     release_files_paths.extend(utils.get_git_repo_tree(cwd))
     
     unique_release_files_paths = list(set(release_files_paths))
@@ -60,7 +66,7 @@ def make_release(prompt=True, cwd='.'):
     return package_path
 
 
-def _release_checkout():
+def _release_checkout(config_metadata):
     action = wizard.choose_one(__name__, "Make Release or Regenerate a release package using the actual release metadata",
                                choices=[ReleaseAction.MAKE_RELEASE.value, ReleaseAction.REGENERATE.value])
     action = ReleaseAction.MAKE_RELEASE if action == ReleaseAction.MAKE_RELEASE.value else ReleaseAction.REGENERATE
@@ -74,6 +80,9 @@ def _release_checkout():
             raise exceptions.ReleaseCheckoutError("Complete {} file!".format(settings.README_FILENAME), _logger)
         if not wizard.is_checkpoint_ok(__name__, "Is there something that should be added to {} file?".format(settings.TODO_FILENAME), valid_value='n'):
             raise exceptions.ReleaseCheckoutError("Complete {} file!".format(settings.TODO_FILENAME), _logger)
+        if config_metadata['changelog_type'] == settings.ChangelogType.PREPARED.value:
+            if not wizard.is_checkpoint_ok(__name__, "Is the {} file up to date?".format(settings.CHANGELOG_FILENAME)):
+                raise exceptions.ReleaseCheckoutError("Complete {} file!".format(settings.CHANGELOG_FILENAME), _logger)
         
     return action
 
@@ -96,6 +105,25 @@ def _update_version_standalone(release_tag, cwd='.'):
         raise exceptions.FileNotFoundError("Project module file {} not found. The Project Module must have the same name as the project_name entry in {}".format(
             project_module_name, settings.SETUP_CFG_FILENAME), _logger)
         
+
+def _update_changelog(cwd='.'):
+    _logger.info("Updating {} file...".format(settings.CHANGELOG_FILENAME))
+    
+    changelog_path = Path(cwd).resolve() / settings.CHANGELOG_FILENAME
+    changelog = pygittools.get_changelog(report_format="### Version: %(tag) | Released: %(taggerdate:short) \r\n%(contents)", cwd=cwd)
+    if changelog['returncode'] != 0:
+        raise exceptions.ChangelogGenerateError("Changelog generation error: {}".format(changelog['msg']), _logger)
+    else:
+        changelog_content = changelog['msg']
+    
+    shutil.copy(Path(cwd).resolve() / settings.REPOASSIST_DIRNAME / settings.TEMPLATES_DIRNAME / settings.CHANGELOG_FILENAME, Path(cwd).resolve() / settings.CHANGELOG_FILENAME)
+    with open(changelog_path, 'a') as file:
+        file.write(changelog_content)
+    
+    _logger.info("{} file updated".format(settings.CHANGELOG_FILENAME))    
+    
+    return changelog_path
+
 
 def _prompt_release_metadata(cwd=''):
     latest_release_tag_ret = pygittools.get_latest_tag(cwd)
@@ -175,11 +203,7 @@ def _prompt_release_msg():
     return message
 
 
-def _generate_changelog(cwd='.'):
-    return _generate_file_pbr(settings.CHANGELOG_FILENAME, git.write_git_changelog, cwd)
-    
-    
-def _generate_authors(cwd='.'):
+def _update_authors(cwd='.'):
     return _generate_file_pbr(settings.AUTHORS_FILENAME, git.generate_authors, cwd)
     
     
@@ -201,7 +225,7 @@ def _generate_file_pbr(filename, gen_handler, cwd='.'):
     else:
         is_error = True
         
-    if new_mtime == current_mtime:
+    if not is_error and new_mtime == current_mtime:
         is_error = True
         
     if is_error:

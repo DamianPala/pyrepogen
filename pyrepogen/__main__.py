@@ -55,7 +55,7 @@ def main():
                 config['metadata'] = {}
                 
                 if not IS_DEBUG:
-                    project_type = wizard.choose_one(__name__, "Python package or standalone script layout?", [settings.ProjectType.PACKAGE.value, settings.ProjectType.SCRIPT.value])
+                    project_type = wizard.choose_one(__name__, "Python package or standalone script layout?", settings.ProjectType)
                     config['metadata']['project_type'] = project_type
                     is_cloud = wizard.choose_bool(__name__, "Create a cloud server feature?")
                     is_sample_layout = wizard.choose_bool(__name__, "Generate sample python files?")
@@ -69,6 +69,7 @@ def main():
                     config['metadata']['maintainer_email'] = wizard.get_data(__name__, "Enter maintainer email")
                     config['metadata']['short_description'] = wizard.get_data(__name__, "Enter short project description")
                     config['metadata']['home_page'] = wizard.get_data(__name__, "Enter home page")
+                    config['metadata']['changelog_type'] = wizard.choose_one(__name__, "Select a changelog type", settings.ChangelogType)
                     config['metadata']['year'] = str(datetime.datetime.now().year)
                     
                     args.cloud = is_cloud
@@ -76,7 +77,7 @@ def main():
                 else:
                     _get_mock_data(config, args)
                     dest_dir = _get_dest_dir('sandbox')
-                    project_type = 'script'
+                    project_type = settings.ProjectType.SCRIPT.value
                 
                 if project_type == settings.ProjectType.PACKAGE.value:
                     pass
@@ -98,7 +99,9 @@ def _get_mock_data(config, args):
     config['metadata']['maintainer_email'] = 'mike@mail.com'
     config['metadata']['project_name'] = 'my_project'
     config['metadata']['repo_name'] = 'myrepo'
+    config['metadata']['project_type'] = settings.ProjectType.PACKAGE.value
     config['metadata']['short_description'] = 'This is super project.'
+    config['metadata']['changelog_type'] = settings.ChangelogType.GENERATED.value
     config['metadata']['year'] = '2018'
     
     args.cloud = True

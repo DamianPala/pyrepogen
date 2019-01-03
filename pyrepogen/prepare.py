@@ -26,7 +26,7 @@ def generate_standalone_repo(config, cwd='.', options=None):
     Path(cwd).mkdir(parents=True, exist_ok=True)
     paths.extend(_generate_standalone_repo_dirs(cwd))
     paths.extend(_generate_standalone_repo_files(config, cwd, options))
-    paths.extend(_prepare_repoasist(cwd, options))
+    paths.extend(_prepare_repoasist(config, cwd, options))
     
     _logger.info("Repository files generated.")
     
@@ -146,7 +146,7 @@ def _prepare_requirements(path, reqs, cwd, options=None):
         return []
     
 
-def _prepare_repoasist(cwd, options=None):
+def _prepare_repoasist(config, cwd, options=None):
     paths = []
     for filename in settings.REPOASSIST_FILES:
         if filename == settings.REPOASSIST_MAIN_FILENAME:
@@ -173,6 +173,8 @@ def _prepare_repoasist(cwd, options=None):
             paths.extend(_copy_file(filename, Path(cwd) / settings.REPOASSIST_DIRNAME / filename, cwd, options))
         elif filename == settings.PYINIT_FILENAME:
             paths.extend(_copy_template_file(settings.SAMPLE_MODULE_FILENAME, Path(cwd) / settings.REPOASSIST_DIRNAME / filename, cwd, options))
+        elif filename == settings.CHANGELOG_FILENAME:    
+            paths.extend(write_file_from_template(settings.CHANGELOG_FILENAME, Path(cwd) / settings.REPOASSIST_DIRNAME / settings.TEMPLATES_DIRNAME / filename, config['metadata'], cwd, options))
         else:
             paths.extend(_generate_empty_file(Path(cwd) / settings.REPOASSIST_DIRNAME / filename, cwd, options))
             

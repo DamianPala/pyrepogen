@@ -89,9 +89,12 @@ def get_latest_commit_hash(cwd='.'):
     return _execute_cmd_and_strip(["git", "log", "--pretty=format:%h", "-n", "1"], cwd)
     
     
-def get_changelog(cwd='.'):
+def get_changelog(report_format=None, cwd='.'):
+    if not report_format:
+        report_format = "%(taggerdate:short) | Release: %(tag) \r\n%(contents)"
+        
     return _execute_cmd_and_strip(["git", "for-each-ref", "--sort=-creatordate",
-                               "--format=%(taggerdate:short) | Release: %(tag) \r\n%(contents)",
+                               "--format={}".format(report_format),
                                "refs/tags"], cwd)
 
 
@@ -137,4 +140,6 @@ def _execute_cmd_and_strip(args, cwd='.'):
     
 if __name__ == '__main__':
 #     print(list_git_repo_tree())
-    print(add('test.txt'))
+#     print(add('test.txt'))
+    
+    print(get_changelog(report_format="### Version: %(tag) | Released: %(taggerdate:short) \r\n%(contents)"))

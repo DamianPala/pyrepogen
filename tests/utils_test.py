@@ -7,7 +7,7 @@ import datetime
 from pathlib import Path
 from pprint import pprint
 
-from pyrepogen import utils, logger
+from pyrepogen import utils, logger, settings
 
 
 TESTS_SETUPS_PATH = Path(inspect.getframeinfo(inspect.currentframe()).filename).parent / 'tests_setups/utils_test'
@@ -31,7 +31,7 @@ def test_read_setup_cfg_SHOULD_read_config_properly():
 
     expected_config = {
         'metadata': {
-            'project_type': 'script',
+            'project_type': settings.ProjectType.SCRIPT.value,
             'author': 'Damian',
             'author_email': 'damian@mail.com',
             'home_page': 'page.com',
@@ -40,6 +40,7 @@ def test_read_setup_cfg_SHOULD_read_config_properly():
             'project_name': 'sample_project',
             'repo_name': 'sample-repo',
             'short_description': 'This is a sample project',
+            'changelog_type': settings.ChangelogType.GENERATED.value,
             'year': str(datetime.datetime.now().year)
         }
     }

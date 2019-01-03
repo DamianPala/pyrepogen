@@ -14,6 +14,20 @@ TESTS_SETUPS_PATH = Path(inspect.getframeinfo(inspect.currentframe()).filename).
 _logger = logger.create_logger()
 
 
+_DEFAULT_CONFIG = {
+    'metadata': {
+        'project_type': settings.ProjectType.SCRIPT.value,
+        'repo_name': 'sample-repo',
+        'project_name': 'sample_project',
+        'author': 'Damian', 
+        'author_email': 'mail@mail.com',
+        'short_description': 'This is a sample project',
+        'changelog_type': settings.ChangelogType.GENERATED.value,
+        'year': '2018',
+    },
+}
+
+
 class Args:
     force = True
     cloud = False
@@ -33,6 +47,11 @@ def test_generate_standalone_repo_dirs():
     generated_dirset = set()
     for dirname in Path(cwd).iterdir():
         generated_dirset.add(dirname.name)
+        if dirname.name == settings.REPOASSIST_DIRNAME:
+            for dirnamelvl2 in (Path(cwd) / settings.REPOASSIST_DIRNAME).iterdir():
+                generated_dirset.add(str(Path(dirname.name) / dirnamelvl2.name))
+        
+    pprint(generated_dirset)
         
     assert generated_dirset == set(settings.STANDALONE_REPO_DIRS_TO_GEN)
     
@@ -51,8 +70,8 @@ def test_generate_standalone_repo_SHOULD_generate_repo_tree_properly():
         '.gitignore',
         'TODO.md',
         'conftest.py',
-        'sample_standalone.py',
-        'tests/sample_standalone_test.py',
+        '{}.py'.format(_DEFAULT_CONFIG['metadata']['project_name']),
+        'tests/{}_test.py'.format(_DEFAULT_CONFIG['metadata']['project_name']),
         'tests/__init__.py',
         'requirements.txt',
         'requirements-dev.txt',
@@ -60,6 +79,7 @@ def test_generate_standalone_repo_SHOULD_generate_repo_tree_properly():
         'LICENSE',
         'tox.ini',
         'setup.cfg',
+        'repoassist/templates',
         'repoassist/__init__.py',
         'repoassist/__main__.py',
         'repoassist/colreqs.py',
@@ -68,20 +88,15 @@ def test_generate_standalone_repo_SHOULD_generate_repo_tree_properly():
         'repoassist/release.py',
         'repoassist/pygittools.py',
         'repoassist/utils.py',
+        'repoassist/formatter.py',
+        'repoassist/wizard.py',
+        'repoassist/cloud.py',
         'repoassist/exceptions.py',
+        'repoassist/templates/CHANGELOG.md',
         'cloud_credentials.txt',
     }
     
-    config = {
-        'metadata': {
-            'repo_name': 'sample-repo',
-            'project_name': 'sample_project',
-            'author': 'Damian', 
-            'author_email': 'mail@mail.com',
-            'short_description': 'This is a sample project',
-            'year': '2018',
-        },
-    }
+    config = _DEFAULT_CONFIG
     
     args = Args
     args.force = False
@@ -129,31 +144,29 @@ def test_generate_standalone_repo_SHOULD_force_properly():
         Path(cwd) / settings.REQUIREMENTS_FILENAME,
         Path(cwd) / settings.REQUIREMENTS_DEV_FILENAME,
         Path(cwd) / settings.TOX_FILENAME,
-        Path(cwd) / settings.STANDALONE_SAMPLE_FILENAME,
-        Path(cwd) / settings.TESTS_DIRNAME / settings.STANDALONE_SAMPLE_TEST_FILENAME,
+#         Path(cwd) / settings.STANDALONE_SAMPLE_FILENAME,
+#         Path(cwd) / settings.TESTS_DIRNAME / settings.STANDALONE_SAMPLE_TEST_FILENAME,
         Path(cwd) / settings.TESTS_DIRNAME / settings.PYINIT_FILENAME,
+        Path(cwd) / settings.REPOASSIST_DIRNAME / settings.PYINIT_FILENAME,
         Path(cwd) / settings.REPOASSIST_DIRNAME / settings.REPOASSIST_TARGET_MAIN_FILENAME,
         Path(cwd) / settings.REPOASSIST_DIRNAME / settings.COLREQS_FILENAME,
         Path(cwd) / settings.REPOASSIST_DIRNAME / settings.SETTINGS_FILENAME,
         Path(cwd) / settings.REPOASSIST_DIRNAME / settings.LOGGER_FILENAME,
-        Path(cwd) / settings.REPOASSIST_DIRNAME / settings.PYINIT_FILENAME,
-        Path(cwd) / settings.REPOASSIST_DIRNAME / settings.REPOASSIST_TARGET_MAIN_FILENAME,
+        Path(cwd) / settings.REPOASSIST_DIRNAME / settings.RELEASE_FILENAME,
+        Path(cwd) / settings.REPOASSIST_DIRNAME / settings.EXCEPTIONS_FILENAME,
+        Path(cwd) / settings.REPOASSIST_DIRNAME / settings.UTILS_FILENAME,
+        Path(cwd) / settings.REPOASSIST_DIRNAME / settings.PYGITTOOLS_FILENAME,
+        Path(cwd) / settings.REPOASSIST_DIRNAME / settings.CLOUD_FILENAME,
+        Path(cwd) / settings.REPOASSIST_DIRNAME / settings.WIZARD_FILENAME,
+        Path(cwd) / settings.REPOASSIST_DIRNAME / settings.FORMATTER_FILENAME,
+        Path(cwd) / settings.REPOASSIST_DIRNAME / settings.TEMPLATES_DIRNAME / settings.CHANGELOG_FILENAME,
     ]
     
     args = Args
     args.force = True
     args.cloud = True
     
-    config = {
-        'metadata': {
-            'repo_name': 'sample-repo',
-            'project_name': 'sample_project',
-            'author': 'Damian', 
-            'author_email': 'mail@mail.com',
-            'short_description': 'This is a sample project',
-            'year': '2018',
-        },
-    }
+    config = _DEFAULT_CONFIG
         
     prepare.generate_standalone_repo(config, cwd, options=args)
      
@@ -170,16 +183,7 @@ def test_generate_standalone_repo_SHOULD_generate_makefile_without_cloud_properl
         shutil.rmtree(Path(cwd))
     Path(cwd).mkdir(parents=True, exist_ok=True)
     
-    config = {
-        'metadata': {
-            'repo_name': 'sample-repo',
-            'project_name': 'sample_project',
-            'author': 'Damian', 
-            'author_email': 'mail@mail.com',
-            'short_description': 'This is a sample project',
-            'year': '2018',
-        },
-    }
+    config = _DEFAULT_CONFIG
     
     options = Args
     options.force = True
@@ -203,16 +207,7 @@ def test_generate_standalone_repo_SHOULD_generate_makefile_with_cloud_properly()
         shutil.rmtree(Path(cwd))
     Path(cwd).mkdir(parents=True, exist_ok=True)
     
-    config = {
-        'metadata': {
-            'repo_name': 'sample-repo',
-            'project_name': 'sample_project',
-            'author': 'Damian', 
-            'author_email': 'mail@mail.com',
-            'short_description': 'This is a sample project',
-            'year': '2018',
-        },
-    }
+    config = _DEFAULT_CONFIG
     
     options = Args
     options.force = True

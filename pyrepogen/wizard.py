@@ -2,11 +2,17 @@
 # -*- coding: utf-8 -*-
 
 
+from enum import EnumMeta
+
+
 def get_data(name, msg):
     return input("{}: [WIZARD]: {}: ".format(name, msg))
     
     
 def choose_one(name, msg, choices):
+    if type(choices) is EnumMeta:
+        choices = [item.value for item in choices]
+    
     no_choice = True
     while no_choice:
         choice = input("{}: [CHECKPOINT]: {} ({}): ".format(name, msg, get_choices_string(choices)))
