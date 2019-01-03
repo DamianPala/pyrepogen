@@ -73,7 +73,9 @@ PYGITTOOLS_FILENAME = 'pygittools.py'
 CLOUD_FILENAME = 'cloud.py'
 WIZARD_FILENAME = 'wizard.py'
 FORMATTER_FILENAME = 'formatter.py'
+PREPARE_FILENAME = 'prepare.py'
 CLOUD_CREDENTIALS_FILENAME = "cloud_credentials.txt"
+REPOASSIST_VERSION = '{}_version'.format(REPOASSIST_DIRNAME)
 
 STANDALONE_REPO_FILES_TO_GEN = [
     README_FILENAME,
@@ -113,6 +115,7 @@ REPOASSIST_FILES = [
     WIZARD_FILENAME,
     FORMATTER_FILENAME,
     CHANGELOG_FILENAME,
+    PREPARE_FILENAME,
 ]
 
 class ProjectType(Enum):
@@ -132,6 +135,7 @@ CONFIG_MANDATORY_FIELDS = [
     'short_description',
     'changelog_type',
     'year',
+    REPOASSIST_VERSION
 ]
 
 AUTOMATIC_RELEASE_COMMIT_MSG = "Automatic update of release data files."

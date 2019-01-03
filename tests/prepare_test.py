@@ -24,6 +24,7 @@ _DEFAULT_CONFIG = {
         'short_description': 'This is a sample project',
         'changelog_type': settings.ChangelogType.GENERATED.value,
         'year': '2018',
+        'repoassist_version': '0.1.0'
     },
 }
 
@@ -95,17 +96,16 @@ def test_generate_standalone_repo_SHOULD_generate_repo_tree_properly():
         'repoassist/wizard.py',
         'repoassist/cloud.py',
         'repoassist/exceptions.py',
+        'repoassist/prepare.py',
         'repoassist/templates/CHANGELOG_generated.md',
         'cloud_credentials.txt',
     }
-    
-    config = _DEFAULT_CONFIG
     
     args = Args
     args.force = False
     args.cloud = True
     
-    paths = prepare.generate_standalone_repo(config, cwd, options=args)
+    paths = prepare.generate_standalone_repo(_DEFAULT_CONFIG, cwd, options=args)
     paths = {path.relative_to(cwd).as_posix() for path in paths}
     pprint(paths)
     
@@ -171,9 +171,7 @@ def test_generate_standalone_repo_SHOULD_force_properly():
     args.force = True
     args.cloud = True
     
-    config = _DEFAULT_CONFIG
-        
-    prepare.generate_standalone_repo(config, cwd, options=args)
+    prepare.generate_standalone_repo(_DEFAULT_CONFIG, cwd, options=args)
      
     for path in files_paths_to_overwrite:
         with open(path, 'r') as file:
@@ -188,13 +186,11 @@ def test_generate_standalone_repo_SHOULD_generate_makefile_without_cloud_properl
         shutil.rmtree(Path(cwd))
     Path(cwd).mkdir(parents=True, exist_ok=True)
     
-    config = _DEFAULT_CONFIG
-    
     options = Args
     options.force = True
     options.cloud = False
     
-    paths = prepare.generate_standalone_repo(config, cwd, options=options)
+    paths = prepare.generate_standalone_repo(_DEFAULT_CONFIG, cwd, options=options)
     paths = {path.relative_to(cwd).as_posix() for path in paths}
     
     with open(Path(cwd) / settings.MAKEFILE_FILENAME) as file:
@@ -212,13 +208,11 @@ def test_generate_standalone_repo_SHOULD_generate_makefile_with_cloud_properly()
         shutil.rmtree(Path(cwd))
     Path(cwd).mkdir(parents=True, exist_ok=True)
     
-    config = _DEFAULT_CONFIG
-    
     options = Args
     options.force = True
     options.cloud = True
     
-    paths = prepare.generate_standalone_repo(config, cwd, options=options)
+    paths = prepare.generate_standalone_repo(_DEFAULT_CONFIG, cwd, options=options)
     paths = {path.relative_to(cwd).as_posix() for path in paths}
     
     with open(Path(cwd) / settings.MAKEFILE_FILENAME) as file:

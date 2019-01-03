@@ -4,15 +4,12 @@
 
 import shutil
 import logging
-import configparser
-import datetime
+import jinja2
 from pathlib import Path
-from pprint import pprint
 
 from . import settings
-from . import exceptions
 from . import utils
-from pyrepogen import PARDIR
+from . import PARDIR
 
 
 _logger = logging.getLogger(__name__)
@@ -55,24 +52,24 @@ def _generate_standalone_repo_files(config, cwd='.', options=None):
         elif filename == settings.REQUIREMENTS_DEV_FILENAME:
             paths.extend(_prepare_requirements(Path(cwd) / filename, settings.REQUIREMENTS_DEV, cwd, options))
         elif filename == settings.TOX_STANDALONE_FILENAME:
-            paths.extend(utils.write_file_from_template(settings.TOX_STANDALONE_FILENAME, Path(cwd) / settings.TOX_FILENAME, 
+            paths.extend(write_file_from_template(settings.TOX_STANDALONE_FILENAME, Path(cwd) / settings.TOX_FILENAME, 
                                      {'tests_dirname': settings.TESTS_DIRNAME}, cwd, options))
         elif filename == settings.LICENSE_FILENAME:
-            paths.extend(utils.write_file_from_template(filename, Path(cwd) / filename, config['metadata'], cwd, options))
+            paths.extend(write_file_from_template(filename, Path(cwd) / filename, config['metadata'], cwd, options))
         elif filename == settings.SETUP_CFG_FILENAME:
-            paths.extend(utils.write_file_from_template(settings.SETUP_CFG_STANDALONE_FILENAME, Path(cwd) / filename, config['metadata'], cwd, options))
+            paths.extend(write_file_from_template(settings.SETUP_CFG_STANDALONE_FILENAME, Path(cwd) / filename, config['metadata'], cwd, options))
         elif filename == settings.GITIGNORE_FILENAME:
             paths.extend(_copy_template_file(filename, Path(cwd) / filename, cwd, options))
         elif filename == settings.STANDALONE_SAMPLE_FILENAME:
             paths.extend(_copy_template_file(filename, Path(cwd) / utils.get_module_name_with_suffix(config['metadata']['project_name']), 
                                              cwd, options))
         elif filename == settings.STANDALONE_SAMPLE_TEST_FILENAME:
-            paths.extend(utils.write_file_from_template(filename, Path(cwd) / settings.TESTS_DIRNAME / utils.get_module_name_with_suffix(config['metadata']['project_name'] + '_test'), 
+            paths.extend(write_file_from_template(filename, Path(cwd) / settings.TESTS_DIRNAME / utils.get_module_name_with_suffix(config['metadata']['project_name'] + '_test'), 
                                                   config['metadata'], cwd, options))
         elif filename == settings.PYINIT_FILENAME:
             paths.extend(_copy_template_file(settings.SAMPLE_MODULE_FILENAME, Path(cwd) / settings.TESTS_DIRNAME / filename, cwd, options))
         elif filename == settings.MAKEFILE_FILENAME:
-            paths.extend(utils.write_file_from_template(settings.MAKEFILE_STANDALONE_FILENAME, Path(cwd) / filename, config['metadata'], cwd, options))
+            paths.extend(write_file_from_template(settings.MAKEFILE_STANDALONE_FILENAME, Path(cwd) / filename, config['metadata'], cwd, options))
         elif filename == settings.LICENSE_FILENAME:
             paths.extend(_copy_template_file(filename, Path(cwd) / filename, cwd, options))
         elif filename == settings.CLOUD_CREDENTIALS_FILENAME:
@@ -82,6 +79,7 @@ def _generate_standalone_repo_files(config, cwd='.', options=None):
             paths.extend(_generate_empty_file(Path(cwd) / filename, cwd, options))
             
     return paths
+
 
 def _generate_empty_file(path, cwd, options=None):
     try:
@@ -170,8 +168,10 @@ def _prepare_repoasist(config, cwd, options=None):
             paths.extend(_copy_file(filename, Path(cwd) / settings.REPOASSIST_DIRNAME / filename, cwd, options))
         elif filename == settings.FORMATTER_FILENAME:
             paths.extend(_copy_file(filename, Path(cwd) / settings.REPOASSIST_DIRNAME / filename, cwd, options))
+        elif filename == settings.PREPARE_FILENAME:
+            paths.extend(_copy_file(filename, Path(cwd) / settings.REPOASSIST_DIRNAME / filename, cwd, options))
         elif filename == settings.PYINIT_FILENAME:
-            paths.extend(_copy_template_file(settings.SAMPLE_MODULE_FILENAME, Path(cwd) / settings.REPOASSIST_DIRNAME / filename, cwd, options))
+            paths.extend(write_file_from_template(filename, Path(cwd) / settings.REPOASSIST_DIRNAME / filename, config['metadata'], cwd, options))
         elif filename == settings.CHANGELOG_FILENAME:
             paths.extend(_copy_template_file(settings.CHANGELOG_GENERATED, Path(cwd) / settings.REPOASSIST_DIRNAME / settings.TEMPLATES_DIRNAME / settings.CHANGELOG_GENERATED, cwd, options))
         else:
@@ -180,3 +180,19 @@ def _prepare_repoasist(config, cwd, options=None):
     return paths
 
 
+def write_file_from_template(template_filename, dst, keywords, cwd='.', options=None, silent=False):
+    if (options and options.force) or (not Path(dst).exists()):
+        templateLoader = jinja2.FileSystemLoader(searchpath=str(Path(PARDIR) / settings.TEMPLATES_DIRNAME))
+        templateEnv = jinja2.Environment(loader=templateLoader, trim_blocks=True, lstrip_blocks=True, newline_sequence='\r\n')
+        template = templateEnv.get_template(template_filename)
+        template.stream(keywords, options=options).dump(str(dst))
+        
+        if not silent:
+            _logger.info("{} file generated.".format(Path(dst).relative_to(cwd)))
+         
+        return [dst]
+    else:
+        if not silent:
+            _logger.warning("{} file exists, not overwritten.".format(Path(dst).relative_to(cwd)))
+         
+        return []

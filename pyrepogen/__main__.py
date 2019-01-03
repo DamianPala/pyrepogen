@@ -14,6 +14,7 @@ from . import logger
 from . import wizard
 from . import prepare
 from . import exceptions
+from . import __version__
 
 
 IS_DEBUG = True
@@ -41,8 +42,7 @@ def main():
     logger.set_level(_logger, args)
         
     if args.version:
-#         TODO: add show version
-        pass
+        print(__version__)
     else:
         try:
             if args.repo_path:
@@ -71,6 +71,7 @@ def main():
                     config['metadata']['home_page'] = wizard.get_data(__name__, "Enter home page")
                     config['metadata']['changelog_type'] = wizard.choose_one(__name__, "Select a changelog type", settings.ChangelogType)
                     config['metadata']['year'] = str(datetime.datetime.now().year)
+                    config['metadata']['repoassist_version'] = __version__
                     
                     args.cloud = is_cloud
                     args.sample_layout = is_sample_layout
@@ -104,6 +105,7 @@ def _get_mock_data(config, args):
     config['metadata']['short_description'] = 'This is super project.'
     config['metadata']['changelog_type'] = settings.ChangelogType.GENERATED.value
     config['metadata']['year'] = '2018'
+    config['metadata']['repoassist_version'] = '0.1.0'
     
     args.cloud = True
     args.sample_layout = True

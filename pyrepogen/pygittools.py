@@ -31,16 +31,27 @@ def get_latest_tag(cwd='.'):
     return _execute_cmd_and_strip(['git', 'describe', '--abbrev=0', '--tags'], cwd)
 
 
+def get_latest_tag_all_branches(cwd='.'):
+    return _execute_cmd_and_strip(['git', 'describe', '--tags', '$(git rev-list --tags --max-count=1)'], cwd)
+
+
 def revert(commit_rollback, cwd='.'):
     return _execute_cmd_and_strip(['git', 'reset', '--hard', 'HEAD~{}'.format(commit_rollback)], cwd)
 
 
-def delete_latest_tag(cwd='.'):
-    ret = get_latest_tag(cwd)
+def delete_latest_tag(all_branches=False, cwd='.'):
+    if all_branches:
+        ret = get_latest_tag_all_branches(cwd)
+    else:
+        ret = get_latest_tag(cwd)
     if ret['returncode'] == 0:
         return _execute_cmd_and_strip(['git', 'tag', '-d', ret['msg']], cwd)
     else:
         return {'msg': "No tag found.", 'returncode': 1}
+    
+    
+def delete_tag(tag, cwd='.'):
+    return _execute_cmd_and_strip(['git', 'tag', '-d', tag], cwd)
     
 
 def get_latest_tag_msg(cwd='.'):

@@ -1,7 +1,5 @@
 
-import pytest
 import inspect
-import shutil
 import stat
 import datetime
 from pathlib import Path
@@ -41,7 +39,8 @@ def test_read_setup_cfg_SHOULD_read_config_properly():
             'repo_name': 'sample-repo',
             'short_description': 'This is a sample project',
             'changelog_type': settings.ChangelogType.GENERATED.value,
-            'year': str(datetime.datetime.now().year)
+            'year': str(datetime.datetime.now().year),
+            'repoassist_version': '0.1.0'
         }
     }
     

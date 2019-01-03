@@ -25,6 +25,7 @@ _DEFAULT_CONFIG = {
         'short_description': 'This is a sample project',
         'changelog_type': settings.ChangelogType.GENERATED.value,
         'year': '2018',
+        'repoassist_version': '0.1.0'
     },
 }
 
@@ -142,12 +143,10 @@ def test_make_release_SHOULD_rise_error_when_no_release_tag():
         shutil.rmtree(Path(cwd), ignore_errors=False, onerror=_error_remove_readonly)
     Path(cwd).mkdir(parents=True, exist_ok=True)
     
-    config = _DEFAULT_CONFIG
-    
     options = Args()
     options.force = True
     
-    paths = prepare.generate_standalone_repo(config, cwd, options)
+    paths = prepare.generate_standalone_repo(_DEFAULT_CONFIG, cwd, options)
     pygittools.init(cwd)
     for path in paths:
         pygittools.add(path, cwd)
@@ -169,15 +168,13 @@ def test_update_version_standalone_SHOULD_update_version_properly():
         shutil.rmtree(Path(cwd), ignore_errors=False, onerror=_error_remove_readonly)
     Path(cwd).mkdir(parents=True, exist_ok=True)
     
-    config = _DEFAULT_CONFIG
-    
     options = Args()
     options.force = True
     
-    prepare.generate_standalone_repo(config, cwd, options)
+    prepare.generate_standalone_repo(_DEFAULT_CONFIG, cwd, options)
     release._update_version_standalone('1.2.3-alpha.4', cwd)
     
-    project_name = config['metadata']['project_name']
+    project_name = _DEFAULT_CONFIG['metadata']['project_name']
     project_module_name = utils.get_module_name_with_suffix(project_name)
     with open(cwd / project_module_name, 'r') as file:
         content = file.read()
@@ -196,15 +193,13 @@ def test_update_version_standalone_SHOULD_rise_error_when_no_project_module():
         shutil.rmtree(Path(cwd), ignore_errors=False, onerror=_error_remove_readonly)
     Path(cwd).mkdir(parents=True, exist_ok=True)
     
-    config = _DEFAULT_CONFIG
-    
     options = Args()
     options.force = True
     
-    project_name = config['metadata']['project_name']
+    project_name = _DEFAULT_CONFIG['metadata']['project_name']
     project_module_name = utils.get_module_name_with_suffix(project_name)
     
-    prepare.generate_standalone_repo(config, cwd, options)
+    prepare.generate_standalone_repo(_DEFAULT_CONFIG, cwd, options)
     (cwd / project_module_name).unlink()
     
     try:
@@ -223,15 +218,13 @@ def test_update_version_standalone_SHOULD_rise_error_when_no_version_in_module()
         shutil.rmtree(Path(cwd), ignore_errors=False, onerror=_error_remove_readonly)
     Path(cwd).mkdir(parents=True, exist_ok=True)
     
-    config = _DEFAULT_CONFIG
-    
     options = Args()
     options.force = True
     
-    project_name = config['metadata']['project_name']
+    project_name = _DEFAULT_CONFIG['metadata']['project_name']
     project_module_name = utils.get_module_name_with_suffix(project_name)
     
-    prepare.generate_standalone_repo(config, cwd, options)
+    prepare.generate_standalone_repo(_DEFAULT_CONFIG, cwd, options)
     with open(cwd / project_module_name, 'w'):
         pass
     
@@ -265,14 +258,16 @@ def test_update_changelog():
         pass
     pygittools.add(str(Path(cwd) / 'test.txt'), cwd)
     pygittools.commit("Next Commit", cwd)
-    pygittools.set_tag(cwd, '0.2.0', """- Next Release
+    
+    new_release_tag = '0.2.0'
+    new_release_msg = """- Next Release
 - another line
 
-- last line.""")
+- last line."""
     
     expected_changelog = '# sample_project - Change Log\nThis is a sample project\n\n### Version: 0.2.0 | Released: 2019-01-03 \n- Next Release\n- another line\n\n- last line.\n\n### Version: 0.1.0 | Released: 2019-01-03 \nFirst Release'
     
-    release._update_generated_changelog(_DEFAULT_CONFIG['metadata'], cwd)
+    release._update_generated_changelog(_DEFAULT_CONFIG['metadata'], new_release_tag, new_release_msg, cwd)
     
     with open(Path(cwd) / settings.CHANGELOG_FILENAME, 'r') as file:
         content = file.read()
@@ -315,11 +310,12 @@ def test_clean_filed_release():
 
     files_to_add = []
     
-    files_to_add.append(release._update_changelog(_DEFAULT_CONFIG['metadata'], cwd))
-    files_to_add.append(release._update_authors(cwd))
-    
     new_release_tag = '0.3.0'
     new_release_msg = "next release"
+    
+    files_to_add.append(release._update_changelog(_DEFAULT_CONFIG['metadata'], new_release_tag, new_release_msg, cwd))
+    files_to_add.append(release._update_authors(cwd))
+    
     
     try:
         release._commit_and_push_release_update(new_release_tag, new_release_msg, files_to_add, cwd)

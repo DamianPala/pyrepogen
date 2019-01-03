@@ -6,16 +6,14 @@ import subprocess
 import configparser
 import datetime
 import logging
-import jinja2
-import inspect
 from pathlib import Path
 
 from . import pygittools
 from . import settings
 from . import exceptions
+from . import __version__
 
 
-PARDIR = Path(inspect.getframeinfo(inspect.currentframe()).filename).parent
 _logger = logging.getLogger(__name__)
 
 
@@ -70,6 +68,8 @@ def read_setup_cfg(cwd='.'):
 
     now = datetime.datetime.now()
     config_dict['metadata']['year'] = str(now.year)
+    config_dict['metadata'][settings.REPOASSIST_VERSION] = __version__
+    
     validate_config(config_dict['metadata'])
 
     return config_dict
@@ -83,23 +83,5 @@ def validate_config(config):
         
 def get_module_name_with_suffix(module_name):
     return "{}.py".format(module_name)
-
-
-def write_file_from_template(template_filename, dst, keywords, cwd='.', options=None, silent=False):
-    if (options and options.force) or (not Path(dst).exists()):
-        templateLoader = jinja2.FileSystemLoader(searchpath=str(Path(PARDIR) / settings.TEMPLATES_DIRNAME))
-        templateEnv = jinja2.Environment(loader=templateLoader, trim_blocks=True, lstrip_blocks=True, newline_sequence='\r\n')
-        template = templateEnv.get_template(template_filename)
-        template.stream(keywords, options=options).dump(str(dst))
-        
-        if not silent:
-            _logger.info("{} file generated.".format(Path(dst).relative_to(cwd)))
-         
-        return [dst]
-    else:
-        if not silent:
-            _logger.warning("{} file exists, not overwritten.".format(Path(dst).relative_to(cwd)))
-         
-        return []
 
         

@@ -7,4 +7,4 @@ from pathlib import Path
 
 
 PARDIR = Path(inspect.getframeinfo(inspect.currentframe()).filename).parent
-__version__ = '0.1.0'
+__version__ = '{{repoassist_version}}'

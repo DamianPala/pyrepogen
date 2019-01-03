@@ -6,6 +6,7 @@ import re
 import logging
 import shutil
 import semver
+import datetime
 from pathlib import Path
 from pbr import git
 from pprint import pprint
@@ -16,6 +17,7 @@ from . import utils
 from . import exceptions
 from . import pygittools
 from . import wizard
+from . import prepare
 
 _logger = logging.getLogger(__name__)
 
@@ -43,12 +45,12 @@ def make_release(prompt=True, cwd='.'):
             new_release_msg = _prompt_release_msg()  
             _update_project_version(config_metadata, new_release_tag, cwd)
 
-    if action == ReleaseAction.MAKE_RELEASE:
-        files_to_add = []
-        files_to_add.append(_update_changelog(config_metadata, cwd))
-        files_to_add.append(_update_authors(cwd))
-        
-        release_files_paths.extend(_commit_and_push_release_update(new_release_tag, new_release_msg, files_to_add, cwd))
+        if action == ReleaseAction.MAKE_RELEASE:
+            files_to_add = []
+            files_to_add.append(_update_changelog(config_metadata, new_release_tag, new_release_msg, cwd))
+            files_to_add.append(_update_authors(cwd))
+            
+            release_files_paths.extend(_commit_and_push_release_update(new_release_tag, new_release_msg, files_to_add, cwd))
         
     release_files_paths.extend(utils.get_git_repo_tree(cwd))
     unique_release_files_paths = list(set(release_files_paths))
@@ -117,31 +119,32 @@ def _update_version_standalone(release_tag, cwd='.'):
             project_module_name, settings.SETUP_CFG_FILENAME), _logger)
         
 
-def _update_changelog(config_metadata, cwd='.'):
+def _update_changelog(config_metadata, new_release_tag, new_release_msg, cwd='.'):
     if config_metadata['changelog_type'] == settings.ChangelogType.GENERATED.value:
-        changelog_filepath = _update_generated_changelog(config_metadata, cwd)
+        changelog_filepath = _update_generated_changelog(config_metadata, new_release_tag, new_release_msg, cwd)
     else:
         changelog_filepath = _generate_prepared_changelog(config_metadata, cwd)
         
     return changelog_filepath
 
 
-def _update_generated_changelog(config_metadata, cwd='.'):
+def _update_generated_changelog(config_metadata, new_release_tag, new_release_msg, cwd='.'):
     _logger.info("Updating {} file...".format(settings.CHANGELOG_FILENAME))
     
     changelog_path = Path(cwd).resolve() / settings.CHANGELOG_FILENAME
-    changelog = pygittools.get_changelog(report_format="### Version: %(tag) | Released: %(taggerdate:short) \r\n%(contents)", cwd=cwd)
-    if changelog['returncode'] != 0:
-        raise exceptions.ChangelogGenerateError("Changelog generation error: {}".format(changelog['msg']), _logger)
+    ret = pygittools.get_changelog(report_format="### Version: %(tag) | Released: %(taggerdate:short) \r\n%(contents)", cwd=cwd)
+    if ret['returncode'] != 0:
+        raise exceptions.ChangelogGenerateError("Changelog generation error: {}".format(ret['msg']), _logger)
     else:
-        changelog_content = changelog['msg']
+        changelog_content = ret['msg']
     
     if changelog_path.exists():
         changelog_path.unlink()
-    utils.write_file_from_template(settings.CHANGELOG_GENERATED, changelog_path, config_metadata, cwd, silent=True)
+    prepare.write_file_from_template(settings.CHANGELOG_GENERATED, changelog_path, config_metadata, cwd, silent=True)
     with open(changelog_path, 'a') as file:
         file.write('\n')
         file.write('\n')
+        file.write(_get_changelog_entry(new_release_tag, new_release_msg))
         file.write(changelog_content)
     
     _logger.info("{} file updated".format(settings.CHANGELOG_FILENAME))    
@@ -149,11 +152,17 @@ def _update_generated_changelog(config_metadata, cwd='.'):
     return changelog_path
 
 
+def _get_changelog_entry(release_tag, release_msg):
+    tagger_date = datetime.date.today().strftime('%Y-%m-%d')
+    
+    return "### Version: {} | Released: {} \n{}\n\n".format(release_tag, tagger_date, release_msg)
+
+
 def _generate_prepared_changelog(config_metadata, cwd='.'):
     changelog_path = Path(cwd).resolve() / settings.CHANGELOG_FILENAME
     if not changelog_path.exists(): 
         _logger.info("Generating {} file...".format(settings.CHANGELOG_FILENAME))
-        utils.write_file_from_template(settings.CHANGELOG_PREPARED, changelog_path, config_metadata, cwd, silent=True)
+        prepare.write_file_from_template(settings.CHANGELOG_PREPARED, changelog_path, config_metadata, cwd, silent=True)
         _logger.info("{} file generated".format(settings.CHANGELOG_FILENAME))    
     
     return changelog_path
@@ -174,12 +183,12 @@ def _commit_and_push_release_update(new_release_tag, new_release_msg, files_to_a
         raise exceptions.CommitAndPushReleaseUpdateError("git commit error: {}".format(ret['msg']), _logger)
     release_tag_ret = pygittools.set_tag(cwd, new_release_tag, new_release_msg)
     if release_tag_ret['returncode'] != 0:
-        _clean_failed_release(cwd)
+        _clean_failed_release(new_release_tag, cwd)
         raise exceptions.ReleaseTagSetError("Error while setting release tag: {}".format(release_tag_ret['msg']), _logger)
     
     ret = pygittools.push_with_tags(cwd)
     if ret['returncode'] != 0:
-        _clean_failed_release(cwd)
+        _clean_failed_release(new_release_tag, cwd)
         raise exceptions.CommitAndPushReleaseUpdateError("git push error: {}".format(ret['msg']), _logger)
     
     _logger.info("New release data commited with tag and pushed properly.")
@@ -187,10 +196,24 @@ def _commit_and_push_release_update(new_release_tag, new_release_msg, files_to_a
     return paths
 
 
-def _clean_failed_release(cwd):
+def _clean_failed_release(new_release_tag, cwd):
     ret = pygittools.revert(1, cwd)
     if ret['returncode'] != 0:
         raise exceptions.CriticalError("Critical Error occured when reverting an automatic last commit. Please check git log, repo tree and cleanup the mess.", _logger)
+    
+    latest_tag_remove_error = False
+    ret = pygittools.list_tags(cwd)
+    if ret['returncode'] != 0:
+        latest_tag_remove_error = True
+    else:
+        tags = ret['msg']
+        if new_release_tag in tags:
+            ret = pygittools.delete_tag(new_release_tag, cwd)
+            if ret['returncode'] != 0:
+                latest_tag_remove_error = True
+        
+    if latest_tag_remove_error:
+        raise exceptions.CriticalError("Critical Error occured when deleting an automatic latest tag. Please check git log, repo tree and cleanup the mess.", _logger)
 
 
 def _prompt_release_tag(cwd=''):
