@@ -82,8 +82,6 @@ def test_make_release_SHOULD_prepare_release_properly():
     
     paths = prepare.generate_standalone_repo(_DEFAULT_CONFIG, cwd, options)
     expected_paths = {path.relative_to(cwd).as_posix() for path in paths}
-    expected_paths.add(settings.AUTHORS_FILENAME)
-    expected_paths.add(settings.CHANGELOG_FILENAME)
     expected_paths.remove('docs')
     pprint(expected_paths)
     
@@ -237,4 +235,42 @@ def test_update_version_standalone_SHOULD_rise_error_when_no_version_in_module()
         
     if Path(cwd).exists():
         shutil.rmtree(Path(cwd), ignore_errors=False, onerror=_error_remove_readonly)
+    
+
+@pytest.mark.skipif(SKIP_ALL_MARKED, reason="Skipped on request")
+def test_update_changelog():
+    cwd = TESTS_SETUPS_PATH / 'test_update_changelog'
+    if Path(cwd).exists():
+        shutil.rmtree(Path(cwd), ignore_errors=False, onerror=_error_remove_readonly)
+    Path(cwd).mkdir(parents=True, exist_ok=True)
+    
+    options = Args()
+    options.force = True
+    
+    paths = prepare.generate_standalone_repo(_DEFAULT_CONFIG, cwd, options)
+    
+    pygittools.init(cwd)
+    for path in paths:
+        pygittools.add(path, cwd)
+    pygittools.commit("Initial Commit", cwd)
+    pygittools.set_tag(cwd, '0.1.0', "First Release")
+    
+    with open(Path(cwd) / 'test.txt', 'w'):
+        pass
+    pygittools.add(str(Path(cwd) / 'test.txt'), cwd)
+    pygittools.commit("Next Commit", cwd)
+    pygittools.set_tag(cwd, '0.2.0', """- Next Release
+- another line
+
+- last line.""")
+    
+    expected_changelog = '# sample_project - Change Log\nThis is a sample project\n\n### Version: 0.2.0 | Released: 2019-01-03 \n- Next Release\n- another line\n\n- last line.\n\n### Version: 0.1.0 | Released: 2019-01-03 \nFirst Release'
+    
+    release._update_generated_changelog(_DEFAULT_CONFIG['metadata'], cwd)
+    
+    with open(Path(cwd) / settings.CHANGELOG_FILENAME, 'r') as file:
+        content = file.read()
+        
+    assert content == expected_changelog
+    
     

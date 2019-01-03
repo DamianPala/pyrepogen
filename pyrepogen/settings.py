@@ -44,6 +44,8 @@ SETUP_CFG_FILENAME = 'setup.cfg'
 SETUP_CFG_STANDALONE_FILENAME = 'setup_standalone.cfg'
 SETUP_CFG_PACKAGE_FILENAME = 'setup_package.cfg'
 CHANGELOG_FILENAME = 'CHANGELOG.md'
+CHANGELOG_GENERATED = 'CHANGELOG_generated.md'
+CHANGELOG_PREPARED = 'CHANGELOG_prepared.md'
 AUTHORS_FILENAME = 'AUTHORS'
 GITIGNORE_FILENAME = '.gitignore'
 README_FILENAME = 'README.md'
@@ -131,3 +133,5 @@ CONFIG_MANDATORY_FIELDS = [
     'changelog_type',
     'year',
 ]
+
+AUTOMATIC_RELEASE_COMMIT_MSG = "Automatic update of release files."

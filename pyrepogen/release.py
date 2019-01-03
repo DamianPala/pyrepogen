@@ -31,6 +31,7 @@ def make_release(prompt=True, cwd='.'):
     _logger.info("Preparing Release Package...")
     release_files_paths = []
     config_metadata = utils.read_setup_cfg(cwd)['metadata']
+    action = ReleaseAction.REGENERATE
     
     if prompt:
         action = _release_checkout(config_metadata)
@@ -43,23 +44,19 @@ def make_release(prompt=True, cwd='.'):
                 _update_version_standalone(new_release_tag, cwd)
             else:
                 pass
-            
 
-            
-            return
-            commit_and_push_release_update()
-            
-    release_metadata = _get_release_metadata(cwd)
-    if config_metadata['changelog_type'] == settings.ChangelogType.GENERATED.value:
-        release_files_paths.append(_update_changelog(cwd))
-    else:
-        release_files_paths.append(Path(cwd).resolve() / settings.CHANGELOG_FILENAME)
-    release_files_paths.append(_update_authors(cwd))
+    if action == ReleaseAction.MAKE_RELEASE:
+        if config_metadata['changelog_type'] == settings.ChangelogType.GENERATED.value:
+            changelog_filepath = _update_generated_changelog(config_metadata, cwd)
+        else:
+            changelog_filepath = _generate_prepared_changelog(config_metadata, cwd)
+        authors_file_path = _update_authors(cwd)
+    
+        release_files_paths.extend(_commit_and_push_release_update(new_release_tag, new_release_msg, changelog_filepath, authors_file_path, cwd))
+        
     release_files_paths.extend(utils.get_git_repo_tree(cwd))
-    
     unique_release_files_paths = list(set(release_files_paths))
-    
-    package_path = _prepare_release_archive(unique_release_files_paths, release_metadata, cwd)
+    package_path = _prepare_release_archive(unique_release_files_paths, cwd)
     
     _logger.info("Release Package {} prepared properly.".format(Path(package_path).relative_to(cwd)))
     
@@ -106,7 +103,7 @@ def _update_version_standalone(release_tag, cwd='.'):
             project_module_name, settings.SETUP_CFG_FILENAME), _logger)
         
 
-def _update_changelog(cwd='.'):
+def _update_generated_changelog(config_metadata, cwd='.'):
     _logger.info("Updating {} file...".format(settings.CHANGELOG_FILENAME))
     
     changelog_path = Path(cwd).resolve() / settings.CHANGELOG_FILENAME
@@ -116,13 +113,55 @@ def _update_changelog(cwd='.'):
     else:
         changelog_content = changelog['msg']
     
-    shutil.copy(Path(cwd).resolve() / settings.REPOASSIST_DIRNAME / settings.TEMPLATES_DIRNAME / settings.CHANGELOG_FILENAME, Path(cwd).resolve() / settings.CHANGELOG_FILENAME)
+    if changelog_path.exists():
+        changelog_path.unlink()
+    utils.write_file_from_template(settings.CHANGELOG_GENERATED, changelog_path, config_metadata, cwd, silent=True)
     with open(changelog_path, 'a') as file:
+        file.write('\n')
+        file.write('\n')
         file.write(changelog_content)
     
     _logger.info("{} file updated".format(settings.CHANGELOG_FILENAME))    
     
     return changelog_path
+
+
+def _generate_prepared_changelog(config_metadata, cwd='.'):
+    changelog_path = Path(cwd).resolve() / settings.CHANGELOG_FILENAME
+    if not changelog_path.exists(): 
+        _logger.info("Generating {} file...".format(settings.CHANGELOG_FILENAME))
+        utils.write_file_from_template(settings.CHANGELOG_PREPARED, changelog_path, config_metadata, cwd, silent=True)
+        _logger.info("{} file generated".format(settings.CHANGELOG_FILENAME))    
+    
+    return changelog_path
+
+
+def _commit_and_push_release_update(new_release_tag, new_release_msg, changelog_filepath, authors_file_path, cwd='.'):
+    print("Commit updated release files, set tag and push...")
+    
+    paths = []
+    ret = pygittools.add(changelog_filepath, cwd)
+    if ret['returncode'] != 0:
+        raise exceptions.CommitAndPushReleaseUpdate("{} git add error: {}".format(changelog_filepath.name, ret['msg']))
+    paths.append(changelog_filepath)
+    ret = pygittools.add(authors_file_path, cwd)
+    if ret['returncode'] != 0:
+        raise exceptions.CommitAndPushReleaseUpdate("{} git add error: {}".format(authors_file_path.name, ret['msg']))
+    paths.append(authors_file_path)
+    
+    release_tag_ret = pygittools.set_tag(cwd, new_release_tag, new_release_msg)
+    if release_tag_ret['returncode'] != 0:
+        raise exceptions.ReleaseTagSetError("Error while setting release tag: {}".format(release_tag_ret['msg']), _logger)
+    
+    ret = pygittools.commit(settings.AUTOMATIC_RELEASE_COMMIT_MSG, cwd)
+    if ret['returncode'] != 0:
+        raise exceptions.CommitAndPushReleaseUpdate("git commit error: {}".format(ret['msg']))
+    ret = pygittools.push_with_tags(cwd)
+    if ret['returncode'] != 0:
+        raise exceptions.CommitAndPushReleaseUpdate("git push error: {}".format(ret['msg']))
+    
+    
+    print("New release data commited with tag and pushed properly.")
 
 
 def _prompt_release_metadata(cwd=''):
@@ -236,10 +275,11 @@ def _generate_file_pbr(filename, gen_handler, cwd='.'):
     return file_path.resolve()
     
     
-def _prepare_release_archive(release_files_paths, release_metadata, cwd='.'):
+def _prepare_release_archive(release_files_paths, cwd='.'):
     _logger.info("Compressing package...")
     
     config = utils.read_setup_cfg(cwd)
+    release_metadata = _get_release_metadata(cwd)
     
     release_package_suffix = '.tar.gz'
     release_package_name = "{}_{}_{}{}".format(config['metadata']['project_name'], release_metadata['release_tag'], release_metadata['latest_commit_hash'], settings.RELEASE_PACKAGE_SUFFIX)

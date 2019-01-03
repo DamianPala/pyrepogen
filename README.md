@@ -2,6 +2,7 @@
 - collect requirements as makefile target
 - autonomus package with e.g. colreqs.py in generated repository as helper to makefile targets
 - ChangeLog and AUTHORS not in repo tree
+- when regenerate release package, changelog and authors are not regenerated
 
 # Standalone Script Repo
 ## Targets

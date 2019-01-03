@@ -19,6 +19,14 @@ def commit(msg, cwd='.'):
     return _execute_cmd_and_strip(['git', 'commit', '-m', msg], cwd)
 
 
+def push(cwd='.'):
+    return _execute_cmd_and_strip(['git', 'push'], cwd)
+
+
+def push_with_tags(cwd='.'):
+    return _execute_cmd_and_strip(['git', 'push', '--follow-tags'], cwd)
+
+
 def get_latest_tag(cwd='.'):
     return _execute_cmd_and_strip(['git', 'describe', '--abbrev=0', '--tags'], cwd)
 

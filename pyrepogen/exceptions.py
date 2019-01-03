@@ -55,3 +55,10 @@ class VersionNotFoundError(PyRepoGenError):
 class ChangelogGenerateError(PyRepoGenError):
     pass
 
+class ReleaseTagSetError(PyRepoGenError):
+    pass
+
+class CommitAndPushReleaseUpdate(PyRepoGenError):
+    pass
+
+

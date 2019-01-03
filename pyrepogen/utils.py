@@ -6,11 +6,13 @@ import subprocess
 import configparser
 import datetime
 import logging
+import jinja2
 from pathlib import Path
 
 from . import pygittools
 from . import settings
 from . import exceptions
+from pyrepogen import PARDIR
 
 
 _logger = logging.getLogger(__name__)
@@ -76,8 +78,27 @@ def validate_config(config):
     for field in settings.CONFIG_MANDATORY_FIELDS:
         if field not in config:
             raise exceptions.ConfigError("The {} field not found in the config!".format(field), _logger)
+
         
 def get_module_name_with_suffix(module_name):
     return "{}.py".format(module_name)
+
+
+def write_file_from_template(template_filename, dst, keywords, cwd='.', options=None, silent=False):
+    if (options and options.force) or (not Path(dst).exists()):
+        templateLoader = jinja2.FileSystemLoader(searchpath=str(Path(PARDIR) / settings.TEMPLATES_DIRNAME))
+        templateEnv = jinja2.Environment(loader=templateLoader, trim_blocks=True, lstrip_blocks=True, newline_sequence='\r\n')
+        template = templateEnv.get_template(template_filename)
+        template.stream(keywords, options=options).dump(str(dst))
+        
+        if not silent:
+            _logger.info("{} file generated.".format(Path(dst).relative_to(cwd)))
+         
+        return [dst]
+    else:
+        if not silent:
+            _logger.warning("{} file exists, not overwritten.".format(Path(dst).relative_to(cwd)))
+         
+        return []
 
         
