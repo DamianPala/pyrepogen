@@ -1,7 +1,6 @@
 
 import pytest
 import inspect
-import logging
 import os
 import stat
 import shutil

@@ -104,10 +104,13 @@ def test_make_release_SHOULD_prepare_release_properly():
         unpack_paths.add(Path(path).relative_to(Path(cwd) / Path(archive_name).stem).as_posix())
     pprint(unpack_paths)
         
-    assert unpack_paths == expected_paths
-        
     shutil.rmtree(unpack_dir)
+    
+    if Path(cwd).exists():
+        shutil.rmtree(Path(cwd), ignore_errors=False, onerror=_error_remove_readonly)
 
+    assert unpack_paths == expected_paths
+    
     
 @pytest.mark.skipif(SKIP_ALL_MARKED, reason="Skipped on request")
 def test_make_release_SHOULD_rise_error_when_no_commit():
@@ -125,13 +128,13 @@ def test_make_release_SHOULD_rise_error_when_no_commit():
     
     try:
         release.make_release(prompt=False, cwd=cwd)
+        assert False, "Expected error did not occured."
     except exceptions.ReleaseMetadataError as e:
+        if Path(cwd).exists():
+            shutil.rmtree(Path(cwd), ignore_errors=False, onerror=_error_remove_readonly)
         assert "Retrieving latest commit hash error" in str(e)
         
-    if Path(cwd).exists():
-        shutil.rmtree(Path(cwd), ignore_errors=False, onerror=_error_remove_readonly)
             
-
 @pytest.mark.skipif(SKIP_ALL_MARKED, reason="Skipped on request")
 def test_make_release_SHOULD_rise_error_when_no_release_tag():
     cwd = TESTS_SETUPS_PATH / 'test_make_release_SHOULD_rise_error_when_no_release_tag'
@@ -152,9 +155,12 @@ def test_make_release_SHOULD_rise_error_when_no_release_tag():
     
     try:
         release.make_release(prompt=False, cwd=cwd)
+        assert False, "Expected error did not occured."
     except exceptions.ReleaseMetadataError as e:
+        if Path(cwd).exists():
+            shutil.rmtree(Path(cwd), ignore_errors=False, onerror=_error_remove_readonly)
         assert "Retrieving release tag error" in str(e)
-            
+
             
 @pytest.mark.skipif(SKIP_ALL_MARKED, reason="Skipped on request")
 def test_update_version_standalone_SHOULD_update_version_properly():
@@ -176,11 +182,12 @@ def test_update_version_standalone_SHOULD_update_version_properly():
     with open(cwd / project_module_name, 'r') as file:
         content = file.read()
         m = re.search(release._VERSION_REGEX, content)
-        assert m.group(0) == "__version__ = '1.2.3-alpha.4'"
         
     if Path(cwd).exists():
         shutil.rmtree(Path(cwd), ignore_errors=False, onerror=_error_remove_readonly)
         
+    assert m.group(0) == "__version__ = '1.2.3-alpha.4'"
+
         
 @pytest.mark.skipif(SKIP_ALL_MARKED, reason="Skipped on request")
 def test_update_version_standalone_SHOULD_rise_error_when_no_project_module():
@@ -202,11 +209,11 @@ def test_update_version_standalone_SHOULD_rise_error_when_no_project_module():
     
     try:
         release._update_version_standalone('1.2.3-alpha.4', cwd)
+        assert False, "Expected error did not occured."
     except exceptions.FileNotFoundError as e:
+        if Path(cwd).exists():
+            shutil.rmtree(Path(cwd), ignore_errors=False, onerror=_error_remove_readonly)
         assert "Project module file sample_project.py not found" in str(e)
-        
-    if Path(cwd).exists():
-        shutil.rmtree(Path(cwd), ignore_errors=False, onerror=_error_remove_readonly)
         
         
 @pytest.mark.skipif(SKIP_ALL_MARKED, reason="Skipped on request")
@@ -231,10 +238,9 @@ def test_update_version_standalone_SHOULD_rise_error_when_no_version_in_module()
     try:
         release._update_version_standalone('1.2.3-alpha.4', cwd)
     except exceptions.VersionNotFoundError as e:
+        if Path(cwd).exists():
+            shutil.rmtree(Path(cwd), ignore_errors=False, onerror=_error_remove_readonly)
         assert "__version__ variable not found in the sample_project.py file" in str(e)
-        
-    if Path(cwd).exists():
-        shutil.rmtree(Path(cwd), ignore_errors=False, onerror=_error_remove_readonly)
     
 
 @pytest.mark.skipif(SKIP_ALL_MARKED, reason="Skipped on request")
@@ -271,6 +277,57 @@ def test_update_changelog():
     with open(Path(cwd) / settings.CHANGELOG_FILENAME, 'r') as file:
         content = file.read()
         
+    if Path(cwd).exists():
+        shutil.rmtree(Path(cwd), ignore_errors=False, onerror=_error_remove_readonly)
+
     assert content == expected_changelog
     
+    
+@pytest.mark.skipif(SKIP_ALL_MARKED, reason="Skipped on request")
+def test_clean_filed_release():
+    cwd = TESTS_SETUPS_PATH / 'test_clean_filed_release'
+    if Path(cwd).exists():
+        shutil.rmtree(Path(cwd), ignore_errors=False, onerror=_error_remove_readonly)
+    Path(cwd).mkdir(parents=True, exist_ok=True)
+    
+    options = Args()
+    options.force = True
+    
+    paths = prepare.generate_standalone_repo(_DEFAULT_CONFIG, cwd, options)
+    
+    pygittools.init(cwd)
+    for path in paths:
+        pygittools.add(path, cwd)
+    pygittools.commit("Initial Commit", cwd)
+    pygittools.set_tag(cwd, '0.1.0', "First Release")
+    
+    with open(Path(cwd) / 'test.txt', 'w'):
+        pass
+    pygittools.add(str(Path(cwd) / 'test.txt'), cwd)
+    pygittools.commit("Next Commit", cwd)
+    pygittools.set_tag(cwd, '0.2.0', """- Next Release
+- another line
+
+- last line.""")
+    
+    last_commit_hash = pygittools.get_latest_commit_hash(cwd)
+    last_tag = pygittools.get_latest_tag(cwd)
+
+    files_to_add = []
+    
+    files_to_add.append(release._update_changelog(_DEFAULT_CONFIG['metadata'], cwd))
+    files_to_add.append(release._update_authors(cwd))
+    
+    new_release_tag = '0.3.0'
+    new_release_msg = "next release"
+    
+    try:
+        release._commit_and_push_release_update(new_release_tag, new_release_msg, files_to_add, cwd)
+        assert False, "Expected error not occured!"
+    except exceptions.CommitAndPushReleaseUpdateError:
+        assert last_commit_hash == pygittools.get_latest_commit_hash(cwd)
+        assert last_tag == pygittools.get_latest_tag(cwd)
+        
+    if Path(cwd).exists():
+        shutil.rmtree(Path(cwd), ignore_errors=False, onerror=_error_remove_readonly)
     

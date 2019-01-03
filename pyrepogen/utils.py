@@ -7,14 +7,15 @@ import configparser
 import datetime
 import logging
 import jinja2
+import inspect
 from pathlib import Path
 
 from . import pygittools
 from . import settings
 from . import exceptions
-from pyrepogen import PARDIR
 
 
+PARDIR = Path(inspect.getframeinfo(inspect.currentframe()).filename).parent
 _logger = logging.getLogger(__name__)
 
 

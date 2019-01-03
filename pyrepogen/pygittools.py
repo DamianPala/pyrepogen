@@ -31,6 +31,10 @@ def get_latest_tag(cwd='.'):
     return _execute_cmd_and_strip(['git', 'describe', '--abbrev=0', '--tags'], cwd)
 
 
+def revert(commit_rollback, cwd='.'):
+    return _execute_cmd_and_strip(['git', 'reset', '--hard', 'HEAD~{}'.format(commit_rollback)], cwd)
+
+
 def delete_latest_tag(cwd='.'):
     ret = get_latest_tag(cwd)
     if ret['returncode'] == 0:
@@ -50,11 +54,11 @@ def set_tag(cwd='.', tag=None, msg=None):
 def list_tags(cwd='.'):
     try:
         process = subprocess.run(['git', 'tag'],
-                              check = True,
-                              cwd = cwd,
-                              stdout = subprocess.PIPE,
-                              stderr = subprocess.STDOUT,
-                              encoding = "utf-8")
+                                  check=True,
+                                  cwd=str(cwd),
+                                  stdout=subprocess.PIPE,
+                                  stderr=subprocess.STDOUT,
+                                  encoding="utf-8")
         return {'msg': process.stdout.strip().split('\n'), 'returncode': process.returncode}
     except subprocess.CalledProcessError as e:
         return {'msg': e.output, 'returncode': e.returncode}
@@ -70,11 +74,11 @@ def list_git_repo_tree(cwd='.'):
 def is_work_tree(cwd='.'):
     try:
         process = subprocess.run(['git', 'rev-parse', '--is-inside-work-tree'],
-                              check = True,
-                              cwd = cwd,
-                              stdout = subprocess.PIPE,
-                              stderr = subprocess.STDOUT,
-                              encoding = "utf-8")
+                                  check=True,
+                                  cwd=str(cwd),
+                                  stdout=subprocess.PIPE,
+                                  stderr=subprocess.STDOUT,
+                                  encoding="utf-8")
         return {'msg': True if process.stdout.strip() == 'true' else False, 'returncode': process.returncode}
     except subprocess.CalledProcessError as e:
         return {'msg': e.output, 'returncode': e.returncode}
@@ -83,11 +87,11 @@ def is_work_tree(cwd='.'):
 def are_uncommited_changes(cwd='.'):
     try:
         process = subprocess.run(['git', '--no-pager', 'diff', '--no-ext-diff'],
-                              check = True,
-                              cwd = cwd,
-                              stdout = subprocess.PIPE,
-                              stderr = subprocess.STDOUT,
-                              encoding = "utf-8")
+                                  check=True,
+                                  cwd=str(cwd),
+                                  stdout=subprocess.PIPE,
+                                  stderr=subprocess.STDOUT,
+                                  encoding="utf-8")
         return {'msg': True if process.stdout else False, 'returncode': process.returncode}
     except subprocess.CalledProcessError as e:
         return {'msg': e.output, 'returncode': e.returncode}
@@ -117,17 +121,17 @@ def deinit_all_submodules(cwd='.'):
 def clear_cache(path, cwd='.'):
     if not path:
         raise ValueError("path is not specified!")
-    return _execute_cmd_and_strip(["git", "rm", "-rf", "--cached", path], cwd)
+    return _execute_cmd_and_strip(["git", "rm", "-rf", "--cached", str(path)], cwd)
 
 
 def _execute_cmd_and_split(args, cwd='.'):
     try:
         process = subprocess.run(args,
-                              check=True,
-                              cwd=str(cwd),
-                              stdout=subprocess.PIPE,
-                              stderr=subprocess.STDOUT,
-                              encoding="utf-8")
+                                 check=True,
+                                 cwd=str(cwd),
+                                 stdout=subprocess.PIPE,
+                                 stderr=subprocess.STDOUT,
+                                 encoding="utf-8")
         return {'msg': process.stdout.split('\n'), 'returncode': process.returncode}
     except subprocess.CalledProcessError as e:
         return {'msg': e.output, 'returncode': e.returncode}
@@ -136,11 +140,11 @@ def _execute_cmd_and_split(args, cwd='.'):
 def _execute_cmd_and_strip(args, cwd='.'):
     try:
         process = subprocess.run(args,
-                              check=True,
-                              cwd=str(cwd),
-                              stdout=subprocess.PIPE,
-                              stderr=subprocess.STDOUT,
-                              encoding="utf-8")
+                                 check=True,
+                                 cwd=str(cwd),
+                                 stdout=subprocess.PIPE,
+                                 stderr=subprocess.STDOUT,
+                                 encoding="utf-8")
         return {'msg': process.stdout.strip(), 'returncode': process.returncode}
     except subprocess.CalledProcessError as e:
         return {'msg': e.output, 'returncode': e.returncode}

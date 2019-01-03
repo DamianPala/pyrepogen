@@ -134,4 +134,4 @@ CONFIG_MANDATORY_FIELDS = [
     'year',
 ]
 
-AUTOMATIC_RELEASE_COMMIT_MSG = "Automatic update of release files."
+AUTOMATIC_RELEASE_COMMIT_MSG = "Automatic update of release data files."

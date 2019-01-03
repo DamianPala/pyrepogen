@@ -53,6 +53,9 @@ def test_generate_standalone_repo_dirs():
         
     pprint(generated_dirset)
         
+    if Path(cwd).exists():
+        shutil.rmtree(Path(cwd), ignore_errors=False, onerror=_error_remove_readonly)
+        
     assert generated_dirset == set(settings.STANDALONE_REPO_DIRS_TO_GEN)
     
 
@@ -92,7 +95,7 @@ def test_generate_standalone_repo_SHOULD_generate_repo_tree_properly():
         'repoassist/wizard.py',
         'repoassist/cloud.py',
         'repoassist/exceptions.py',
-        'repoassist/templates/CHANGELOG.md',
+        'repoassist/templates/CHANGELOG_generated.md',
         'cloud_credentials.txt',
     }
     
@@ -108,6 +111,9 @@ def test_generate_standalone_repo_SHOULD_generate_repo_tree_properly():
     
     assert paths == expected_paths
     
+    if Path(cwd).exists():
+        shutil.rmtree(Path(cwd), ignore_errors=False, onerror=_error_remove_readonly)
+
 
 def test_generate_standalone_repo_SHOULD_force_properly():
     cwd = TESTS_SETUPS_PATH / 'test_generate_standalone_repo_SHOULD_force_properly'
@@ -141,11 +147,10 @@ def test_generate_standalone_repo_SHOULD_force_properly():
         Path(cwd) / settings.GITIGNORE_FILENAME,
         Path(cwd) / settings.LICENSE_FILENAME,
         Path(cwd) / settings.MAKEFILE_FILENAME,
-        Path(cwd) / settings.REQUIREMENTS_FILENAME,
         Path(cwd) / settings.REQUIREMENTS_DEV_FILENAME,
         Path(cwd) / settings.TOX_FILENAME,
-#         Path(cwd) / settings.STANDALONE_SAMPLE_FILENAME,
-#         Path(cwd) / settings.TESTS_DIRNAME / settings.STANDALONE_SAMPLE_TEST_FILENAME,
+        Path(cwd) / '{}.py'.format(_DEFAULT_CONFIG['metadata']['project_name']),
+        Path(cwd) / settings.TESTS_DIRNAME / '{}_test.py'.format(_DEFAULT_CONFIG['metadata']['project_name']),
         Path(cwd) / settings.TESTS_DIRNAME / settings.PYINIT_FILENAME,
         Path(cwd) / settings.REPOASSIST_DIRNAME / settings.PYINIT_FILENAME,
         Path(cwd) / settings.REPOASSIST_DIRNAME / settings.REPOASSIST_TARGET_MAIN_FILENAME,
@@ -174,8 +179,8 @@ def test_generate_standalone_repo_SHOULD_force_properly():
         with open(path, 'r') as file:
             content = file.readlines()
             if len(content) == 0:
-                assert False, "{} file not overwritten!".format(path) 
-
+                assert False, "{} file not overwritten!".format(path)
+                
 
 def test_generate_standalone_repo_SHOULD_generate_makefile_without_cloud_properly():
     cwd = TESTS_SETUPS_PATH / 'test_generate_standalone_repo_SHOULD_generate_makefile_without_cloud_properly'

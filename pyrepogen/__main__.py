@@ -76,7 +76,8 @@ def main():
                     args.sample_layout = is_sample_layout
                 else:
                     _get_mock_data(config, args)
-                    dest_dir = _get_dest_dir('sandbox')
+#                     dest_dir = _get_dest_dir('sandbox')
+                    dest_dir = _get_dest_dir('../standalone-repo-test')
                     project_type = settings.ProjectType.SCRIPT.value
                 
                 if project_type == settings.ProjectType.PACKAGE.value:
@@ -99,7 +100,7 @@ def _get_mock_data(config, args):
     config['metadata']['maintainer_email'] = 'mike@mail.com'
     config['metadata']['project_name'] = 'my_project'
     config['metadata']['repo_name'] = 'myrepo'
-    config['metadata']['project_type'] = settings.ProjectType.PACKAGE.value
+    config['metadata']['project_type'] = settings.ProjectType.SCRIPT.value
     config['metadata']['short_description'] = 'This is super project.'
     config['metadata']['changelog_type'] = settings.ChangelogType.GENERATED.value
     config['metadata']['year'] = '2018'

@@ -13,6 +13,10 @@ class ExecuteCmdError(PyRepoGenError):
         self.returncode = returncode
         self.logger = logger
         
+        
+class CriticalError(PyRepoGenError):
+    pass
+
 class ConfigError(PyRepoGenError):
     pass
 
@@ -58,7 +62,10 @@ class ChangelogGenerateError(PyRepoGenError):
 class ReleaseTagSetError(PyRepoGenError):
     pass
 
-class CommitAndPushReleaseUpdate(PyRepoGenError):
+class UncommitedChangesError(PyRepoGenError):
+    pass
+
+class CommitAndPushReleaseUpdateError(PyRepoGenError):
     pass
 
 

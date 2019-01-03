@@ -29,39 +29,45 @@ class ReleaseAction(Enum):
 
 def make_release(prompt=True, cwd='.'):
     _logger.info("Preparing Release Package...")
+    
     release_files_paths = []
     config_metadata = utils.read_setup_cfg(cwd)['metadata']
     action = ReleaseAction.REGENERATE
     
+    _check_if_changes_to_commit(cwd)
+    
     if prompt:
         action = _release_checkout(config_metadata)
         if action == ReleaseAction.MAKE_RELEASE:
-            new_release_tag = _prompt_release_metadata(cwd)
-            new_release_msg = _prompt_release_msg()
-            
-            if config_metadata['project_type'] == settings.ProjectType.SCRIPT.value:
-#                 TODO: check if updated file has not changed - git
-                _update_version_standalone(new_release_tag, cwd)
-            else:
-                pass
+            new_release_tag = _prompt_release_tag(cwd)
+            new_release_msg = _prompt_release_msg()  
+            _update_project_version(config_metadata, new_release_tag, cwd)
 
     if action == ReleaseAction.MAKE_RELEASE:
-        if config_metadata['changelog_type'] == settings.ChangelogType.GENERATED.value:
-            changelog_filepath = _update_generated_changelog(config_metadata, cwd)
-        else:
-            changelog_filepath = _generate_prepared_changelog(config_metadata, cwd)
-        authors_file_path = _update_authors(cwd)
-    
-        release_files_paths.extend(_commit_and_push_release_update(new_release_tag, new_release_msg, changelog_filepath, authors_file_path, cwd))
+        files_to_add = []
+        files_to_add.append(_update_changelog(config_metadata, cwd))
+        files_to_add.append(_update_authors(cwd))
+        
+        release_files_paths.extend(_commit_and_push_release_update(new_release_tag, new_release_msg, files_to_add, cwd))
         
     release_files_paths.extend(utils.get_git_repo_tree(cwd))
     unique_release_files_paths = list(set(release_files_paths))
+    
     package_path = _prepare_release_archive(unique_release_files_paths, cwd)
     
-    _logger.info("Release Package {} prepared properly.".format(Path(package_path).relative_to(cwd)))
+    _logger.info("Release Package {} prepared properly.".format(Path(package_path).relative_to(Path(cwd).resolve())))
     
     return package_path
 
+
+def _check_if_changes_to_commit(cwd):
+    ret = pygittools.are_uncommited_changes(cwd)
+    if ret['returncode'] == 0:
+        if ret['msg']:
+            raise exceptions.UncommitedChangesError("There are changes to commit!", _logger)
+    else:
+        raise exceptions.UncommitedChangesError("Error checking if there are any changes to commit!", _logger)
+    
 
 def _release_checkout(config_metadata):
     action = wizard.choose_one(__name__, "Make Release or Regenerate a release package using the actual release metadata",
@@ -84,6 +90,14 @@ def _release_checkout(config_metadata):
     return action
 
 
+def _update_project_version(config_metadata, release_tag, cwd='.'):
+    if config_metadata['project_type'] == settings.ProjectType.SCRIPT.value:
+        _update_version_standalone(release_tag, cwd)
+    else:
+#                 TODO: package
+        pass
+
+
 def _update_version_standalone(release_tag, cwd='.'):
     project_name = utils.read_setup_cfg(cwd)['metadata']['project_name']
     project_module_name = utils.get_module_name_with_suffix(project_name)
@@ -102,6 +116,15 @@ def _update_version_standalone(release_tag, cwd='.'):
         raise exceptions.FileNotFoundError("Project module file {} not found. The Project Module must have the same name as the project_name entry in {}".format(
             project_module_name, settings.SETUP_CFG_FILENAME), _logger)
         
+
+def _update_changelog(config_metadata, cwd='.'):
+    if config_metadata['changelog_type'] == settings.ChangelogType.GENERATED.value:
+        changelog_filepath = _update_generated_changelog(config_metadata, cwd)
+    else:
+        changelog_filepath = _generate_prepared_changelog(config_metadata, cwd)
+        
+    return changelog_filepath
+
 
 def _update_generated_changelog(config_metadata, cwd='.'):
     _logger.info("Updating {} file...".format(settings.CHANGELOG_FILENAME))
@@ -136,35 +159,41 @@ def _generate_prepared_changelog(config_metadata, cwd='.'):
     return changelog_path
 
 
-def _commit_and_push_release_update(new_release_tag, new_release_msg, changelog_filepath, authors_file_path, cwd='.'):
-    print("Commit updated release files, set tag and push...")
+def _commit_and_push_release_update(new_release_tag, new_release_msg, files_to_add, cwd='.'):
+    _logger.info("Commit updated release files, set tag and push...")
     
     paths = []
-    ret = pygittools.add(changelog_filepath, cwd)
-    if ret['returncode'] != 0:
-        raise exceptions.CommitAndPushReleaseUpdate("{} git add error: {}".format(changelog_filepath.name, ret['msg']))
-    paths.append(changelog_filepath)
-    ret = pygittools.add(authors_file_path, cwd)
-    if ret['returncode'] != 0:
-        raise exceptions.CommitAndPushReleaseUpdate("{} git add error: {}".format(authors_file_path.name, ret['msg']))
-    paths.append(authors_file_path)
-    
-    release_tag_ret = pygittools.set_tag(cwd, new_release_tag, new_release_msg)
-    if release_tag_ret['returncode'] != 0:
-        raise exceptions.ReleaseTagSetError("Error while setting release tag: {}".format(release_tag_ret['msg']), _logger)
+    for file_path in files_to_add:
+        ret = pygittools.add(file_path, cwd)
+        if ret['returncode'] != 0:
+            raise exceptions.CommitAndPushReleaseUpdateError("{} git add error: {}".format(file_path.name, ret['msg']), _logger)
+        paths.append(file_path)
     
     ret = pygittools.commit(settings.AUTOMATIC_RELEASE_COMMIT_MSG, cwd)
     if ret['returncode'] != 0:
-        raise exceptions.CommitAndPushReleaseUpdate("git commit error: {}".format(ret['msg']))
+        raise exceptions.CommitAndPushReleaseUpdateError("git commit error: {}".format(ret['msg']), _logger)
+    release_tag_ret = pygittools.set_tag(cwd, new_release_tag, new_release_msg)
+    if release_tag_ret['returncode'] != 0:
+        _clean_failed_release(cwd)
+        raise exceptions.ReleaseTagSetError("Error while setting release tag: {}".format(release_tag_ret['msg']), _logger)
+    
     ret = pygittools.push_with_tags(cwd)
     if ret['returncode'] != 0:
-        raise exceptions.CommitAndPushReleaseUpdate("git push error: {}".format(ret['msg']))
+        _clean_failed_release(cwd)
+        raise exceptions.CommitAndPushReleaseUpdateError("git push error: {}".format(ret['msg']), _logger)
     
+    _logger.info("New release data commited with tag and pushed properly.")
     
-    print("New release data commited with tag and pushed properly.")
+    return paths
 
 
-def _prompt_release_metadata(cwd=''):
+def _clean_failed_release(cwd):
+    ret = pygittools.revert(1, cwd)
+    if ret['returncode'] != 0:
+        raise exceptions.CriticalError("Critical Error occured when reverting an automatic last commit. Please check git log, repo tree and cleanup the mess.", _logger)
+
+
+def _prompt_release_tag(cwd=''):
     latest_release_tag_ret = pygittools.get_latest_tag(cwd)
     
     if latest_release_tag_ret['returncode'] != 0:
@@ -199,6 +228,8 @@ def _prompt_release_metadata(cwd=''):
                         _logger.error("Entered release tag less than the previous release tag! Correct and enter a new one.")
                 else:
                     return new_release_tag
+            else:
+                return new_release_tag
                 
         except ValueError:
             _logger.error("Entered release tag not valid! Correct and enter new one.")
@@ -225,7 +256,7 @@ def _get_release_metadata(cwd='.'):
 
 
 def _prompt_release_msg():
-    print("Enter release message. Type '~' and press Enter key to comfirm. Markdown syntax allowed.")
+    _logger.info("Enter release message. Type '~' and press Enter key to comfirm. Markdown syntax allowed.")
     message = []
     while True:
         line = input()
@@ -293,12 +324,12 @@ def _prepare_release_archive(release_files_paths, cwd='.'):
         
     Path.mkdir(release_package_temp_containter_path, parents=True)
     
-    dist_path = Path(cwd) / settings.RELEASE_DIRNAME
+    dist_path = Path(cwd).resolve() / settings.RELEASE_DIRNAME
     if not dist_path.exists():
         dist_path.mkdir()
     
     for path in release_files_paths:
-        dst = release_package_temp_containter_path / path.relative_to(cwd)
+        dst = release_package_temp_containter_path / path.relative_to(Path(cwd).resolve())
         if not dst.parent.exists():
             dst.parent.mkdir()
         shutil.copy(path, dst)

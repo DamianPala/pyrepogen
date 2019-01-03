@@ -92,11 +92,11 @@ def _generate_empty_file(path, cwd, options=None):
             with open(Path(path), 'x'):
                 pass
         
-        _logger.info("{} file generated.".format(path.relative_to(cwd)))
+        _logger.info("{} file generated.".format(path.relative_to(Path(cwd).resolve())))
         
         return [path]
     except FileExistsError:
-        _logger.warning("{} file exists, not overwritten.".format(path.relative_to(cwd)))
+        _logger.warning("{} file exists, not overwritten.".format(path.relative_to(Path(cwd).resolve())))
         
         return []
         
@@ -104,11 +104,11 @@ def _generate_empty_file(path, cwd, options=None):
 def _copy_template_file(filename, dst, cwd, options=None):
     if (options and options.force) or (not Path(dst).exists()):
         shutil.copy(PARDIR / settings.TEMPLATES_DIRNAME / filename, dst)
-        _logger.info("{} file generated.".format(Path(dst).relative_to(cwd)))
+        _logger.info("{} file generated.".format(Path(dst).relative_to(Path(cwd).resolve())))
         
         return [dst]
     else:
-        _logger.warning("{} file exists, not overwritten.".format(Path(dst).relative_to(cwd)))
+        _logger.warning("{} file exists, not overwritten.".format(Path(dst).relative_to(Path(cwd).resolve())))
         
         return []
         
@@ -116,11 +116,11 @@ def _copy_template_file(filename, dst, cwd, options=None):
 def _copy_file(filename, dst, cwd, options=None):
     if (options and options.force) or (not Path(dst).exists()):
         shutil.copy(PARDIR / filename, dst)
-        _logger.info("{} file generated.".format(dst.relative_to(cwd)))
+        _logger.info("{} file generated.".format(dst.relative_to(Path(cwd).resolve())))
         
         return [dst]
     else:
-        _logger.warning("{} file exists, not overwritten.".format(dst.relative_to(cwd)))
+        _logger.warning("{} file exists, not overwritten.".format(dst.relative_to(Path(cwd).resolve())))
         
         return []
         
@@ -136,11 +136,11 @@ def _prepare_requirements(path, reqs, cwd, options=None):
                 for req in reqs:
                     file.write("{}\n".format(req))
         
-        _logger.info("{} file generated.".format(path.relative_to(cwd)))
+        _logger.info("{} file generated.".format(path.relative_to(Path(cwd).resolve())))
         
         return [path]
     except FileExistsError:
-        _logger.warning("{} file exists, not overwritten.".format(path.relative_to(cwd)))
+        _logger.warning("{} file exists, not overwritten.".format(path.relative_to(Path(cwd).resolve())))
         
         return []
     
@@ -173,7 +173,7 @@ def _prepare_repoasist(config, cwd, options=None):
         elif filename == settings.PYINIT_FILENAME:
             paths.extend(_copy_template_file(settings.SAMPLE_MODULE_FILENAME, Path(cwd) / settings.REPOASSIST_DIRNAME / filename, cwd, options))
         elif filename == settings.CHANGELOG_FILENAME:
-            paths.extend(_copy_template_file(settings.CHANGELOG_GENERATED, Path(cwd) / settings.REPOASSIST_DIRNAME / settings.TEMPLATES_DIRNAME / filename, cwd, options))
+            paths.extend(_copy_template_file(settings.CHANGELOG_GENERATED, Path(cwd) / settings.REPOASSIST_DIRNAME / settings.TEMPLATES_DIRNAME / settings.CHANGELOG_GENERATED, cwd, options))
         else:
             paths.extend(_generate_empty_file(Path(cwd) / settings.REPOASSIST_DIRNAME / filename, cwd, options))
             
