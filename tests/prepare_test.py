@@ -24,7 +24,8 @@ _DEFAULT_CONFIG = {
         'short_description': 'This is a sample project',
         'changelog_type': settings.ChangelogType.GENERATED.value,
         'year': '2018',
-        'repoassist_version': '0.1.0'
+        'repoassist_version': '0.1.0',
+        'min_python': '3.7'
     },
 }
 

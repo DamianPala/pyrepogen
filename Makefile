@@ -69,7 +69,7 @@ doc:
 	
 	
 coverage:
-	@coverage run -m pytest tests && ([ $$? -eq 0 ]) || echo ""
+	@coverage run -m pytest $(TEST_PATH) --color=yes && ([ $$? -eq 0 ]) || echo ""
 	@coverage html
 	@coverage report -m	
 

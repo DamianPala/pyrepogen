@@ -140,7 +140,7 @@ def _update_generated_changelog(config_metadata, new_release_tag, new_release_ms
     
     if changelog_path.exists():
         changelog_path.unlink()
-    prepare.write_file_from_template(settings.CHANGELOG_GENERATED, changelog_path, config_metadata, cwd, silent=True)
+    prepare.write_file_from_template(settings.CHANGELOG_GENERATED, changelog_path, config_metadata, cwd, verbose=False)
     with open(changelog_path, 'a') as file:
         file.write('\n')
         file.write('\n')
@@ -162,7 +162,7 @@ def _generate_prepared_changelog(config_metadata, cwd='.'):
     changelog_path = Path(cwd).resolve() / settings.CHANGELOG_FILENAME
     if not changelog_path.exists(): 
         _logger.info("Generating {} file...".format(settings.CHANGELOG_FILENAME))
-        prepare.write_file_from_template(settings.CHANGELOG_PREPARED, changelog_path, config_metadata, cwd, silent=True)
+        prepare.write_file_from_template(settings.CHANGELOG_PREPARED, changelog_path, config_metadata, cwd, verbose=False)
         _logger.info("{} file generated".format(settings.CHANGELOG_FILENAME))    
     
     return changelog_path

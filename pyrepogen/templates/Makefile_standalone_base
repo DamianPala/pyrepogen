@@ -11,6 +11,11 @@ endif
 
 default: prepare
 
+requirements:
+	@echo "Repository requirements:"
+	@echo "    1. Required Python version: {{min_python}}"
+	@echo "    2. Installed Pip"
+
 prepare:
 	@$(PYTHON) -m pip install -r requirements-dev.txt
 	@$(PYTHON) -m pip install -r requirements.txt
@@ -32,16 +37,16 @@ doc:
 	@$(PYTHON) -m flake8
 
 coverage:
-	@coverage run -m pytest tests && ([ $$? -eq 0 ]) || echo ""
+	@coverage run -m pytest $(TEST_PATH) --color=yes && ([ $$? -eq 0 ]) || echo ""
 	@coverage html
-	@coverage report -m	
-	
+	@coverage report -m
+
 install_reqs:
 	@$(PYTHON) -m pip install --user -r requirements.txt
 
 update_reqs:
 	@$(PYTHON) -m repoassist update_reqs
-	
+
 {% block cloud_targets %}{% endblock %}
 format:
 	@$(PYTHON) -m repoassist format $(FORMAT_ARGS)
@@ -59,6 +64,8 @@ help:
 	@echo "	make <target> [flags...]"
 	@echo
 	@echo "Targets:"
+	@echo "make requirements"
+	@echo "	List necessary repository requirements."
 	@echo "make prepare"
 	@echo "	Prepare a development environment based on the requirements.txt and requirements-dev.txt, use only once"
 	@echo "make release"

@@ -14,23 +14,21 @@ from . import logger
 from . import wizard
 from . import prepare
 from . import exceptions
+from . import utils
 from . import __version__
 
 
-IS_DEBUG = True
+DEBUG = True
 
-
-_packagename = (Path(inspect.getfile(inspect.currentframe())) / '..').resolve().name
-_logger = logger.create_logger(_packagename)
+_PACKAGENAME = (Path(inspect.getfile(inspect.currentframe())) / '..').resolve().name
+_logger = logger.create_logger(_PACKAGENAME)
 
 # TODO: test logging level setting
 
 
-
 def main():
     parser = argparse.ArgumentParser(formatter_class=argparse.RawDescriptionHelpFormatter,
-                                     description="Python Repo Generator",
-                                     epilog="""Available commands: ...""")
+                                     description="Python Repo Generator")
     parser.add_argument('repo_path', nargs='?', action='store', default=None, 
                         help="Repo name or path to the directory when repository will be generated. If directory does not exist then will be created.")
     parser.add_argument('-q', '--quiet', dest='quiet', action='store_true', default=False, help="Disable output")
@@ -54,7 +52,7 @@ def main():
                 config = {}
                 config['metadata'] = {}
                 
-                if not IS_DEBUG:
+                if not DEBUG:
                     project_type = wizard.choose_one(__name__, "Python package or standalone script layout?", settings.ProjectType)
                     config['metadata']['project_type'] = project_type
                     is_cloud = wizard.choose_bool(__name__, "Create a cloud server feature?")
@@ -70,15 +68,14 @@ def main():
                     config['metadata']['short_description'] = wizard.get_data(__name__, "Enter short project description")
                     config['metadata']['home_page'] = wizard.get_data(__name__, "Enter home page")
                     config['metadata']['changelog_type'] = wizard.choose_one(__name__, "Select a changelog type", settings.ChangelogType)
-                    config['metadata']['year'] = str(datetime.datetime.now().year)
-                    config['metadata']['repoassist_version'] = __version__
+                    utils.add_auto_config_fields(config)
                     
                     args.cloud = is_cloud
                     args.sample_layout = is_sample_layout
                 else:
                     _get_mock_data(config, args)
-#                     dest_dir = _get_dest_dir('sandbox')
-                    dest_dir = _get_dest_dir('../standalone-repo-test')
+                    dest_dir = _get_dest_dir('sandbox')
+#                     dest_dir = _get_dest_dir('../standalone-repo-test')
                     project_type = settings.ProjectType.SCRIPT.value
                 
                 if project_type == settings.ProjectType.PACKAGE.value:
@@ -91,7 +88,6 @@ def main():
             e.logger.error(str(e))
             sys.exit("Repository generation error!")
             
-
 
 def _get_mock_data(config, args):
     config['metadata']['author'] = 'damian'
@@ -106,10 +102,10 @@ def _get_mock_data(config, args):
     config['metadata']['changelog_type'] = settings.ChangelogType.GENERATED.value
     config['metadata']['year'] = '2018'
     config['metadata']['repoassist_version'] = '0.1.0'
+    config['metadata']['min_python'] = '3.7'
     
     args.cloud = True
     args.sample_layout = True
-
 
 
 def _get_dest_dir(prompt_dir):

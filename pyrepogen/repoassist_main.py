@@ -15,8 +15,8 @@ from . import cloud
 from . import formatter
 
 
-_packagename = (Path(inspect.getfile(inspect.currentframe())) / '..').resolve().name
-_logger = logger.create_logger(_packagename)
+_PACKAGENAME = (Path(inspect.getfile(inspect.currentframe())) / '..').resolve().name
+_logger = logger.create_logger(_PACKAGENAME)
 
 
 def main():

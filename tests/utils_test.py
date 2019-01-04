@@ -39,10 +39,9 @@ def test_read_setup_cfg_SHOULD_read_config_properly():
             'repo_name': 'sample-repo',
             'short_description': 'This is a sample project',
             'changelog_type': settings.ChangelogType.GENERATED.value,
-            'year': str(datetime.datetime.now().year),
-            'repoassist_version': '0.1.0'
         }
     }
+    utils.add_auto_config_fields(expected_config)
     
     config = utils.read_setup_cfg(cwd)
     pprint(config)

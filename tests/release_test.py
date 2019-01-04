@@ -5,6 +5,7 @@ import shutil
 import os
 import stat
 import re
+import datetime
 from pathlib import Path
 from pprint import pprint
 from pbr import git
@@ -25,7 +26,8 @@ _DEFAULT_CONFIG = {
         'short_description': 'This is a sample project',
         'changelog_type': settings.ChangelogType.GENERATED.value,
         'year': '2018',
-        'repoassist_version': '0.1.0'
+        'repoassist_version': '0.1.0',
+        'min_python': '3.7'
     },
 }
 
@@ -265,7 +267,8 @@ def test_update_changelog():
 
 - last line."""
     
-    expected_changelog = '# sample_project - Change Log\nThis is a sample project\n\n### Version: 0.2.0 | Released: 2019-01-03 \n- Next Release\n- another line\n\n- last line.\n\n### Version: 0.1.0 | Released: 2019-01-03 \nFirst Release'
+    tagger_date = datetime.date.today().strftime('%Y-%m-%d')
+    expected_changelog = '# sample_project - Change Log\nThis is a sample project\n\n### Version: 0.2.0 | Released: {} \n- Next Release\n- another line\n\n- last line.\n\n### Version: 0.1.0 | Released: {} \nFirst Release'.format(tagger_date, tagger_date)
     
     release._update_generated_changelog(_DEFAULT_CONFIG['metadata'], new_release_tag, new_release_msg, cwd)
     

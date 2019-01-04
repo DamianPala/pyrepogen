@@ -5,6 +5,7 @@
 from enum import Enum
 from pathlib import Path
 
+MIN_PYTHON = (3, 7)
 
 SUGGESTED_INITIAL_RELEASE_TAG = '0.1.0'
 
@@ -135,7 +136,8 @@ CONFIG_MANDATORY_FIELDS = [
     'short_description',
     'changelog_type',
     'year',
-    REPOASSIST_VERSION
+    REPOASSIST_VERSION,
+    'min_python'
 ]
 
 AUTOMATIC_RELEASE_COMMIT_MSG = "Automatic update of release data files."
