@@ -15,6 +15,10 @@ from . import PARDIR
 _logger = logging.getLogger(__name__)
 
 
+def generate_package_repo(config, cwd='.', options=None):
+    pass
+
+
 def generate_standalone_repo(config, cwd='.', options=None):
     _logger.info("Generate repository files...")
 
@@ -47,7 +51,7 @@ def _generate_standalone_repo_dirs(cwd):
 def _generate_standalone_repo_files(config, cwd, options=None):
     paths = []
 
-    utils.validate_config(config['metadata'])
+    utils.validate_config_metadata(config['metadata'])
 
     for filename in settings.STANDALONE_REPO_FILES_TO_GEN:
         if filename == settings.REQUIREMENTS_FILENAME:
@@ -156,7 +160,7 @@ def _prepare_requirements(path, reqs, cwd, options=None):
 def _prepare_repoasist(config, cwd, options=None):
     paths = []
 
-    utils.validate_config(config['metadata'])
+    utils.validate_config_metadata(config['metadata'])
 
     for filename in settings.REPOASSIST_FILES:
         if filename in {settings.COLREQS_FILENAME,

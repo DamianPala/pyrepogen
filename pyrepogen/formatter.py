@@ -4,6 +4,7 @@
 
 import autopep8
 import logging
+import webbrowser
 from pathlib import Path
 
 from . import exceptions
@@ -15,6 +16,8 @@ _logger = logging.getLogger(__name__)
 
 
 def format_file(path, with_meld=True, cwd='.'):
+    _logger.info("Format the file: {} using {} with merge mode in {}".format(path, settings.FILE_FORMATTER, settings.MERGE_TOOL))
+    
     path = Path(cwd) / path
     formated_file_path = path.parent / (path.stem + '.tmp' + path.suffix)
     setup_file_path = (Path(cwd) / settings.SETUP_CFG_FILENAME).resolve()
@@ -32,3 +35,11 @@ def format_file(path, with_meld=True, cwd='.'):
         formated_file_path.unlink()
     else:
         _logger.info("Formatted file has ben written to {}".format(formated_file_path))
+        
+        
+def coverage_report(cwd='.'):
+    _logger.info("Open the coverage html report in the default system browser.")
+    
+    path_to_report = (Path(cwd).resolve() / settings.HTMLCOV_DIRNAME / 'index.html').as_posix()
+    url = 'file://{}'.format(path_to_report)
+    webbrowser.open(url)

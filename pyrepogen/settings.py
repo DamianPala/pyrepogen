@@ -30,8 +30,9 @@ REQUIREMENTS_DEV = [
 ]
 
 
-TEMPLATES_DIRNAME = 'templates'
+REPO_CONFIG_FILENAME = 'gen_repo.cfg'
 
+TEMPLATES_DIRNAME = 'templates'
 DOCS_DIRNAME = 'docs'
 TESTS_DIRNAME = 'tests'
 TESTS_PATH = './' + TESTS_DIRNAME
@@ -39,6 +40,7 @@ DISTRIBUTION_DIRNAME = 'dist'
 REPOASSIST_DIRNAME = 'repoassist'
 GIT_DIRNAME = '.git'
 RELEASE_DIRNAME = "release"
+HTMLCOV_DIRNAME = 'htmlcov'
 
 RELEASE_PACKAGE_SUFFIX = "_release"
 
@@ -79,6 +81,9 @@ PREPARE_FILENAME = 'prepare.py'
 CLEAN_FILENAME = 'clean.py'
 CLOUD_CREDENTIALS_FILENAME = "cloud_credentials.txt"
 REPOASSIST_VERSION = '{}_version'.format(REPOASSIST_DIRNAME)
+
+FILE_FORMATTER = 'autopep8'
+MERGE_TOOL = 'Meld Merge'
 
 STANDALONE_REPO_FILES_TO_GEN = [
     README_FILENAME,
@@ -142,6 +147,11 @@ CONFIG_MANDATORY_FIELDS = [
     REPOASSIST_VERSION,
     'min_python',
     'tests_path'
+]
+
+REPO_CONFIG_MANDATORY_FIELDS = CONFIG_MANDATORY_FIELDS + [
+    'is_cloud',
+    'is_sample_layout'
 ]
 
 AUTOMATIC_RELEASE_COMMIT_MSG = "Automatic update of release data files."

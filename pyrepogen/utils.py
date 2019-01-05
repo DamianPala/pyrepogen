@@ -47,13 +47,13 @@ def get_git_repo_tree(cwd='.'):
     return [Path(cwd).resolve() / path for path in pygittools.list_git_repo_tree(str(cwd))['msg']]
 
 
-def read_setup_cfg(cwd='.'):
+def read_config_file(path):
     def is_list_option(option):
         if option and '"' not in option[0]:
             return True if '\n' in option[0] else False
 
     config_dict = {}
-    filepath = Path(cwd) / settings.SETUP_CFG_FILENAME
+    filepath = Path(path)
 
     config = configparser.ConfigParser()
     if not config.read(filepath, 'utf-8'):
@@ -71,7 +71,7 @@ def read_setup_cfg(cwd='.'):
 
     add_auto_config_fields(config_dict)
 
-    validate_config(config_dict['metadata'])
+    validate_config_metadata(config_dict['metadata'])
 
     return config_dict
 
@@ -83,11 +83,37 @@ def add_auto_config_fields(config):
     config['metadata']['tests_path'] = settings.TESTS_PATH
 
 
-def validate_config(config):
-    for field in settings.CONFIG_MANDATORY_FIELDS:
+def validate_config_metadata(config):
+    _validate_metadata(config, settings.CONFIG_MANDATORY_FIELDS)
+        
+        
+def validate_repo_config_metadata(config):
+    _validate_metadata(config, settings.REPO_CONFIG_MANDATORY_FIELDS)
+
+        
+def _validate_metadata(config, validator):
+    for field in validator:
         if field not in config:
             raise exceptions.ConfigError("The {} field not found in the config!".format(field), _logger)
+        else:
+            if not config[field]:
+                raise exceptions.ConfigError("The {} field is empty in the config!".format(field), _logger)
+            else:
+                if field == 'project_type':
+                    valid_values = [item.value for item in settings.ProjectType]
+                    if config[field] not in valid_values:
+                        raise exceptions.ConfigError("The {} field has invalid value in the config!".format(field), _logger)
+                elif field == 'changelog_type':
+                    valid_values = [item.value for item in settings.ChangelogType]
+                    if config[field] not in valid_values:
+                        raise exceptions.ConfigError("The {} field has invalid value in the config!".format(field), _logger)
+#                 TODO: implement true and false handling despite of case
 
 
 def get_module_name_with_suffix(module_name):
     return "{}.py".format(module_name)
+
+
+def get_dir_from_arg(prompt_dir):
+    return (Path().cwd() / prompt_dir).resolve()
+

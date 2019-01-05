@@ -32,6 +32,9 @@ class NameError(PyRepoGenError):
 class ValueError(PyRepoGenError):
     pass
 
+class RuntimeError(PyRepoGenError):
+    pass
+
 class ReleaseMetadataError(PyRepoGenError):
     pass
 

@@ -33,7 +33,7 @@ def make_release(prompt=True, cwd='.'):
     _logger.info("Preparing Release Package...")
     
     release_files_paths = []
-    config_metadata = utils.read_setup_cfg(cwd)['metadata']
+    config_metadata = utils.read_config_file(Path(cwd) / settings.SETUP_CFG_FILENAME)['metadata']
     action = ReleaseAction.REGENERATE
     
     _check_if_changes_to_commit(cwd)
@@ -101,7 +101,7 @@ def _update_project_version(config_metadata, release_tag, cwd='.'):
 
 
 def _update_version_standalone(release_tag, cwd='.'):
-    project_name = utils.read_setup_cfg(cwd)['metadata']['project_name']
+    project_name = utils.read_config_file(Path(cwd) / settings.SETUP_CFG_FILENAME)['metadata']['project_name']
     project_module_name = utils.get_module_name_with_suffix(project_name)
     new_version_string = "__version__ = '{}'".format(release_tag)
     try:
@@ -332,7 +332,7 @@ def _generate_file_pbr(filename, gen_handler, cwd='.'):
 def _prepare_release_archive(release_files_paths, cwd='.'):
     _logger.info("Compressing package...")
     
-    config = utils.read_setup_cfg(cwd)
+    config = utils.read_config_file(Path(cwd) / settings.SETUP_CFG_FILENAME)
     release_metadata = _get_release_metadata(cwd)
     
     release_package_suffix = '.tar.gz'
