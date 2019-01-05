@@ -87,7 +87,9 @@ validate_repo_config_metadata_testdata = [
             'year': '2018',
             'repoassist_version': '0.1.0',
             'min_python': '3.7',
-            'tests_path': settings.TESTS_PATH
+            'tests_path': settings.TESTS_PATH,
+            'is_cloud': 'true',
+            'is_sample_layout': 'true',
         }, 
         "The project_type field has invalid value in the config"
     ),
@@ -103,16 +105,54 @@ validate_repo_config_metadata_testdata = [
             'year': '2018',
             'repoassist_version': '0.1.0',
             'min_python': '3.7',
-            'tests_path': settings.TESTS_PATH
+            'tests_path': settings.TESTS_PATH,
+            'is_cloud': 'true',
+            'is_sample_layout': 'true',
         }, 
         "The changelog_type field has invalid value in the config"
+    ),
+    (    
+        {
+            'project_type': 'script',
+            'repo_name': 'myrepo',
+            'project_name': 'sample_project',
+            'author': 'Damian', 
+            'author_email': 'mail@mail.com',
+            'short_description': 'This is a sample project',
+            'changelog_type': 'generated',
+            'year': '2018',
+            'repoassist_version': '0.1.0',
+            'min_python': '3.7',
+            'tests_path': settings.TESTS_PATH,
+            'is_cloud': 'raise error',
+            'is_sample_layout': 'true',
+        }, 
+        "The is_cloud field has invalid value in the config"
+    ),
+    (    
+        {
+            'project_type': 'script',
+            'repo_name': 'myrepo',
+            'project_name': 'sample_project',
+            'author': 'Damian', 
+            'author_email': 'mail@mail.com',
+            'short_description': 'This is a sample project',
+            'changelog_type': 'generated',
+            'year': '2018',
+            'repoassist_version': '0.1.0',
+            'min_python': '3.7',
+            'tests_path': settings.TESTS_PATH,
+            'is_cloud': 'false',
+            'is_sample_layout': 'raise error',
+        }, 
+        "The is_sample_layout field has invalid value in the config"
     ),
 ]
  
 @pytest.mark.parametrize("config_metadata, expected", validate_repo_config_metadata_testdata)
 def test_validate_repo_config_metadata_SHOULD_raise_error_when_field_is_invalid(config_metadata, expected):
     try:
-        utils.validate_config_metadata(config_metadata)
+        utils.validate_repo_config_metadata(config_metadata)
         assert False, "Error was expected but not occured!"
     except exceptions.ConfigError as e:
         assert expected in str(e)

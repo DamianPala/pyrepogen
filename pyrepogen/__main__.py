@@ -45,32 +45,30 @@ def main():
     else:
         try:
             if args.repo_path:
-                _logger.info("Generate repository from the predefined config file {} from your current directory.".format(settings.REPO_CONFIG_FILENAME))
                 
                 repo_path = utils.get_dir_from_arg(args.repo_path)
                 if args.config:
+                    _logger.info("Generate repository from specified predefined config file {}.".format(args.config))
                     config_path = utils.get_dir_from_arg(args.config)
                     if not config_path.exists():
-                        raise exceptions.FileNotFoundError("Rrepository Config file not exists: {}".format(config_path), _logger)
+                        raise exceptions.FileNotFoundError("Rrepository config file not exists: {}".format(config_path), _logger)
                     
                     config = utils.read_config_file(config_path)
                 else:
+                    _logger.info("Generate repository from the predefined config file {} from your current directory.".format(settings.REPO_CONFIG_FILENAME))
                     config_path = Path(cwd) / settings.REPO_CONFIG_FILENAME
                     if not config_path.exists():
                         _logger.error("Predefined repository config file {} not exists!".format(settings.REPO_CONFIG_FILENAME))
-                        _logger.info("Creating the predefined repository config file {} in your current working directory...".format(settings.REPO_CONFIG_FILENAME))
-                        prepare.generate_repo_config(cwd)
-                        _logger.info("Predefined repository config file created. Please fill it with relevant data and try to generate repository again!")
+                        prepare.generate_repo_config(cwd, options=args)
                         sys.exit()
                     
                     config = utils.read_config_file(config_path)
                     
-#                 TODO: check fields with specified value against incorrect value, check if field is not empty in validate config 
                 utils.validate_repo_config_metadata(config['metadata'])
                     
                 project_type = config['metadata']['project_type']
-                is_cloud = config['metadata']['is_cloud']
-                is_sample_layout = config['metadata']['is_sample_layout']
+                is_cloud = utils.str2bool(config['metadata']['is_cloud'])
+                is_sample_layout = utils.str2bool(config['metadata']['is_sample_layout'])
                 
             else:
                 _logger.info("Start Python Repository Generator Wizard!")

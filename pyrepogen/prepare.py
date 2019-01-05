@@ -19,6 +19,14 @@ def generate_package_repo(config, cwd='.', options=None):
     pass
 
 
+def generate_repo_config(cwd='.', options=None):
+    _logger.info("Creating the predefined repository config file {} in your current working directory...".format(settings.REPO_CONFIG_FILENAME))
+    path = _copy_template_file(settings.REPO_CONFIG_FILENAME, Path(cwd) / settings.REPO_CONFIG_FILENAME, cwd, options, verbose=False)
+    _logger.info("Predefined repository config file created. Please fill it with relevant data and try to generate repository again!")
+    
+    return path
+
+
 def generate_standalone_repo(config, cwd='.', options=None):
     _logger.info("Generate repository files...")
 
@@ -113,14 +121,17 @@ def _generate_empty_file(path, cwd, options=None):
         return []
 
 
-def _copy_template_file(filename, dst, cwd, options=None):
+def _copy_template_file(filename, dst, cwd, options=None, verbose=True):
     if (options and options.force) or (not Path(dst).exists()):
         shutil.copy(PARDIR / settings.TEMPLATES_DIRNAME / filename, dst)
-        _logger.info("{} file generated.".format(Path(dst).relative_to(Path(cwd).resolve())))
+        
+        if verbose:
+            _logger.info("{} file generated.".format(Path(dst).relative_to(Path(cwd).resolve())))
 
         return [dst]
     else:
-        _logger.warning("{} file exists, not overwritten.".format(Path(dst).relative_to(Path(cwd).resolve())))
+        if verbose:
+            _logger.warning("{} file exists, not overwritten.".format(Path(dst).relative_to(Path(cwd).resolve())))
 
         return []
 
@@ -194,7 +205,7 @@ def _prepare_repoasist(config, cwd, options=None):
     return paths
 
 
-def write_file_from_template(template_filename, dst, keywords, cwd, options=None, verbose=False):
+def write_file_from_template(template_filename, dst, keywords, cwd, options=None, verbose=True):
     if (options and options.force) or (not Path(dst).exists()):
         templateLoader = jinja2.FileSystemLoader(searchpath=str(Path(PARDIR) / settings.TEMPLATES_DIRNAME))
         templateEnv = jinja2.Environment(loader=templateLoader,

@@ -107,7 +107,14 @@ def _validate_metadata(config, validator):
                     valid_values = [item.value for item in settings.ChangelogType]
                     if config[field] not in valid_values:
                         raise exceptions.ConfigError("The {} field has invalid value in the config!".format(field), _logger)
-#                 TODO: implement true and false handling despite of case
+                elif (field == 'is_cloud') or (field == 'is_sample_layout'):
+                    valid_values = ['true', 'false']
+                    if config[field].lower() not in valid_values:
+                        raise exceptions.ConfigError("The {} field has invalid value in the config!".format(field), _logger)                    
+                    
+
+def str2bool(string):
+    return string.lower() in ['yes', 'true', 't', '1']
 
 
 def get_module_name_with_suffix(module_name):
