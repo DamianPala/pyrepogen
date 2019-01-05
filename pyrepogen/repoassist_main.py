@@ -2,7 +2,6 @@
 # -*- coding: utf-8 -*-
 
 
-import inspect
 import argparse
 import sys
 from pathlib import Path
@@ -13,10 +12,11 @@ from . import release
 from . import exceptions
 from . import cloud
 from . import formatter
+from . import clean
+from . import PACKAGENAME
 
 
-_PACKAGENAME = (Path(inspect.getfile(inspect.currentframe())) / '..').resolve().name
-_logger = logger.create_logger(_PACKAGENAME)
+_logger = logger.create_logger(PACKAGENAME)
 
 
 def main():
@@ -30,6 +30,7 @@ def main():
     subparsers.add_parser('upload', help="Upload a release package to the cloud.")
     subparsers.add_parser('list_cloud', help="List buckets on the cloud server.")
     subparsers.add_parser('download_package', help="Download package from the cloud server.")
+    subparsers.add_parser('clean', help="Clean repository from dummy files.")
     format_parser = subparsers.add_parser('format', help="Format a python source file using autopep8.")
     format_parser.add_argument('path', action='store', default=None, help="Path to the python source file.")
 
@@ -56,6 +57,8 @@ def main():
                 cloud.download_package(cwd)
             elif command == 'format':
                 formatter.format_file(args.path, cwd=cwd)
+            elif command == 'clean':
+                clean.clean(cwd)
             else:
                 _logger.error("Invalid command.")
         except exceptions.PyRepoGenError as e:

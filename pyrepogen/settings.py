@@ -34,6 +34,7 @@ TEMPLATES_DIRNAME = 'templates'
 
 DOCS_DIRNAME = 'docs'
 TESTS_DIRNAME = 'tests'
+TESTS_PATH = './' + TESTS_DIRNAME
 DISTRIBUTION_DIRNAME = 'dist'
 REPOASSIST_DIRNAME = 'repoassist'
 GIT_DIRNAME = '.git'
@@ -75,6 +76,7 @@ CLOUD_FILENAME = 'cloud.py'
 WIZARD_FILENAME = 'wizard.py'
 FORMATTER_FILENAME = 'formatter.py'
 PREPARE_FILENAME = 'prepare.py'
+CLEAN_FILENAME = 'clean.py'
 CLOUD_CREDENTIALS_FILENAME = "cloud_credentials.txt"
 REPOASSIST_VERSION = '{}_version'.format(REPOASSIST_DIRNAME)
 
@@ -117,6 +119,7 @@ REPOASSIST_FILES = [
     FORMATTER_FILENAME,
     CHANGELOG_FILENAME,
     PREPARE_FILENAME,
+    CLEAN_FILENAME,
 ]
 
 class ProjectType(Enum):
@@ -137,7 +140,24 @@ CONFIG_MANDATORY_FIELDS = [
     'changelog_type',
     'year',
     REPOASSIST_VERSION,
-    'min_python'
+    'min_python',
+    'tests_path'
 ]
 
 AUTOMATIC_RELEASE_COMMIT_MSG = "Automatic update of release data files."
+
+# Only from root directory
+FILES_TO_CLEAN = [
+    '*.egg'
+]
+
+DIRS_TO_CLEAN = [
+    {'name': '*.egg-info', 'flag': '.'},
+    {'name': '__pycache__', 'flag': 'r'},
+    {'name': 'pytest_cache', 'flag': 'r'},
+    {'name': '.tox', 'flag': '.'},
+    {'name': 'build', 'flag': '.'},
+    {'name': 'dist', 'flag': '.'},
+    {'name': 'venv*', 'flag': '.'},
+    {'name': 'htmlcov', 'flag': '.'},
+]

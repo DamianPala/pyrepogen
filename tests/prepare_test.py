@@ -25,7 +25,8 @@ _DEFAULT_CONFIG = {
         'changelog_type': settings.ChangelogType.GENERATED.value,
         'year': '2018',
         'repoassist_version': '0.1.0',
-        'min_python': '3.7'
+        'min_python': '3.7',
+        'tests_path': settings.TESTS_PATH
     },
 }
 
@@ -98,6 +99,7 @@ def test_generate_standalone_repo_SHOULD_generate_repo_tree_properly():
         'repoassist/cloud.py',
         'repoassist/exceptions.py',
         'repoassist/prepare.py',
+        'repoassist/clean.py',
         'repoassist/templates/CHANGELOG_generated.md',
         'cloud_credentials.txt',
     }

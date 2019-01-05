@@ -15,13 +15,12 @@ from . import wizard
 from . import prepare
 from . import exceptions
 from . import utils
-from . import __version__
+from . import (__version__, PACKAGENAME)
 
 
 DEBUG = True
 
-_PACKAGENAME = (Path(inspect.getfile(inspect.currentframe())) / '..').resolve().name
-_logger = logger.create_logger(_PACKAGENAME)
+_logger = logger.create_logger(PACKAGENAME)
 
 # TODO: test logging level setting
 
@@ -100,9 +99,8 @@ def _get_mock_data(config, args):
     config['metadata']['project_type'] = settings.ProjectType.SCRIPT.value
     config['metadata']['short_description'] = 'This is super project.'
     config['metadata']['changelog_type'] = settings.ChangelogType.GENERATED.value
-    config['metadata']['year'] = '2018'
-    config['metadata']['repoassist_version'] = '0.1.0'
-    config['metadata']['min_python'] = '3.7'
+    utils.add_auto_config_fields(config)
+    
     
     args.cloud = True
     args.sample_layout = True

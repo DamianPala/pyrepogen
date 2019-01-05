@@ -27,7 +27,8 @@ _DEFAULT_CONFIG = {
         'changelog_type': settings.ChangelogType.GENERATED.value,
         'year': '2018',
         'repoassist_version': '0.1.0',
-        'min_python': '3.7'
+        'min_python': '3.7',
+        'tests_path': settings.TESTS_PATH
     },
 }
 

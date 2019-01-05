@@ -1,6 +1,5 @@
 PYTHON     := python
-RM		   := rm
-TEST_PATH  := ./tests
+TEST_PATH  := {{tests_path}}
 
 
 ifeq (format,$(firstword $(MAKECMDGOALS)))
@@ -26,20 +25,26 @@ release:
 test:
 	@$(PYTHON) -m pytest $(TEST_PATH) --color=yes
 	
+coverage:
+	@coverage run -m pytest $(TEST_PATH) --color=yes && ([ $$? -eq 0 ]) || echo ""
+	@coverage html
+	@coverage report -m
+	
+coverage_report:
+	@$(PYTHON) -m repoassist coverage_report
+	
 tox:
 	@tox
 
+format:
+	@$(PYTHON) -m repoassist format $(FORMAT_ARGS)
+	
 lint:
 	@$(PYTHON) -m flake8
 	
 #TODO:
 doc:
 	@$(PYTHON) -m flake8
-
-coverage:
-	@coverage run -m pytest $(TEST_PATH) --color=yes && ([ $$? -eq 0 ]) || echo ""
-	@coverage html
-	@coverage report -m
 
 install_reqs:
 	@$(PYTHON) -m pip install --user -r requirements.txt
@@ -48,9 +53,6 @@ update_reqs:
 	@$(PYTHON) -m repoassist update_reqs
 
 {% block cloud_targets %}{% endblock %}
-format:
-	@$(PYTHON) -m repoassist format $(FORMAT_ARGS)
-
 clean:
 #TODO: pycache ant pytest casche clean
 	$(RM) -rf build/
@@ -64,21 +66,48 @@ help:
 	@echo "	make <target> [flags...]"
 	@echo
 	@echo "Targets:"
+	
 	@echo "make requirements"
 	@echo "	List necessary repository requirements."
+	
 	@echo "make prepare"
 	@echo "	Prepare a development environment based on the requirements.txt and requirements-dev.txt, use only once"
+	
 	@echo "make release"
 	@echo "	Release the standalone script"
+	
 	@echo "make test"
-	@echo "	Run tests"
+	@echo "	Run tests using pytest"
+	
+	@echo "make coverage"
+	@echo "	Run test coverage"
+	
+	@echo "make coverage_report"
+	@echo "	Show the html coverage report in the default system browser"
+	
 	@echo "make tox"
 	@echo "	Run tox"
+	
+	@echo "make format"
+	@echo "	Run autopep8 formatter for file specified as argument in merge mode"
+	@echo "	Usage: make format <path to file to be formatted>"
+	
 	@echo "make lint"
 	@echo "	Run linter"
+	
+	@echo "make doc"
+	@echo "	Generate documentation"
+	
+	@echo "make install_reqs"
+	@echo "	Install requirements.txt"
+	
+	@echo "make update_reqs"
+	@echo "	Update requirements.txt"
+	
 	{% block cloud_targets_help %}{% endblock %}
+	
 	@echo "make clean"
 	@echo "	Clean build and distribution"
 	
 
-.PHONY: default prepare release install test lint clean format help
+.PHONY: default requirements prepare release test coverage coverage_report tox format lint doc install_reqs update_reqs {% block cloud_targets_phony %}{% endblock %} clean help

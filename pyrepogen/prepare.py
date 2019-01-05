@@ -169,7 +169,8 @@ def _prepare_repoasist(config, cwd, options=None):
                         settings.CLOUD_FILENAME,
                         settings.WIZARD_FILENAME,
                         settings.FORMATTER_FILENAME,
-                        settings.PREPARE_FILENAME}:
+                        settings.PREPARE_FILENAME,
+                        settings.CLEAN_FILENAME}:
             paths.extend(_copy_file(filename, Path(cwd) / settings.REPOASSIST_DIRNAME / filename, cwd, options))
         elif filename == settings.REPOASSIST_MAIN_FILENAME:
             paths.extend(_copy_file(filename,

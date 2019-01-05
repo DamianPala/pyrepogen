@@ -11,3 +11,5 @@
 * Generate the AUTHORS file based a git repository
 * Update the requirements.txt file
 * Prepare the Release Package in `dist` directory containing all files that are in the git repository tree
+
+Describe clean target

@@ -80,6 +80,7 @@ def add_auto_config_fields(config):
     config['metadata']['year'] = str(datetime.datetime.now().year)
     config['metadata'][settings.REPOASSIST_VERSION] = __version__
     config['metadata']['min_python'] = settings.MIN_PYTHON
+    config['metadata']['tests_path'] = settings.TESTS_PATH
 
 
 def validate_config(config):
