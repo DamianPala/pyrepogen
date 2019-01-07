@@ -17,19 +17,17 @@ TESTS_SETUPS_PATH = Path(inspect.getframeinfo(inspect.currentframe()).filename).
 SKIP_ALL_MARKED = False
 
 _DEFAULT_CONFIG = {
-    'metadata': {
-        'project_type': settings.ProjectType.SCRIPT.value,
-        'repo_name': 'sample-repo',
-        'project_name': 'sample_project',
-        'author': 'Damian', 
-        'author_email': 'mail@mail.com',
-        'short_description': 'This is a sample project',
-        'changelog_type': settings.ChangelogType.GENERATED.value,
-        'year': '2018',
-        'repoassist_version': '0.1.0',
-        'min_python': '3.7',
-        'tests_path': settings.TESTS_PATH
-    },
+    'project_type': settings.ProjectType.SCRIPT.value,
+    'repo_name': 'sample-repo',
+    'project_name': 'sample_project',
+    'author': 'Damian', 
+    'author_email': 'mail@mail.com',
+    'short_description': 'This is a sample project',
+    'changelog_type': settings.ChangelogType.GENERATED.value,
+    'year': '2018',
+    'repoassist_version': '0.1.0',
+    'min_python': '3.7',
+    'tests_path': settings.TESTS_PATH
 }
 
 _logger = logger.create_logger()
@@ -178,7 +176,7 @@ def test_update_version_standalone_SHOULD_update_version_properly():
     prepare.generate_standalone_repo(_DEFAULT_CONFIG, cwd, options)
     release._update_version_standalone('1.2.3-alpha.4', cwd)
     
-    project_name = _DEFAULT_CONFIG['metadata']['project_name']
+    project_name = _DEFAULT_CONFIG['project_name']
     project_module_name = utils.get_module_name_with_suffix(project_name)
     with open(cwd / project_module_name, 'r') as file:
         content = file.read()
@@ -200,7 +198,7 @@ def test_update_version_standalone_SHOULD_rise_error_when_no_project_module():
     options = Args()
     options.force = True
     
-    project_name = _DEFAULT_CONFIG['metadata']['project_name']
+    project_name = _DEFAULT_CONFIG['project_name']
     project_module_name = utils.get_module_name_with_suffix(project_name)
     
     prepare.generate_standalone_repo(_DEFAULT_CONFIG, cwd, options)
@@ -225,7 +223,7 @@ def test_update_version_standalone_SHOULD_rise_error_when_no_version_in_module()
     options = Args()
     options.force = True
     
-    project_name = _DEFAULT_CONFIG['metadata']['project_name']
+    project_name = _DEFAULT_CONFIG['project_name']
     project_module_name = utils.get_module_name_with_suffix(project_name)
     
     prepare.generate_standalone_repo(_DEFAULT_CONFIG, cwd, options)
@@ -272,7 +270,7 @@ def test_update_changelog():
     tagger_date = datetime.date.today().strftime('%Y-%m-%d')
     expected_changelog = '# sample_project - Change Log\nThis is a sample project\n\n### Version: 0.2.0 | Released: {} \n- Next Release\n- another line\n\n- last line.\n\n### Version: 0.1.0 | Released: {} \nFirst Release'.format(tagger_date, tagger_date)
     
-    release._update_generated_changelog(_DEFAULT_CONFIG['metadata'], new_release_tag, new_release_msg, cwd)
+    release._update_generated_changelog(_DEFAULT_CONFIG, new_release_tag, new_release_msg, cwd)
     
     with open(Path(cwd) / settings.CHANGELOG_FILENAME, 'r') as file:
         content = file.read()
@@ -318,7 +316,7 @@ def test_clean_filed_release():
     new_release_tag = '0.3.0'
     new_release_msg = "next release"
     
-    files_to_add.append(release._update_changelog(_DEFAULT_CONFIG['metadata'], new_release_tag, new_release_msg, cwd))
+    files_to_add.append(release._update_changelog(_DEFAULT_CONFIG, new_release_tag, new_release_msg, cwd))
     files_to_add.append(release._update_authors(cwd))
     
     

@@ -69,26 +69,64 @@ def read_config_file(path):
             else:
                 config_dict[section][option] = option_val
 
-    add_auto_config_fields(config_dict)
-
-    validate_config_metadata(config_dict['metadata'])
 
     return config_dict
 
 
+def read_repo_config_file(path):
+    raw_config = read_config_file(path)
+    config = {}
+    
+    for key in raw_config[settings.REPO_CONFIG_SECTION_NAME]:
+        config[key.replace('-', '_')] = raw_config[settings.REPO_CONFIG_SECTION_NAME][key]
+        
+    add_auto_config_fields(config)
+
+    validate_config_metadata(config)
+    
+    return config
+
+
+def get_repo_config_from_setup_cfg(path):
+    raw_config = read_config_file(path)
+    config = {}
+    
+    for key in raw_config[settings.METADATA_CONFIG_SECTION_NAME]:
+        if key == 'name':
+            config['project_name'] = raw_config[settings.METADATA_CONFIG_SECTION_NAME][key]
+        elif key == 'summary':
+            config['short_description'] = raw_config[settings.METADATA_CONFIG_SECTION_NAME][key]
+        else:
+            config[key.replace('-', '_')] = raw_config[settings.METADATA_CONFIG_SECTION_NAME][key]
+           
+    for key in raw_config[settings.GENERATOR_CONFIG_SECTION_NAME]:
+        config[key.replace('-', '_')] = raw_config[settings.GENERATOR_CONFIG_SECTION_NAME][key] 
+            
+    add_auto_config_fields(config)
+
+    validate_config_metadata(config)
+    
+    return config
+
+
 def add_auto_config_fields(config):
-    config['metadata']['year'] = str(datetime.datetime.now().year)
-    config['metadata'][settings.REPOASSIST_VERSION] = __version__
-    config['metadata']['min_python'] = settings.MIN_PYTHON
-    config['metadata']['tests_path'] = settings.TESTS_PATH
+    config['year'] = str(datetime.datetime.now().year)
+    config[settings.REPOASSIST_VERSION] = __version__
+    config['min_python'] = settings.MIN_PYTHON
+    config['description_file'] = settings.README_FILENAME
+    config['tests_dirname'] = settings.TESTS_DIRNAME
+    config['tests_path'] = settings.TESTS_PATH
+    config['metadata_section'] = settings.METADATA_CONFIG_SECTION_NAME
+    config['generator_section'] = settings.GENERATOR_CONFIG_SECTION_NAME
+    config['license'] = settings.LICENSE
 
 
 def validate_config_metadata(config):
-    _validate_metadata(config, settings.CONFIG_MANDATORY_FIELDS)
+    _validate_metadata(config, settings.REPO_CONFIG_MANDATORY_FIELDS)
         
         
 def validate_repo_config_metadata(config):
-    _validate_metadata(config, settings.REPO_CONFIG_MANDATORY_FIELDS)
+    _validate_metadata(config, settings.EXTENDED_REPO_CONFIG_MANDATORY_FIELDS)
 
         
 def _validate_metadata(config, validator):

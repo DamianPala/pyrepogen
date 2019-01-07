@@ -52,7 +52,7 @@ def main():
                     if not config_path.exists():
                         raise exceptions.FileNotFoundError("Rrepository config file not exists: {}".format(config_path), _logger)
                     
-                    config = utils.read_config_file(config_path)
+                    config = utils.read_repo_config_file(config_path)
                 else:
                     _logger.info("Generate repository from the predefined config file {} from your current directory.".format(settings.REPO_CONFIG_FILENAME))
                     config_path = Path(cwd) / settings.REPO_CONFIG_FILENAME
@@ -61,39 +61,39 @@ def main():
                         prepare.generate_repo_config(cwd, options=args)
                         sys.exit()
                     
-                    config = utils.read_config_file(config_path)
+                    config = utils.read_repo_config_file(config_path)
                     
-                utils.validate_repo_config_metadata(config['metadata'])
+                utils.validate_repo_config_metadata(config)
                     
-                project_type = config['metadata']['project_type']
-                is_cloud = utils.str2bool(config['metadata']['is_cloud'])
-                is_sample_layout = utils.str2bool(config['metadata']['is_sample_layout'])
+                project_type = config['project_type']
+                is_cloud = utils.str2bool(config['is_cloud'])
+                is_sample_layout = utils.str2bool(config['is_sample_layout'])
                 
             else:
                 _logger.info("Start Python Repository Generator Wizard!")
                 config = {}
-                config['metadata'] = {}
                 
-                config['metadata']['project_type'] = wizard.choose_one(__name__, "Python package or standalone script layout?", settings.ProjectType)
-                project_type = config['metadata']['project_type']
+                config['project_type'] = wizard.choose_one(__name__, "Python package or standalone script layout?", settings.ProjectType)
+                project_type = config['project_type']
                 is_cloud = wizard.choose_bool(__name__, "Create a cloud server feature?")
                 is_sample_layout = wizard.choose_bool(__name__, "Generate sample python files?")
-                config['metadata']['repo_name'] = wizard.get_data(__name__, "Enter repository name")
-                config['metadata']['project_name'] = wizard.get_data(__name__, "Enter project name")
-                config['metadata']['author'] = wizard.get_data(__name__, "Enter author")
-                config['metadata']['author_email'] = wizard.get_data(__name__, "Enter author email")
-                config['metadata']['maintainer'] = wizard.get_data(__name__, "Enter maintainer")
-                config['metadata']['maintainer_email'] = wizard.get_data(__name__, "Enter maintainer email")
-                config['metadata']['short_description'] = wizard.get_data(__name__, "Enter short project description")
-                config['metadata']['home_page'] = wizard.get_data(__name__, "Enter home page")
-                config['metadata']['changelog_type'] = wizard.choose_one(__name__, "Select a changelog type", settings.ChangelogType)
-                utils.add_auto_config_fields(config)
+                config['repo_name'] = wizard.get_data(__name__, "Enter repository name")
+                config['project_name'] = wizard.get_data(__name__, "Enter project name")
+                config['author'] = wizard.get_data(__name__, "Enter author")
+                config['author_email'] = wizard.get_data(__name__, "Enter author email")
+                config['maintainer'] = wizard.get_data(__name__, "Enter maintainer")
+                config['maintainer_email'] = wizard.get_data(__name__, "Enter maintainer email")
+                config['short_description'] = wizard.get_data(__name__, "Enter short project description")
+                config['home_page'] = wizard.get_data(__name__, "Enter home page")
+                config['changelog_type'] = wizard.choose_one(__name__, "Select a changelog type", settings.ChangelogType)
                 
                 prompt_dir = wizard.get_data(__name__, "Enter path to the directory where a repository will be generated (relative or absolute)")
                 repo_path = utils.get_dir_from_arg(prompt_dir)
 
             args.cloud = is_cloud
             args.sample_layout = is_sample_layout
+            
+            utils.add_auto_config_fields(config)
                 
             if project_type == settings.ProjectType.PACKAGE.value:
                 prepare.generate_package_repo(config, cwd=repo_path, options=args)

@@ -33,7 +33,7 @@ def make_release(prompt=True, cwd='.'):
     _logger.info("Preparing Release Package...")
     
     release_files_paths = []
-    config_metadata = utils.read_config_file(Path(cwd) / settings.SETUP_CFG_FILENAME)['metadata']
+    config_metadata = utils.get_repo_config_from_setup_cfg(Path(cwd) / settings.SETUP_CFG_FILENAME)
     action = ReleaseAction.REGENERATE
     
     _check_if_changes_to_commit(cwd)
@@ -71,7 +71,7 @@ def _check_if_changes_to_commit(cwd):
         raise exceptions.UncommitedChangesError("Error checking if there are any changes to commit!", _logger)
     
 
-def _release_checkout(config_metadata):
+def _release_checkout(config):
     action = wizard.choose_one(__name__, "Make Release or Regenerate a release package using the actual release metadata",
                                choices=[ReleaseAction.MAKE_RELEASE.value, ReleaseAction.REGENERATE.value])
     action = ReleaseAction.MAKE_RELEASE if action == ReleaseAction.MAKE_RELEASE.value else ReleaseAction.REGENERATE
@@ -85,15 +85,15 @@ def _release_checkout(config_metadata):
             raise exceptions.ReleaseCheckoutError("Complete {} file!".format(settings.README_FILENAME), _logger)
         if not wizard.is_checkpoint_ok(__name__, "Is there something that should be added to {} file?".format(settings.TODO_FILENAME), valid_value='n'):
             raise exceptions.ReleaseCheckoutError("Complete {} file!".format(settings.TODO_FILENAME), _logger)
-        if config_metadata['changelog_type'] == settings.ChangelogType.PREPARED.value:
+        if config['changelog_type'] == settings.ChangelogType.PREPARED.value:
             if not wizard.is_checkpoint_ok(__name__, "Is the {} file up to date?".format(settings.CHANGELOG_FILENAME)):
                 raise exceptions.ReleaseCheckoutError("Complete {} file!".format(settings.CHANGELOG_FILENAME), _logger)
         
     return action
 
 
-def _update_project_version(config_metadata, release_tag, cwd='.'):
-    if config_metadata['project_type'] == settings.ProjectType.SCRIPT.value:
+def _update_project_version(config, release_tag, cwd='.'):
+    if config['project_type'] == settings.ProjectType.SCRIPT.value:
         _update_version_standalone(release_tag, cwd)
     else:
 #                 TODO: package
@@ -101,7 +101,7 @@ def _update_project_version(config_metadata, release_tag, cwd='.'):
 
 
 def _update_version_standalone(release_tag, cwd='.'):
-    project_name = utils.read_config_file(Path(cwd) / settings.SETUP_CFG_FILENAME)['metadata']['project_name']
+    project_name = utils.get_repo_config_from_setup_cfg(Path(cwd) / settings.SETUP_CFG_FILENAME)['project_name']
     project_module_name = utils.get_module_name_with_suffix(project_name)
     new_version_string = "__version__ = '{}'".format(release_tag)
     try:
@@ -119,16 +119,16 @@ def _update_version_standalone(release_tag, cwd='.'):
             project_module_name, settings.SETUP_CFG_FILENAME), _logger)
         
 
-def _update_changelog(config_metadata, new_release_tag, new_release_msg, cwd='.'):
-    if config_metadata['changelog_type'] == settings.ChangelogType.GENERATED.value:
-        changelog_filepath = _update_generated_changelog(config_metadata, new_release_tag, new_release_msg, cwd)
+def _update_changelog(config, new_release_tag, new_release_msg, cwd='.'):
+    if config['changelog_type'] == settings.ChangelogType.GENERATED.value:
+        changelog_filepath = _update_generated_changelog(config, new_release_tag, new_release_msg, cwd)
     else:
-        changelog_filepath = _generate_prepared_changelog(config_metadata, cwd)
+        changelog_filepath = _generate_prepared_changelog(config, cwd)
         
     return changelog_filepath
 
 
-def _update_generated_changelog(config_metadata, new_release_tag, new_release_msg, cwd='.'):
+def _update_generated_changelog(config, new_release_tag, new_release_msg, cwd='.'):
     _logger.info("Updating {} file...".format(settings.CHANGELOG_FILENAME))
     
     changelog_path = Path(cwd).resolve() / settings.CHANGELOG_FILENAME
@@ -140,7 +140,7 @@ def _update_generated_changelog(config_metadata, new_release_tag, new_release_ms
     
     if changelog_path.exists():
         changelog_path.unlink()
-    prepare.write_file_from_template(Path(settings.TEMPLATES_DIRNAME) / settings.CHANGELOG_GENERATED, changelog_path, config_metadata, cwd, verbose=False)
+    prepare.write_file_from_template(Path(settings.TEMPLATES_DIRNAME) / settings.CHANGELOG_GENERATED, changelog_path, config, cwd, verbose=False)
     with open(changelog_path, 'a') as file:
         file.write('\n')
         file.write('\n')
@@ -158,11 +158,11 @@ def _get_changelog_entry(release_tag, release_msg):
     return "### Version: {} | Released: {} \n{}\n\n".format(release_tag, tagger_date, release_msg)
 
 
-def _generate_prepared_changelog(config_metadata, cwd='.'):
+def _generate_prepared_changelog(config, cwd='.'):
     changelog_path = Path(cwd).resolve() / settings.CHANGELOG_FILENAME
     if not changelog_path.exists(): 
         _logger.info("Generating {} file...".format(settings.CHANGELOG_FILENAME))
-        prepare.write_file_from_template(settings.CHANGELOG_PREPARED, changelog_path, config_metadata, cwd, verbose=False)
+        prepare.write_file_from_template(settings.CHANGELOG_PREPARED, changelog_path, config, cwd, verbose=False)
         _logger.info("{} file generated".format(settings.CHANGELOG_FILENAME))    
     
     return changelog_path
@@ -332,11 +332,11 @@ def _generate_file_pbr(filename, gen_handler, cwd='.'):
 def _prepare_release_archive(release_files_paths, cwd='.'):
     _logger.info("Compressing package...")
     
-    config = utils.read_config_file(Path(cwd) / settings.SETUP_CFG_FILENAME)
+    config = utils.get_repo_config_from_setup_cfg(Path(cwd) / settings.SETUP_CFG_FILENAME)
     release_metadata = _get_release_metadata(cwd)
     
     release_package_suffix = '.tar.gz'
-    release_package_name = "{}_{}_{}{}".format(config['metadata']['project_name'], release_metadata['release_tag'], release_metadata['latest_commit_hash'], settings.RELEASE_PACKAGE_SUFFIX)
+    release_package_name = "{}_{}_{}{}".format(config['project_name'], release_metadata['release_tag'], release_metadata['latest_commit_hash'], settings.RELEASE_PACKAGE_SUFFIX)
     release_package_temp_containter_path = Path(cwd).resolve() / settings.RELEASE_DIRNAME / release_package_name
     release_package_path = Path(cwd).resolve() / settings.RELEASE_DIRNAME / (release_package_name + release_package_suffix)
     

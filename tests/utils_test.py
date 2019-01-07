@@ -7,6 +7,7 @@ from pathlib import Path
 from pprint import pprint
 
 from pyrepogen import utils, logger, settings, exceptions
+from pyrepogen.pygittools import add
 
 
 TESTS_SETUPS_PATH = Path(inspect.getframeinfo(inspect.currentframe()).filename).parent / 'tests_setups/utils_test'
@@ -24,51 +25,78 @@ def _error_remove_readonly(_action, name, _exc):
     Path(name).unlink()
 
 
-def test_read_setup_cfg_SHOULD_read_config_properly():
-    cwd = TESTS_SETUPS_PATH / 'test_read_setup_cfg_SHOULD_read_config_properly'
+def test_read_repo_config_file_SHOULD_read_config_properly():
+    cwd = TESTS_SETUPS_PATH / 'test_read_repo_config_file_SHOULD_read_config_properly'
     Path(cwd).mkdir(parents=True, exist_ok=True)
 
     expected_config = {
-        'metadata': {
-            'project_type': settings.ProjectType.SCRIPT.value,
-            'author': 'Damian',
-            'author_email': 'damian@mail.com',
-            'home_page': 'page.com',
-            'maintainer': 'Mike',
-            'maintainer_email': 'mike@mail.com',
-            'project_name': 'sample_project',
-            'repo_name': 'sample-repo',
-            'short_description': 'This is a sample project',
-            'changelog_type': settings.ChangelogType.GENERATED.value,
-        }
+        'project_type': settings.ProjectType.SCRIPT.value,
+        'author': 'Damian',
+        'author_email': 'damian@mail.com',
+        'home_page': 'page.com',
+        'maintainer': 'Mike',
+        'maintainer_email': 'mike@mail.com',
+        'project_name': 'sample_project',
+        'repo_name': 'sample-repo',
+        'short_description': 'This is a sample project.',
+        'changelog_type': settings.ChangelogType.GENERATED.value,
+        'is_cloud': 'True',
+        'is_sample_layout': 'True',
     }
     utils.add_auto_config_fields(expected_config)
     
-    config = utils.read_config_file(Path(cwd) / settings.SETUP_CFG_FILENAME)
+    
+    config = utils.read_repo_config_file(Path(cwd) / settings.REPO_CONFIG_FILENAME)
     pprint(config)
 
     assert config == expected_config
     
     
+def test_get_repo_config_from_setup_cfg_SHOULD_read_config_properly():
+    cwd = TESTS_SETUPS_PATH / 'test_get_repo_config_from_setup_cfg_SHOULD_read_config_properly'
+    Path(cwd).mkdir(parents=True, exist_ok=True)
+
+    expected_config = {
+        'project_type': settings.ProjectType.SCRIPT.value,
+        'author': 'Damian',
+        'author_email': 'damian@mail.com',
+        'home_page': 'page.com',
+        'maintainer': 'Mike',
+        'maintainer_email': 'mike@mail.com',
+        'project_name': 'sample_project',
+        'repo_name': 'sample-repo',
+        'short_description': 'This is a sample project.',
+        'changelog_type': settings.ChangelogType.GENERATED.value,
+        'description_file': settings.README_FILENAME,
+        'keywords': ['sample_project'],
+        'license': settings.LICENSE,
+    }
+    utils.add_auto_config_fields(expected_config)
+    
+    config = utils.get_repo_config_from_setup_cfg(Path(cwd) / settings.SETUP_CFG_FILENAME)
+    pprint(config)
+
+    for key in expected_config:
+        assert config[key] == expected_config[key]
+        
+    
 def test_validate_config_SHOULD_raise_error_when_field_is_empty():
     config = {
-        'metadata': {
-            'project_type': settings.ProjectType.SCRIPT.value,
-            'repo_name': '',
-            'project_name': 'sample_project',
-            'author': 'Damian', 
-            'author_email': 'mail@mail.com',
-            'short_description': 'This is a sample project',
-            'changelog_type': settings.ChangelogType.GENERATED.value,
-            'year': '2018',
-            'repoassist_version': '0.1.0',
-            'min_python': '3.7',
-            'tests_path': settings.TESTS_PATH
-        },
+        'project_type': settings.ProjectType.SCRIPT.value,
+        'repo_name': '',
+        'project_name': 'sample_project',
+        'author': 'Damian', 
+        'author_email': 'mail@mail.com',
+        'short_description': 'This is a sample project',
+        'changelog_type': settings.ChangelogType.GENERATED.value,
+        'year': '2018',
+        'repoassist_version': '0.1.0',
+        'min_python': '3.7',
+        'tests_path': settings.TESTS_PATH
     }
     
     try:
-        utils.validate_config_metadata(config['metadata'])
+        utils.validate_config_metadata(config)
         assert False, "Error was expected but not occured!"
     except exceptions.ConfigError as e:
         assert "The repo_name field is empty in the config" in str(e)

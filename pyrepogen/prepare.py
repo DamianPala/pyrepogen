@@ -64,7 +64,7 @@ def _generate_repo_dirs(cwd):
 
 
 def _generate_package_dir(config, cwd):
-    return _generate_directory(config['metadata']['project_name'], cwd)
+    return _generate_directory(config['project_name'], cwd)
     
 
 def _generate_directory(dirname, cwd):
@@ -88,14 +88,13 @@ def _generate_standalone_repo_files(config, cwd, options=None):
 def _generate_repo_files(files_list, config, cwd, options=None):
     paths = []
 
-    config['metadata']['tests_dirname'] = settings.TESTS_DIRNAME
-    utils.validate_config_metadata(config['metadata'])
+    utils.validate_config_metadata(config)
 
     for file in files_list:
         src = file['src']
         dst = Path(cwd) / file['dst']
         if settings.PROJECT_NAME_PATH_PLACEHOLDER in str(dst):
-            dst = Path(str(dst).replace(settings.PROJECT_NAME_PATH_PLACEHOLDER, config['metadata']['project_name']))
+            dst = Path(str(dst).replace(settings.PROJECT_NAME_PATH_PLACEHOLDER, config['project_name']))
             
         src_parents = [item for item in src.parents]
         if len(src_parents) >= 2 and (str(src_parents[-2]) == settings.TEMPLATES_DIRNAME):
@@ -104,7 +103,7 @@ def _generate_repo_files(files_list, config, cwd, options=None):
             is_from_template = False
             
         if is_from_template:
-            paths.extend(write_file_from_template(src, dst, config['metadata'], cwd, options))
+            paths.extend(write_file_from_template(src, dst, config, cwd, options))
         else:
             paths.extend(_generate_empty_file(dst, cwd, options))
 
@@ -114,7 +113,7 @@ def _generate_repo_files(files_list, config, cwd, options=None):
 def _generate_repoasist(config, cwd, options=None):
     paths = []
 
-    utils.validate_config_metadata(config['metadata'])
+    utils.validate_config_metadata(config)
 
     for filename in settings.REPOASSIST_FILES:
         if filename in {settings.COLREQS_FILENAME,
@@ -136,7 +135,7 @@ def _generate_repoasist(config, cwd, options=None):
                                     cwd, options))
         elif filename == settings.PYINIT_FILENAME:
             paths.extend(write_file_from_template(Path(settings.TEMPLATES_DIRNAME) / settings.PYINIT_FILENAME,
-                                                  Path(cwd) / settings.REPOASSIST_DIRNAME / filename, config['metadata'],
+                                                  Path(cwd) / settings.REPOASSIST_DIRNAME / filename, config,
                                                   cwd, options))
         elif filename == settings.CHANGELOG_FILENAME:
             paths.extend(_copy_template_file(settings.CHANGELOG_GENERATED,

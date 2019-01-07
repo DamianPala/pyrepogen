@@ -6,7 +6,7 @@ import stat
 from pathlib import Path
 from pprint import pprint
 
-from pyrepogen import prepare, settings, logger
+from pyrepogen import prepare, settings, logger, utils
 
 
 TESTS_SETUPS_PATH = Path(inspect.getframeinfo(inspect.currentframe()).filename).parent / 'tests_setups/prepare_test'
@@ -16,19 +16,16 @@ _logger = logger.create_logger()
 
 
 _DEFAULT_CONFIG = {
-    'metadata': {
-        'project_type': settings.ProjectType.SCRIPT.value,
-        'repo_name': 'sample-repo',
-        'project_name': 'sample_project',
-        'author': 'Damian', 
-        'author_email': 'mail@mail.com',
-        'short_description': 'This is a sample project',
-        'changelog_type': settings.ChangelogType.GENERATED.value,
-        'year': '2018',
-        'repoassist_version': '0.1.0',
-        'min_python': '3.7',
-        'tests_path': settings.TESTS_PATH
-    },
+    'project_type': settings.ProjectType.SCRIPT.value,
+    'repo_name': 'sample-repo',
+    'project_name': 'sample_project',
+    'author': 'Damian', 
+    'author_email': 'mail@mail.com',
+    'short_description': 'This is a sample project',
+    'changelog_type': settings.ChangelogType.GENERATED.value,
+    'year': '2018',
+    'repoassist_version': '0.1.0',
+    'min_python': '3.7',
 }
 
 
@@ -75,6 +72,7 @@ def test_generate_package_repo_SHOULD_generate_repo_tree_properly():
     args.force = False
     args.cloud = True
     
+    utils.add_auto_config_fields(_DEFAULT_CONFIG)
     paths = prepare.generate_package_repo(_DEFAULT_CONFIG, cwd, options=args)
     paths = {path.relative_to(cwd).as_posix() for path in paths}
     pprint(paths)
@@ -100,8 +98,8 @@ def test_generate_standalone_repo_SHOULD_generate_repo_tree_properly():
         '.gitignore',
         'TODO.md',
         'conftest.py',
-        '{}.py'.format(_DEFAULT_CONFIG['metadata']['project_name']),
-        'tests/{}_test.py'.format(_DEFAULT_CONFIG['metadata']['project_name']),
+        '{}.py'.format(_DEFAULT_CONFIG['project_name']),
+        'tests/{}_test.py'.format(_DEFAULT_CONFIG['project_name']),
         'tests/__init__.py',
         'requirements.txt',
         'requirements-dev.txt',
@@ -179,8 +177,8 @@ def test_generate_standalone_repo_SHOULD_force_properly():
         Path(cwd) / settings.MAKEFILE_FILENAME,
         Path(cwd) / settings.REQUIREMENTS_DEV_FILENAME,
         Path(cwd) / settings.TOX_FILENAME,
-        Path(cwd) / '{}.py'.format(_DEFAULT_CONFIG['metadata']['project_name']),
-        Path(cwd) / settings.TESTS_DIRNAME / '{}_test.py'.format(_DEFAULT_CONFIG['metadata']['project_name']),
+        Path(cwd) / '{}.py'.format(_DEFAULT_CONFIG['project_name']),
+        Path(cwd) / settings.TESTS_DIRNAME / '{}_test.py'.format(_DEFAULT_CONFIG['project_name']),
         Path(cwd) / settings.TESTS_DIRNAME / settings.PYINIT_FILENAME,
         Path(cwd) / settings.REPOASSIST_DIRNAME / settings.PYINIT_FILENAME,
         Path(cwd) / settings.REPOASSIST_DIRNAME / settings.REPOASSIST_TARGET_MAIN_FILENAME,
