@@ -140,7 +140,7 @@ def _update_generated_changelog(config_metadata, new_release_tag, new_release_ms
     
     if changelog_path.exists():
         changelog_path.unlink()
-    prepare.write_file_from_template(settings.CHANGELOG_GENERATED, changelog_path, config_metadata, cwd, verbose=False)
+    prepare.write_file_from_template(Path(settings.TEMPLATES_DIRNAME) / settings.CHANGELOG_GENERATED, changelog_path, config_metadata, cwd, verbose=False)
     with open(changelog_path, 'a') as file:
         file.write('\n')
         file.write('\n')

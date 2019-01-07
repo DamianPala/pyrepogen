@@ -16,7 +16,19 @@ _logger = logging.getLogger(__name__)
 
 
 def generate_package_repo(config, cwd='.', options=None):
-    pass
+    _logger.info("Generate repository files...")
+
+    paths = []
+
+    Path(cwd).mkdir(parents=True, exist_ok=True)
+    paths.extend(_generate_repo_dirs(cwd))
+    paths.extend(_generate_package_dir(config, cwd))
+    paths.extend(_generate_package_repo_files(config, cwd, options))
+    paths.extend(_generate_repoasist(config, cwd, options))
+
+    _logger.info("Repository files generated.")
+
+    return paths
 
 
 def generate_repo_config(cwd='.', options=None):
@@ -33,142 +45,73 @@ def generate_standalone_repo(config, cwd='.', options=None):
     paths = []
 
     Path(cwd).mkdir(parents=True, exist_ok=True)
-    paths.extend(_generate_standalone_repo_dirs(cwd))
+    paths.extend(_generate_repo_dirs(cwd))
     paths.extend(_generate_standalone_repo_files(config, cwd, options))
-    paths.extend(_prepare_repoasist(config, cwd, options))
+    paths.extend(_generate_repoasist(config, cwd, options))
 
     _logger.info("Repository files generated.")
 
     return paths
 
 
-def _generate_standalone_repo_dirs(cwd):
+def _generate_repo_dirs(cwd):
     paths = []
 
-    for dirname in settings.STANDALONE_REPO_DIRS_TO_GEN:
-        try:
-            Path(Path(cwd) / dirname).mkdir()
-            _logger.info("{} directory generated.".format(dirname))
-            paths.append(Path(cwd) / dirname)
-        except FileExistsError:
-            _logger.warning("{} directory exists, not overwritten.".format(dirname))
+    for dirname in settings.REPO_DIRS_TO_GEN:
+        paths.extend(_generate_directory(dirname, cwd))
 
     return paths
+
+
+def _generate_package_dir(config, cwd):
+    return _generate_directory(config['metadata']['project_name'], cwd)
+    
+
+def _generate_directory(dirname, cwd):
+    try:
+        Path(Path(cwd) / dirname).mkdir()
+        _logger.info("{} directory generated.".format(dirname))
+        return [Path(cwd) / dirname]
+    except FileExistsError:
+        _logger.warning("{} directory exists, not overwritten.".format(dirname))
+        return []
+
+
+def _generate_package_repo_files(config, cwd, options=None):
+    return _generate_repo_files(settings.PACKAGE_REPO_FILES_TO_GEN, config, cwd, options)
 
 
 def _generate_standalone_repo_files(config, cwd, options=None):
+    return _generate_repo_files(settings.STANDALONE_REPO_FILES_TO_GEN, config, cwd, options)
+    
+    
+def _generate_repo_files(files_list, config, cwd, options=None):
     paths = []
 
+    config['metadata']['tests_dirname'] = settings.TESTS_DIRNAME
     utils.validate_config_metadata(config['metadata'])
 
-    for filename in settings.STANDALONE_REPO_FILES_TO_GEN:
-        if filename == settings.REQUIREMENTS_FILENAME:
-            paths.extend(_prepare_requirements(Path(cwd) / filename, settings.REQUIREMENTS_STANDALONE, cwd, options))
-        elif filename == settings.REQUIREMENTS_DEV_FILENAME:
-            paths.extend(_prepare_requirements(Path(cwd) / filename, settings.REQUIREMENTS_DEV, cwd, options))
-        elif filename == settings.TOX_STANDALONE_FILENAME:
-            paths.extend(write_file_from_template(settings.TOX_STANDALONE_FILENAME, Path(cwd) / settings.TOX_FILENAME,
-                                                  {'tests_dirname': settings.TESTS_DIRNAME}, cwd, options))
-        elif filename == settings.LICENSE_FILENAME:
-            paths.extend(write_file_from_template(filename, Path(cwd) / filename, config['metadata'], cwd, options))
-        elif filename == settings.SETUP_CFG_FILENAME:
-            paths.extend(write_file_from_template(settings.SETUP_CFG_STANDALONE_FILENAME,
-                                                  Path(cwd) / filename, config['metadata'], cwd, options))
-        elif filename == settings.GITIGNORE_FILENAME:
-            paths.extend(_copy_template_file(filename, Path(cwd) / filename, cwd, options))
-        elif filename == settings.STANDALONE_SAMPLE_FILENAME:
-            paths.extend(_copy_template_file(filename,
-                                             Path(cwd) / utils.get_module_name_with_suffix(
-                                                 config['metadata']['project_name']),
-                                             cwd, options))
-        elif filename == settings.STANDALONE_SAMPLE_TEST_FILENAME:
-            paths.extend(write_file_from_template(filename,
-                                                  Path(cwd) / settings.TESTS_DIRNAME / utils.get_module_name_with_suffix(
-                                                      config['metadata']['project_name'] + '_test'),
-                                                  config['metadata'], cwd, options))
-        elif filename == settings.PYINIT_FILENAME:
-            paths.extend(_copy_template_file(settings.SAMPLE_MODULE_FILENAME,
-                                             Path(cwd) / settings.TESTS_DIRNAME / filename, cwd, options))
-        elif filename == settings.MAKEFILE_FILENAME:
-            paths.extend(write_file_from_template(settings.MAKEFILE_STANDALONE_FILENAME,
-                                                  Path(cwd) / filename, config['metadata'], cwd, options))
-        elif filename == settings.LICENSE_FILENAME:
-            paths.extend(_copy_template_file(filename, Path(cwd) / filename, cwd, options))
-        elif filename == settings.CLOUD_CREDENTIALS_FILENAME:
-            if options and options.cloud:
-                paths.extend(_copy_template_file(filename, Path(cwd) / filename, cwd))
+    for file in files_list:
+        src = file['src']
+        dst = Path(cwd) / file['dst']
+        if settings.PROJECT_NAME_PATH_PLACEHOLDER in str(dst):
+            dst = Path(str(dst).replace(settings.PROJECT_NAME_PATH_PLACEHOLDER, config['metadata']['project_name']))
+            
+        src_parents = [item for item in src.parents]
+        if len(src_parents) >= 2 and (str(src_parents[-2]) == settings.TEMPLATES_DIRNAME):
+            is_from_template = True
         else:
-            paths.extend(_generate_empty_file(Path(cwd) / filename, cwd, options))
+            is_from_template = False
+            
+        if is_from_template:
+            paths.extend(write_file_from_template(src, dst, config['metadata'], cwd, options))
+        else:
+            paths.extend(_generate_empty_file(dst, cwd, options))
 
     return paths
 
 
-def _generate_empty_file(path, cwd, options=None):
-    try:
-        if options and options.force:
-            with open(Path(path), 'w'):
-                pass
-        else:
-            with open(Path(path), 'x'):
-                pass
-
-        _logger.info("{} file generated.".format(path.relative_to(Path(cwd).resolve())))
-
-        return [path]
-    except FileExistsError:
-        _logger.warning("{} file exists, not overwritten.".format(path.relative_to(Path(cwd).resolve())))
-
-        return []
-
-
-def _copy_template_file(filename, dst, cwd, options=None, verbose=True):
-    if (options and options.force) or (not Path(dst).exists()):
-        shutil.copy(PARDIR / settings.TEMPLATES_DIRNAME / filename, dst)
-        
-        if verbose:
-            _logger.info("{} file generated.".format(Path(dst).relative_to(Path(cwd).resolve())))
-
-        return [dst]
-    else:
-        if verbose:
-            _logger.warning("{} file exists, not overwritten.".format(Path(dst).relative_to(Path(cwd).resolve())))
-
-        return []
-
-
-def _copy_file(filename, dst, cwd, options=None):
-    if (options and options.force) or (not Path(dst).exists()):
-        shutil.copy(PARDIR / filename, dst)
-        _logger.info("{} file generated.".format(dst.relative_to(Path(cwd).resolve())))
-
-        return [dst]
-    else:
-        _logger.warning("{} file exists, not overwritten.".format(dst.relative_to(Path(cwd).resolve())))
-
-        return []
-
-
-def _prepare_requirements(path, reqs, cwd, options=None):
-    try:
-        if options and options.force:
-            with open(Path(path), 'w') as file:
-                for req in reqs:
-                    file.write("{}\n".format(req))
-        else:
-            with open(Path(path), 'x') as file:
-                for req in reqs:
-                    file.write("{}\n".format(req))
-
-        _logger.info("{} file generated.".format(path.relative_to(Path(cwd).resolve())))
-
-        return [path]
-    except FileExistsError:
-        _logger.warning("{} file exists, not overwritten.".format(path.relative_to(Path(cwd).resolve())))
-
-        return []
-
-
-def _prepare_repoasist(config, cwd, options=None):
+def _generate_repoasist(config, cwd, options=None):
     paths = []
 
     utils.validate_config_metadata(config['metadata'])
@@ -192,12 +135,15 @@ def _prepare_repoasist(config, cwd, options=None):
                                     Path(cwd) / settings.REPOASSIST_DIRNAME / settings.REPOASSIST_TARGET_MAIN_FILENAME,
                                     cwd, options))
         elif filename == settings.PYINIT_FILENAME:
-            paths.extend(write_file_from_template(filename,
+            paths.extend(write_file_from_template(Path(settings.TEMPLATES_DIRNAME) / settings.PYINIT_FILENAME,
                                                   Path(cwd) / settings.REPOASSIST_DIRNAME / filename, config['metadata'],
                                                   cwd, options))
         elif filename == settings.CHANGELOG_FILENAME:
             paths.extend(_copy_template_file(settings.CHANGELOG_GENERATED,
                                              Path(cwd) / settings.REPOASSIST_DIRNAME / settings.TEMPLATES_DIRNAME / settings.CHANGELOG_GENERATED,
+                                             cwd, options))
+            paths.extend(_copy_template_file(settings.CHANGELOG_PREPARED,
+                                             Path(cwd) / settings.REPOASSIST_DIRNAME / settings.TEMPLATES_DIRNAME / settings.CHANGELOG_PREPARED,
                                              cwd, options))
         else:
             paths.extend(_generate_empty_file(Path(cwd) / settings.REPOASSIST_DIRNAME / filename, cwd, options))
@@ -205,14 +151,55 @@ def _prepare_repoasist(config, cwd, options=None):
     return paths
 
 
-def write_file_from_template(template_filename, dst, keywords, cwd, options=None, verbose=True):
+def _generate_empty_file(path, cwd, options=None):
+    try:
+        if options and options.force:
+            with open(Path(path), 'w'):
+                pass
+        else:
+            with open(Path(path), 'x'):
+                pass
+
+        _logger.info("{} file generated.".format(path.relative_to(Path(cwd).resolve())))
+
+        return [path]
+    except FileExistsError:
+        _logger.warning("{} file exists, not overwritten.".format(path.relative_to(Path(cwd).resolve())))
+
+        return []
+
+
+def _copy_file(filename, dst, cwd, options=None, verbose=True):
+    return _copy_file_from(PARDIR / filename, dst, cwd, options, verbose)
+
+
+def _copy_template_file(filename, dst, cwd, options=None, verbose=True):
+    return _copy_file_from(PARDIR / settings.TEMPLATES_DIRNAME / filename, dst, cwd, options, verbose)
+
+
+def _copy_file_from(src, dst, cwd, options=None, verbose=True):
     if (options and options.force) or (not Path(dst).exists()):
-        templateLoader = jinja2.FileSystemLoader(searchpath=str(Path(PARDIR) / settings.TEMPLATES_DIRNAME))
+        shutil.copy(src, dst)
+        
+        if verbose:
+            _logger.info("{} file generated.".format(Path(dst).relative_to(Path(cwd).resolve())))
+
+        return [dst]
+    else:
+        if verbose:
+            _logger.warning("{} file exists, not overwritten.".format(Path(dst).relative_to(Path(cwd).resolve())))
+
+        return []
+
+
+def write_file_from_template(src, dst, keywords, cwd, options=None, verbose=True):
+    if (options and options.force) or (not Path(dst).exists()):
+        templateLoader = jinja2.FileSystemLoader(searchpath=str(Path(PARDIR) / src.parent))
         templateEnv = jinja2.Environment(loader=templateLoader,
                                          trim_blocks=True,
                                          lstrip_blocks=True,
                                          newline_sequence='\r\n')
-        template = templateEnv.get_template(template_filename)
+        template = templateEnv.get_template(src.name)
         template.stream(keywords, options=options).dump(str(dst))
 
         if verbose:

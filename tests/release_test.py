@@ -86,7 +86,8 @@ def test_make_release_SHOULD_prepare_release_properly():
     
     paths = prepare.generate_standalone_repo(_DEFAULT_CONFIG, cwd, options)
     expected_paths = {path.relative_to(cwd).as_posix() for path in paths}
-    expected_paths.remove('docs')
+    expected_paths.remove(settings.DOCS_DIRNAME) # TODO: think about doc in feature
+    expected_paths.remove(settings.CLOUD_CREDENTIALS_FILENAME)
     pprint(expected_paths)
     
     pygittools.init(cwd)

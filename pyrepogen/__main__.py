@@ -3,16 +3,11 @@
 
 
 import argparse
-import logging
-import inspect
 import sys
-import datetime
 from pathlib import Path
 from pprint import pprint
-from .mod1 import *
 from . import logger
 from . import wizard
-from . import prepare
 from . import exceptions
 from . import utils
 from . import settings
@@ -22,18 +17,22 @@ from . import (__version__, PACKAGENAME)
 
 _logger = logger.create_logger(PACKAGENAME)
 
-# TODO: test logging level setting
 
 def main():
     parser = argparse.ArgumentParser(formatter_class=argparse.RawDescriptionHelpFormatter,
                                      description="Python Repo Generator")
     parser.add_argument('repo_path', nargs='?', action='store', default=None, 
                         help="Repo name or path to the directory when repository will be generated. If directory does not exist then will be created.")
-    parser.add_argument('-c', '--config', dest='config', action='store', default=None, help="Path to repository config file.")
-    parser.add_argument('-q', '--quiet', dest='quiet', action='store_true', default=False, help="Disable output")
-    parser.add_argument('-d', '--debug', dest='debug', action='store_true', default=False, help="Enable debug output")
-    parser.add_argument('-f', '--force', dest='force', action='store_true', default=False, help="Override existing files.")
-    parser.add_argument('-v', '--version', dest='version', action='store_true', default=False, help="Show package version.")
+    parser.add_argument('-c', '--config', dest='config', action='store', 
+                        default=None, help="Path to repository config file.")
+    parser.add_argument('-q', '--quiet', dest='quiet', action='store_true', 
+                        default=False, help="Disable output")
+    parser.add_argument('-d', '--debug', dest='debug', action='store_true', 
+                        default=False, help="Enable debug output")
+    parser.add_argument('-f', '--force', dest='force', action='store_true', 
+                        default=False, help="Override existing files.")
+    parser.add_argument('-v', '--version', dest='version', action='store_true', 
+                        default=False, help="Show package version.")
     args = parser.parse_args()
     
     logger.set_level(_logger, args)

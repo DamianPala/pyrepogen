@@ -10,6 +10,7 @@ from pyrepogen import prepare, settings, logger
 
 
 TESTS_SETUPS_PATH = Path(inspect.getframeinfo(inspect.currentframe()).filename).parent / 'tests_setups/prepare_test'
+SKIP_ALL_MARKED = False
 
 _logger = logger.create_logger()
 
@@ -41,11 +42,12 @@ def _error_remove_readonly(_action, name, _exc):
     Path(name).unlink()
 
 
+@pytest.mark.skipif(SKIP_ALL_MARKED, reason="Skipped on request")
 def test_generate_standalone_repo_dirs():
     cwd = TESTS_SETUPS_PATH / 'test_generate_standalone_repo_dirs'
     Path(cwd).mkdir(parents=True, exist_ok=True)
     
-    prepare._generate_standalone_repo_dirs(cwd)
+    prepare._generate_repo_dirs(cwd)
     
     generated_dirset = set()
     for dirname in Path(cwd).iterdir():
@@ -59,9 +61,31 @@ def test_generate_standalone_repo_dirs():
     if Path(cwd).exists():
         shutil.rmtree(Path(cwd), ignore_errors=False, onerror=_error_remove_readonly)
         
-    assert generated_dirset == set(settings.STANDALONE_REPO_DIRS_TO_GEN)
-    
+    assert generated_dirset == set(settings.REPO_DIRS_TO_GEN)
 
+
+@pytest.mark.skipif(SKIP_ALL_MARKED, reason="Skipped on request")
+def test_generate_package_repo_SHOULD_generate_repo_tree_properly():
+    cwd = TESTS_SETUPS_PATH / 'test_generate_package_repo_SHOULD_generate_repo_tree_properly'
+    if Path(cwd).exists():
+        shutil.rmtree(Path(cwd))
+    Path(cwd).mkdir(parents=True, exist_ok=True)
+    
+    args = Args
+    args.force = False
+    args.cloud = True
+    
+    paths = prepare.generate_package_repo(_DEFAULT_CONFIG, cwd, options=args)
+    paths = {path.relative_to(cwd).as_posix() for path in paths}
+    pprint(paths)
+    
+    assert 0
+    
+#     if Path(cwd).exists():
+#         shutil.rmtree(Path(cwd), ignore_errors=False, onerror=_error_remove_readonly)
+
+
+@pytest.mark.skipif(SKIP_ALL_MARKED, reason="Skipped on request")
 def test_generate_standalone_repo_SHOULD_generate_repo_tree_properly():
     cwd = TESTS_SETUPS_PATH / 'test_generate_standalone_repo_SHOULD_generate_repo_tree_properly'
     if Path(cwd).exists():
@@ -101,6 +125,7 @@ def test_generate_standalone_repo_SHOULD_generate_repo_tree_properly():
         'repoassist/prepare.py',
         'repoassist/clean.py',
         'repoassist/templates/CHANGELOG_generated.md',
+        'repoassist/templates/CHANGELOG_prepared.md',
         'cloud_credentials.txt',
     }
     
@@ -118,16 +143,18 @@ def test_generate_standalone_repo_SHOULD_generate_repo_tree_properly():
         shutil.rmtree(Path(cwd), ignore_errors=False, onerror=_error_remove_readonly)
 
 
+@pytest.mark.skipif(SKIP_ALL_MARKED, reason="Skipped on request")
 def test_generate_standalone_repo_SHOULD_force_properly():
     cwd = TESTS_SETUPS_PATH / 'test_generate_standalone_repo_SHOULD_force_properly'
 #     if Path(cwd).exists():
 #         shutil.rmtree(Path(cwd))
     Path(cwd).mkdir(parents=True, exist_ok=True)
 
-    for dirname in settings.STANDALONE_REPO_DIRS_TO_GEN:
+    for dirname in settings.REPO_DIRS_TO_GEN:
         Path(Path(cwd) / dirname).mkdir(exist_ok=True)
     
-    for filename in settings.STANDALONE_REPO_FILES_TO_GEN:
+    for file in settings.STANDALONE_REPO_FILES_TO_GEN:
+        filename = file['src'].name
         if filename == settings.STANDALONE_SAMPLE_TEST_FILENAME:
             path = cwd / settings.TESTS_DIRNAME
         elif filename == settings.PYINIT_FILENAME:
@@ -167,7 +194,8 @@ def test_generate_standalone_repo_SHOULD_force_properly():
         Path(cwd) / settings.REPOASSIST_DIRNAME / settings.CLOUD_FILENAME,
         Path(cwd) / settings.REPOASSIST_DIRNAME / settings.WIZARD_FILENAME,
         Path(cwd) / settings.REPOASSIST_DIRNAME / settings.FORMATTER_FILENAME,
-        Path(cwd) / settings.REPOASSIST_DIRNAME / settings.TEMPLATES_DIRNAME / settings.CHANGELOG_FILENAME,
+        Path(cwd) / settings.REPOASSIST_DIRNAME / settings.TEMPLATES_DIRNAME / settings.CHANGELOG_GENERATED,
+        Path(cwd) / settings.REPOASSIST_DIRNAME / settings.TEMPLATES_DIRNAME / settings.CHANGELOG_PREPARED,
     ]
     
     args = Args
@@ -183,6 +211,7 @@ def test_generate_standalone_repo_SHOULD_force_properly():
                 assert False, "{} file not overwritten!".format(path)
                 
 
+@pytest.mark.skipif(SKIP_ALL_MARKED, reason="Skipped on request")
 def test_generate_standalone_repo_SHOULD_generate_makefile_without_cloud_properly():
     cwd = TESTS_SETUPS_PATH / 'test_generate_standalone_repo_SHOULD_generate_makefile_without_cloud_properly'
     if Path(cwd).exists():
@@ -205,6 +234,7 @@ def test_generate_standalone_repo_SHOULD_generate_makefile_without_cloud_properl
     assert "make upload" not in makefile_content
     
     
+@pytest.mark.skipif(SKIP_ALL_MARKED, reason="Skipped on request")
 def test_generate_standalone_repo_SHOULD_generate_makefile_with_cloud_properly():
     cwd = TESTS_SETUPS_PATH / 'test_generate_standalone_repo_SHOULD_generate_makefile_with_cloud_properly'
     if Path(cwd).exists():
