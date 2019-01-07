@@ -73,7 +73,7 @@ def main():
                 _logger.info("Start Python Repository Generator Wizard!")
                 config = {}
                 
-                config['project_type'] = wizard.choose_one(__name__, "Python package or standalone script layout?", settings.ProjectType)
+                config['project_type'] = wizard.choose_one(__name__, "Python package or standalone module layout?", settings.ProjectType)
                 project_type = config['project_type']
                 is_cloud = wizard.choose_bool(__name__, "Create a cloud server feature?")
                 is_sample_layout = wizard.choose_bool(__name__, "Generate sample python files?")
@@ -97,8 +97,8 @@ def main():
                 
             if project_type == settings.ProjectType.PACKAGE.value:
                 prepare.generate_package_repo(config, cwd=repo_path, options=args)
-            elif project_type == settings.ProjectType.SCRIPT.value:
-                prepare.generate_standalone_repo(config, cwd=repo_path, options=args)
+            elif project_type == settings.ProjectType.MODULE.value:
+                prepare.generate_module_repo(config, cwd=repo_path, options=args)
             else:
                 sys.exit("Unknown project type.")
         except exceptions.PyRepoGenError as e:

@@ -33,7 +33,7 @@ def make_release(prompt=True, cwd='.'):
     _logger.info("Preparing Release Package...")
     
     release_files_paths = []
-    config_metadata = utils.get_repo_config_from_setup_cfg(Path(cwd) / settings.SETUP_CFG_FILENAME)
+    config_metadata = utils.get_repo_config_from_setup_cfg(Path(cwd) / settings.FileName.SETUP_CFG)
     action = ReleaseAction.REGENERATE
     
     _check_if_changes_to_commit(cwd)
@@ -81,27 +81,27 @@ def _release_checkout(config):
             raise exceptions.ReleaseCheckoutError("Checkout to the proper branch!", _logger)
         if not wizard.is_checkpoint_ok(__name__, "Are there any uncommited changes or files not added into the repo tree? (y/n): ", valid_value='n'):
             raise exceptions.ReleaseCheckoutError("Commit your changes!", _logger)
-        if not wizard.is_checkpoint_ok(__name__, "Is the {} file prepared correctly?".format(settings.README_FILENAME)):
-            raise exceptions.ReleaseCheckoutError("Complete {} file!".format(settings.README_FILENAME), _logger)
-        if not wizard.is_checkpoint_ok(__name__, "Is there something that should be added to {} file?".format(settings.TODO_FILENAME), valid_value='n'):
-            raise exceptions.ReleaseCheckoutError("Complete {} file!".format(settings.TODO_FILENAME), _logger)
+        if not wizard.is_checkpoint_ok(__name__, "Is the {} file prepared correctly?".format(settings.FileName.README)):
+            raise exceptions.ReleaseCheckoutError("Complete {} file!".format(settings.FileName.README), _logger)
+        if not wizard.is_checkpoint_ok(__name__, "Is there something that should be added to {} file?".format(settings.FileName.TODO), valid_value='n'):
+            raise exceptions.ReleaseCheckoutError("Complete {} file!".format(settings.FileName.TODO), _logger)
         if config['changelog_type'] == settings.ChangelogType.PREPARED.value:
-            if not wizard.is_checkpoint_ok(__name__, "Is the {} file up to date?".format(settings.CHANGELOG_FILENAME)):
-                raise exceptions.ReleaseCheckoutError("Complete {} file!".format(settings.CHANGELOG_FILENAME), _logger)
+            if not wizard.is_checkpoint_ok(__name__, "Is the {} file up to date?".format(settings.FileName.CHANGELOG)):
+                raise exceptions.ReleaseCheckoutError("Complete {} file!".format(settings.FileName.CHANGELOG), _logger)
         
     return action
 
 
 def _update_project_version(config, release_tag, cwd='.'):
-    if config['project_type'] == settings.ProjectType.SCRIPT.value:
-        _update_version_standalone(release_tag, cwd)
+    if config['project_type'] == settings.ProjectType.MODULE.value:
+        _update_version_module(release_tag, cwd)
     else:
 #                 TODO: package
         pass
 
 
-def _update_version_standalone(release_tag, cwd='.'):
-    project_name = utils.get_repo_config_from_setup_cfg(Path(cwd) / settings.SETUP_CFG_FILENAME)['project_name']
+def _update_version_module(release_tag, cwd='.'):
+    project_name = utils.get_repo_config_from_setup_cfg(Path(cwd) / settings.FileName.SETUP_CFG)['project_name']
     project_module_name = utils.get_module_name_with_suffix(project_name)
     new_version_string = "__version__ = '{}'".format(release_tag)
     try:
@@ -116,7 +116,7 @@ def _update_version_standalone(release_tag, cwd='.'):
                 file.write(updated_content)
     except FileNotFoundError:
         raise exceptions.FileNotFoundError("Project module file {} not found. The Project Module must have the same name as the project_name entry in {}".format(
-            project_module_name, settings.SETUP_CFG_FILENAME), _logger)
+            project_module_name, settings.FileName.SETUP_CFG), _logger)
         
 
 def _update_changelog(config, new_release_tag, new_release_msg, cwd='.'):
@@ -129,9 +129,9 @@ def _update_changelog(config, new_release_tag, new_release_msg, cwd='.'):
 
 
 def _update_generated_changelog(config, new_release_tag, new_release_msg, cwd='.'):
-    _logger.info("Updating {} file...".format(settings.CHANGELOG_FILENAME))
+    _logger.info("Updating {} file...".format(settings.FileName.CHANGELOG))
     
-    changelog_path = Path(cwd).resolve() / settings.CHANGELOG_FILENAME
+    changelog_path = Path(cwd).resolve() / settings.FileName.CHANGELOG
     ret = pygittools.get_changelog(report_format="### Version: %(tag) | Released: %(taggerdate:short) \r\n%(contents)", cwd=cwd)
     if ret['returncode'] != 0:
         raise exceptions.ChangelogGenerateError("Changelog generation error: {}".format(ret['msg']), _logger)
@@ -140,14 +140,14 @@ def _update_generated_changelog(config, new_release_tag, new_release_msg, cwd='.
     
     if changelog_path.exists():
         changelog_path.unlink()
-    prepare.write_file_from_template(Path(settings.TEMPLATES_DIRNAME) / settings.CHANGELOG_GENERATED, changelog_path, config, cwd, verbose=False)
+    prepare.write_file_from_template(Path(settings.TEMPLATES_DIRNAME) / settings.FileName.CHANGELOG_GENERATED, changelog_path, config, cwd, verbose=False)
     with open(changelog_path, 'a') as file:
         file.write('\n')
         file.write('\n')
         file.write(_get_changelog_entry(new_release_tag, new_release_msg))
         file.write(changelog_content)
     
-    _logger.info("{} file updated".format(settings.CHANGELOG_FILENAME))    
+    _logger.info("{} file updated".format(settings.FileName.CHANGELOG))    
     
     return changelog_path
 
@@ -159,11 +159,11 @@ def _get_changelog_entry(release_tag, release_msg):
 
 
 def _generate_prepared_changelog(config, cwd='.'):
-    changelog_path = Path(cwd).resolve() / settings.CHANGELOG_FILENAME
+    changelog_path = Path(cwd).resolve() / settings.FileName.CHANGELOG
     if not changelog_path.exists(): 
-        _logger.info("Generating {} file...".format(settings.CHANGELOG_FILENAME))
-        prepare.write_file_from_template(settings.CHANGELOG_PREPARED, changelog_path, config, cwd, verbose=False)
-        _logger.info("{} file generated".format(settings.CHANGELOG_FILENAME))    
+        _logger.info("Generating {} file...".format(settings.FileName.CHANGELOG))
+        prepare.write_file_from_template(settings.FileName.CHANGELOG_PREPARED, changelog_path, config, cwd, verbose=False)
+        _logger.info("{} file generated".format(settings.FileName.CHANGELOG))    
     
     return changelog_path
 
@@ -297,7 +297,7 @@ def _prompt_release_msg():
 
 
 def _update_authors(cwd='.'):
-    return _generate_file_pbr(settings.AUTHORS_FILENAME, git.generate_authors, cwd)
+    return _generate_file_pbr(settings.FileName.AUTHORS, git.generate_authors, cwd)
     
     
 def _generate_file_pbr(filename, gen_handler, cwd='.'):
@@ -332,7 +332,7 @@ def _generate_file_pbr(filename, gen_handler, cwd='.'):
 def _prepare_release_archive(release_files_paths, cwd='.'):
     _logger.info("Compressing package...")
     
-    config = utils.get_repo_config_from_setup_cfg(Path(cwd) / settings.SETUP_CFG_FILENAME)
+    config = utils.get_repo_config_from_setup_cfg(Path(cwd) / settings.FileName.SETUP_CFG)
     release_metadata = _get_release_metadata(cwd)
     
     release_package_suffix = '.tar.gz'

@@ -34,7 +34,7 @@ def collect_reqs_specific(cwd='.'):
 
 
 def write_requirements(reqs, cwd='.'):
-    file_path = Path(cwd) / settings.REQUIREMENTS_FILENAME
+    file_path = Path(cwd) / settings.FileName.REQUIREMENTS
     file_exists = True if file_path.exists() else False
     
     with open(file_path, 'w') as file:
@@ -42,23 +42,23 @@ def write_requirements(reqs, cwd='.'):
             file.write("{}\n".format(reg))
             
         if file_exists:
-            _logger.info("{} file updated.".format(settings.REQUIREMENTS_FILENAME))
+            _logger.info("{} file updated.".format(settings.FileName.REQUIREMENTS))
         else:
-            _logger.info("{} file prepared.".format(settings.REQUIREMENTS_FILENAME))
+            _logger.info("{} file prepared.".format(settings.FileName.REQUIREMENTS))
             
     return file_path
 
 
 def write_requirements_dev(cwd='.'):
-    file_path = Path(cwd) / settings.REQUIREMENTS_DEV_FILENAME
+    file_path = Path(cwd) / settings.FileName.REQUIREMENTS_DEV
     
     try:
         with open(file_path, 'x') as file:
             for reg in settings.REQUIREMENTS_DEV:
                 file.write("{}\n".format(reg))
-                _logger.info("{} file prepared.".format(settings.REQUIREMENTS_DEV_FILENAME))
+                _logger.info("{} file prepared.".format(settings.FileName.REQUIREMENTS_DEV))
     except FileExistsError:
-        _logger.warning("{} file already exists, not overwritten.".format(settings.REQUIREMENTS_DEV_FILENAME))
+        _logger.warning("{} file already exists, not overwritten.".format(settings.FileName.REQUIREMENTS_DEV))
             
     return file_path
             

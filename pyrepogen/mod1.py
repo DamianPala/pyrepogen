@@ -23,11 +23,11 @@ if __name__ == '__main__':
     print(version_info2)
     print(version_info1 > version_info2)
     
-    print(str(Path('') / settings.README_FILENAME) == (Path('') / settings.README_FILENAME).name)
+    print(str(Path('') / settings.FileName.README) == (Path('') / settings.FileName.README).name)
     print(Path().cwd())
     print(Path('<project_name>') / 'test')
     
-    src = Path(settings.TEMPLATES_DIRNAME) / 'test' / 'fdafad' / settings.GITIGNORE_FILENAME
+    src = Path(settings.TEMPLATES_DIRNAME) / 'test' / 'fdafad' / settings.FileName.GITIGNORE
     
     src_parents = [item for item in src.parents]
     is_from_template = str(src_parents[-2]) == settings.TEMPLATES_DIRNAME

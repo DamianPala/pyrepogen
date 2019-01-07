@@ -113,7 +113,7 @@ def add_auto_config_fields(config):
     config['year'] = str(datetime.datetime.now().year)
     config[settings.REPOASSIST_VERSION] = __version__
     config['min_python'] = settings.MIN_PYTHON
-    config['description_file'] = settings.README_FILENAME
+    config['description_file'] = settings.FileName.README
     config['tests_dirname'] = settings.TESTS_DIRNAME
     config['tests_path'] = settings.TESTS_PATH
     config['metadata_section'] = settings.METADATA_CONFIG_SECTION_NAME

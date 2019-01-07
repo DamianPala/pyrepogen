@@ -16,11 +16,11 @@ _logger = logging.getLogger(__name__)
 
 
 def format_file(path, with_meld=True, cwd='.'):
-    _logger.info("Format the file: {} using {} with merge mode in {}".format(path, settings.FILE_FORMATTER, settings.MERGE_TOOL))
+    _logger.info("Format the file: {} using {} with merge mode in {}".format(path, settings.Tools.FILE_FORMATTER, settings.Tools.MERGE_TOOL))
     
     path = Path(cwd) / path
     formated_file_path = path.parent / (path.stem + '.tmp' + path.suffix)
-    setup_file_path = (Path(cwd) / settings.SETUP_CFG_FILENAME).resolve()
+    setup_file_path = (Path(cwd) / settings.FileName.SETUP_CFG).resolve()
     if path.is_file():
         if formated_file_path.exists():
             raise exceptions.FileExistsError("File {} already exists! Please remove it.".format(formated_file_path), logger=_logger)

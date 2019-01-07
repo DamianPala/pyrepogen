@@ -1,4 +1,4 @@
-{% extends "Makefile_standalone_base" %}
+{% extends "Makefile_base" %}
 {% block cloud_targets %}
 	{% if options.cloud %}
 upload:

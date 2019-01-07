@@ -10,29 +10,6 @@ MIN_PYTHON = (3, 7)
 
 SUGGESTED_INITIAL_RELEASE_TAG = '0.1.0'
 
-REQUIREMENTS_FILENAME = 'requirements.txt'
-REQUIREMENTS_PACKAGE_FILENAME = 'requirements_package.txt'
-REQUIREMENTS_STANDALONE_FILENAME = 'requirements_standalone.txt'
-REQUIREMENTS_DEV_FILENAME = 'requirements-dev.txt'
-
-
-REQUIREMENTS_STANDALONE = []
-
-REQUIREMENTS_PACKAGE = [
-    'setuptools',
-]
-
-REQUIREMENTS_DEV = [
-    'Sphinx',
-    'pytest',
-    'flake8>=3.6.0',
-    'pycodestyle>=2.4.0'
-    'coverage',
-    'tox',
-    'hacking'
-]
-
-
 REPO_CONFIG_FILENAME = 'gen_repo.cfg'
 REPO_CONFIG_SECTION_NAME = 'repoconfig'
 
@@ -42,6 +19,7 @@ GENERATOR_CONFIG_SECTION_NAME = 'pyrepogen'
 TEMPLATES_DIRNAME = 'templates'
 TEMPLATES_PACKAGE_PATH = 'templates/package'
 TEMPLATES_PACKAGE_TESTS_PATH = 'templates/package/tests'
+TEMPLATES_MODULE_PATH = 'templates/module'
 DOCS_DIRNAME = 'docs'
 TESTS_DIRNAME = 'tests'
 TESTS_PATH = './' + TESTS_DIRNAME
@@ -53,90 +31,87 @@ HTMLCOV_DIRNAME = 'htmlcov'
 
 RELEASE_PACKAGE_SUFFIX = "_release"
 
-SETUP_CFG_FILENAME = 'setup.cfg'
-SETUP_CFG_STANDALONE_FILENAME = 'setup_standalone.cfg'
-SETUP_CFG_PACKAGE_FILENAME = 'setup_package.cfg'
-CHANGELOG_FILENAME = 'CHANGELOG.md'
-CHANGELOG_GENERATED = 'CHANGELOG_generated.md'
-CHANGELOG_PREPARED = 'CHANGELOG_prepared.md'
-AUTHORS_FILENAME = 'AUTHORS'
-GITIGNORE_FILENAME = '.gitignore'
-README_FILENAME = 'README.md'
-TODO_FILENAME = 'TODO.md'
-LICENSE_FILENAME = 'LICENSE'
-MAKEFILE_FILENAME = 'Makefile'
-MAKEFILE_STANDALONE_FILENAME = 'Makefile_standalone'
-MAKEFILE_PACKAGE_FILENAME = 'Makefile_package'
-CONFTEST_FILENAME = 'conftest.py'
-STANDALONE_SAMPLE_FILENAME = 'sample_standalone.py'
-STANDALONE_SAMPLE_TEST_FILENAME = 'sample_standalone_test.py'
-TOX_STANDALONE_FILENAME = 'tox_standalone.ini'
-TOX_PACKAGE_FILENAME = 'tox_package.ini'
-TOX_FILENAME = 'tox.ini'
-PYINIT_FILENAME = '__init__.py'
-MAIN_FILENAME = '__main__.py'
-CLI_FILENAME = 'cli.py'
-PACKAGE_SAMPLE_MODULE_FILENAME = 'modulo.py'
-PACKAGE_SAMPLE_TEST_FILENAME = 'package_test.py'
-SAMPLE_MODULE_FILENAME = 'module.py'
-REPOASSIST_MAIN_FILENAME = 'repoassist_main.py'
-REPOASSIST_TARGET_MAIN_FILENAME = '__main__.py'
-COLREQS_FILENAME = 'colreqs.py'
-SETTINGS_FILENAME = 'settings.py'
-LOGGER_FILENAME = 'logger.py'
-RELEASE_FILENAME = 'release.py'
-EXCEPTIONS_FILENAME = 'exceptions.py'
-UTILS_FILENAME = 'utils.py'
-PYGITTOOLS_FILENAME = 'pygittools.py'
-CLOUD_FILENAME = 'cloud.py'
-WIZARD_FILENAME = 'wizard.py'
-FORMATTER_FILENAME = 'formatter.py'
-PREPARE_FILENAME = 'prepare.py'
-CLEAN_FILENAME = 'clean.py'
-CLOUD_CREDENTIALS_FILENAME = "cloud_credentials.txt"
 REPOASSIST_VERSION = '{}_version'.format(REPOASSIST_DIRNAME)
-
 PROJECT_NAME_PATH_PLACEHOLDER = '<project_name>'
 LICENSE = 'MIT'
 
-FILE_FORMATTER = 'autopep8'
-MERGE_TOOL = 'Meld Merge'
+class FileName():
+    SETUP_CFG = 'setup.cfg'
+    CHANGELOG = 'CHANGELOG.md'
+    CHANGELOG_GENERATED = 'CHANGELOG_generated.md'
+    CHANGELOG_PREPARED = 'CHANGELOG_prepared.md'
+    AUTHORS = 'AUTHORS'
+    GITIGNORE = '.gitignore'
+    README = 'README.md'
+    TODO = 'TODO.md'
+    LICENSE = 'LICENSE'
+    MAKEFILE = 'Makefile'
+    CONFTEST = 'conftest.py'
+    MODULE_SAMPLE = 'sample.py'
+    MODULE_SAMPLE_TEST_FILENAME = 'sample_test.py'
+    TOX = 'tox.ini'
+    PYINIT = '__init__.py'
+    MAIN = '__main__.py'
+    CLI = 'cli.py'
+    PACKAGE_SAMPLE_MODULE = 'modulo.py'
+    PACKAGE_SAMPLE_TEST = 'modulo_test.py'
+    SAMPLE_MODULE = 'module.py'
+    REPOASSIST_MAIN = 'repoassist_main.py'
+    COLREQS = 'colreqs.py'
+    SETTINGS = 'settings.py'
+    LOGGER = 'logger.py'
+    RELEASE = 'release.py'
+    EXCEPTIONS = 'exceptions.py'
+    UTILS = 'utils.py'
+    PYGITTOOLS = 'pygittools.py'
+    CLOUD = 'cloud.py'
+    WIZARD = 'wizard.py'
+    FORMATTER = 'formatter.py'
+    PREPARE = 'prepare.py'
+    CLEAN = 'clean.py'
+    CLOUD_CREDENTIALS = "cloud_credentials.txt"
+    REQUIREMENTS = 'requirements.txt'
+    REQUIREMENTS_DEV = 'requirements-dev.txt'
 
-STANDALONE_REPO_FILES_TO_GEN = [
-    {'src': Path('') / README_FILENAME, 'dst': Path('.') / README_FILENAME},
-    {'src': Path('') / TODO_FILENAME, 'dst': Path('.') / TODO_FILENAME},
-    {'src': Path('') / CONFTEST_FILENAME, 'dst': Path('.') / CONFTEST_FILENAME},
-    {'src': Path(TEMPLATES_DIRNAME) / GITIGNORE_FILENAME, 'dst': Path('.') / GITIGNORE_FILENAME},
-    {'src': Path(TEMPLATES_DIRNAME) / TOX_STANDALONE_FILENAME, 'dst': Path('.') / TOX_FILENAME},
-    {'src': Path(TEMPLATES_DIRNAME) / MAKEFILE_STANDALONE_FILENAME, 'dst': Path('.') / MAKEFILE_FILENAME},
-    {'src': Path(TEMPLATES_DIRNAME) / LICENSE_FILENAME, 'dst': Path('.') / LICENSE_FILENAME},
-    {'src': Path(TEMPLATES_DIRNAME) / SETUP_CFG_FILENAME, 'dst': Path('.') / SETUP_CFG_FILENAME},
-    {'src': Path(TEMPLATES_DIRNAME) / CLOUD_CREDENTIALS_FILENAME, 'dst': Path('.') / CLOUD_CREDENTIALS_FILENAME},
-    {'src': Path(TEMPLATES_DIRNAME) / REQUIREMENTS_PACKAGE_FILENAME, 'dst': Path('.') / REQUIREMENTS_FILENAME},
-    {'src': Path(TEMPLATES_DIRNAME) / REQUIREMENTS_DEV_FILENAME, 'dst': Path('.') / REQUIREMENTS_DEV_FILENAME},
-    {'src': Path(TEMPLATES_DIRNAME) / SAMPLE_MODULE_FILENAME, 'dst': Path('.') / TESTS_DIRNAME / PYINIT_FILENAME},
-    {'src': Path(TEMPLATES_DIRNAME) / STANDALONE_SAMPLE_FILENAME, 'dst': Path('.') / (PROJECT_NAME_PATH_PLACEHOLDER + '.py')},
-    {'src': Path(TEMPLATES_DIRNAME) / STANDALONE_SAMPLE_TEST_FILENAME, 'dst': Path('.') / TESTS_DIRNAME / (PROJECT_NAME_PATH_PLACEHOLDER + '_test.py')},
+class Tools():
+    FILE_FORMATTER = 'autopep8'
+    MERGE_TOOL = 'Meld Merge'
+
+MODULE_REPO_FILES_TO_GEN = [
+    {'src': Path('') / FileName.README, 'dst': Path('.') / FileName.README},
+    {'src': Path('') / FileName.TODO, 'dst': Path('.') / FileName.TODO},
+    {'src': Path('') / FileName.CONFTEST, 'dst': Path('.') / FileName.CONFTEST},
+    {'src': Path(TEMPLATES_DIRNAME) / FileName.GITIGNORE, 'dst': Path('.') / FileName.GITIGNORE},
+    {'src': Path(TEMPLATES_MODULE_PATH) / FileName.TOX, 'dst': Path('.') / FileName.TOX},
+    {'src': Path(TEMPLATES_MODULE_PATH) / FileName.MAKEFILE, 'dst': Path('.') / FileName.MAKEFILE},
+    {'src': Path(TEMPLATES_DIRNAME) / FileName.LICENSE, 'dst': Path('.') / FileName.LICENSE},
+    {'src': Path(TEMPLATES_DIRNAME) / FileName.SETUP_CFG, 'dst': Path('.') / FileName.SETUP_CFG},
+    {'src': Path(TEMPLATES_DIRNAME) / FileName.CLOUD_CREDENTIALS, 'dst': Path('.') / FileName.CLOUD_CREDENTIALS},
+    {'src': Path(TEMPLATES_MODULE_PATH) / FileName.REQUIREMENTS, 'dst': Path('.') / FileName.REQUIREMENTS},
+    {'src': Path(TEMPLATES_DIRNAME) / FileName.REQUIREMENTS_DEV, 'dst': Path('.') / FileName.REQUIREMENTS_DEV},
+    {'src': Path(TEMPLATES_DIRNAME) / FileName.SAMPLE_MODULE, 'dst': Path('.') / TESTS_DIRNAME / FileName.PYINIT},
+    {'src': Path(TEMPLATES_MODULE_PATH) / FileName.MODULE_SAMPLE, 'dst': Path('.') / (PROJECT_NAME_PATH_PLACEHOLDER + '.py')},
+    {'src': Path(TEMPLATES_MODULE_PATH) / FileName.MODULE_SAMPLE_TEST_FILENAME, 'dst': Path('.') / TESTS_DIRNAME / (PROJECT_NAME_PATH_PLACEHOLDER + '_test.py')},
 ]
 
 PACKAGE_REPO_FILES_TO_GEN = [
-    {'src': Path('') / README_FILENAME, 'dst': Path('.') / README_FILENAME},
-    {'src': Path('') / TODO_FILENAME, 'dst': Path('.') / TODO_FILENAME},
-    {'src': Path('') / CONFTEST_FILENAME, 'dst': Path('.') / CONFTEST_FILENAME},
-    {'src': Path(TEMPLATES_DIRNAME) / GITIGNORE_FILENAME, 'dst': Path('.') / GITIGNORE_FILENAME},
-    {'src': Path(TEMPLATES_DIRNAME) / TOX_PACKAGE_FILENAME, 'dst': Path('.') / TOX_FILENAME},
-    {'src': Path(TEMPLATES_PACKAGE_PATH) / PYINIT_FILENAME, 'dst': Path('.') / PROJECT_NAME_PATH_PLACEHOLDER / PYINIT_FILENAME},
-    {'src': Path(TEMPLATES_PACKAGE_PATH) / MAIN_FILENAME, 'dst': Path('.') / PROJECT_NAME_PATH_PLACEHOLDER / MAIN_FILENAME},
-    {'src': Path(TEMPLATES_PACKAGE_PATH) / CLI_FILENAME, 'dst': Path('.') / PROJECT_NAME_PATH_PLACEHOLDER / CLI_FILENAME},
-    {'src': Path(TEMPLATES_PACKAGE_PATH) / PACKAGE_SAMPLE_MODULE_FILENAME, 'dst': Path('.') / PROJECT_NAME_PATH_PLACEHOLDER / PACKAGE_SAMPLE_MODULE_FILENAME},
-    {'src': Path(TEMPLATES_PACKAGE_TESTS_PATH) / PYINIT_FILENAME, 'dst': Path('.') / TESTS_DIRNAME / PYINIT_FILENAME},
-    {'src': Path(TEMPLATES_PACKAGE_TESTS_PATH) / PACKAGE_SAMPLE_TEST_FILENAME, 'dst': Path('.') / TESTS_DIRNAME / PACKAGE_SAMPLE_TEST_FILENAME},
-    {'src': Path(TEMPLATES_DIRNAME) / MAKEFILE_PACKAGE_FILENAME, 'dst': Path('.') / MAKEFILE_FILENAME},
-    {'src': Path(TEMPLATES_DIRNAME) / LICENSE_FILENAME, 'dst': Path('.') / LICENSE_FILENAME},
-    {'src': Path(TEMPLATES_DIRNAME) / SETUP_CFG_FILENAME, 'dst': Path('.') / SETUP_CFG_FILENAME},
-    {'src': Path(TEMPLATES_DIRNAME) / CLOUD_CREDENTIALS_FILENAME, 'dst': Path('.') / CLOUD_CREDENTIALS_FILENAME},
-    {'src': Path(TEMPLATES_DIRNAME) / REQUIREMENTS_PACKAGE_FILENAME, 'dst': Path('.') / REQUIREMENTS_FILENAME},
-    {'src': Path(TEMPLATES_DIRNAME) / REQUIREMENTS_DEV_FILENAME, 'dst': Path('.') / REQUIREMENTS_DEV_FILENAME},
+    {'src': Path('') / FileName.README, 'dst': Path('.') / FileName.README},
+    {'src': Path('') / FileName.TODO, 'dst': Path('.') / FileName.TODO},
+    {'src': Path('') / FileName.CONFTEST, 'dst': Path('.') / FileName.CONFTEST},
+    {'src': Path(TEMPLATES_DIRNAME) / FileName.GITIGNORE, 'dst': Path('.') / FileName.GITIGNORE},
+    {'src': Path(TEMPLATES_PACKAGE_PATH) / FileName.TOX, 'dst': Path('.') / FileName.TOX},
+    {'src': Path(TEMPLATES_PACKAGE_PATH) / FileName.PYINIT, 'dst': Path('.') / PROJECT_NAME_PATH_PLACEHOLDER / FileName.PYINIT},
+    {'src': Path(TEMPLATES_PACKAGE_PATH) / FileName.MAIN, 'dst': Path('.') / PROJECT_NAME_PATH_PLACEHOLDER / FileName.MAIN},
+    {'src': Path(TEMPLATES_PACKAGE_PATH) / FileName.CLI, 'dst': Path('.') / PROJECT_NAME_PATH_PLACEHOLDER / FileName.CLI},
+    {'src': Path(TEMPLATES_PACKAGE_PATH) / FileName.PACKAGE_SAMPLE_MODULE, 'dst': Path('.') / PROJECT_NAME_PATH_PLACEHOLDER / FileName.PACKAGE_SAMPLE_MODULE},
+    {'src': Path(TEMPLATES_PACKAGE_TESTS_PATH) / FileName.PYINIT, 'dst': Path('.') / TESTS_DIRNAME / FileName.PYINIT},
+    {'src': Path(TEMPLATES_PACKAGE_TESTS_PATH) / FileName.PACKAGE_SAMPLE_TEST, 'dst': Path('.') / TESTS_DIRNAME / FileName.PACKAGE_SAMPLE_TEST},
+    {'src': Path(TEMPLATES_PACKAGE_PATH) / FileName.MAKEFILE, 'dst': Path('.') / FileName.MAKEFILE},
+    {'src': Path(TEMPLATES_DIRNAME) / FileName.LICENSE, 'dst': Path('.') / FileName.LICENSE},
+    {'src': Path(TEMPLATES_DIRNAME) / FileName.SETUP_CFG, 'dst': Path('.') / FileName.SETUP_CFG},
+    {'src': Path(TEMPLATES_DIRNAME) / FileName.CLOUD_CREDENTIALS, 'dst': Path('.') / FileName.CLOUD_CREDENTIALS},
+    {'src': Path(TEMPLATES_PACKAGE_PATH) / FileName.REQUIREMENTS, 'dst': Path('.') / FileName.REQUIREMENTS},
+    {'src': Path(TEMPLATES_DIRNAME) / FileName.REQUIREMENTS_DEV, 'dst': Path('.') / FileName.REQUIREMENTS_DEV},
 ]
 
 REPO_DIRS_TO_GEN = [
@@ -147,26 +122,26 @@ REPO_DIRS_TO_GEN = [
 ]
 
 REPOASSIST_FILES = [
-    PYINIT_FILENAME,
-    REPOASSIST_MAIN_FILENAME,
-    COLREQS_FILENAME,
-    SETTINGS_FILENAME,
-    LOGGER_FILENAME,
-    RELEASE_FILENAME,
-    EXCEPTIONS_FILENAME,
-    UTILS_FILENAME,
-    PYGITTOOLS_FILENAME,
-    CLOUD_FILENAME,
-    WIZARD_FILENAME,
-    FORMATTER_FILENAME,
-    CHANGELOG_FILENAME,
-    PREPARE_FILENAME,
-    CLEAN_FILENAME,
+    FileName.PYINIT,
+    FileName.REPOASSIST_MAIN,
+    FileName.COLREQS,
+    FileName.SETTINGS,
+    FileName.LOGGER,
+    FileName.RELEASE,
+    FileName.EXCEPTIONS,
+    FileName.UTILS,
+    FileName.PYGITTOOLS,
+    FileName.CLOUD,
+    FileName.WIZARD,
+    FileName.FORMATTER,
+    FileName.CHANGELOG,
+    FileName.PREPARE,
+    FileName.CLEAN,
 ]
 
 class ProjectType(Enum):
     PACKAGE = 'package'
-    SCRIPT = 'script'
+    MODULE = 'module'
     
 class ChangelogType(Enum):
     GENERATED = 'generated'

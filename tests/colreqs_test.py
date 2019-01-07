@@ -79,7 +79,7 @@ def test_write_requirements_SHOULD_print_proper_message_when_prepare(caplog):
     cwd = TESTS_SETUPS_PATH / 'test_write_requirements_SHOULD_print_proper_message_when_prepare'
     Path(cwd).mkdir(parents=True, exist_ok=True)
     
-    reqs_path = Path(cwd) / settings.REQUIREMENTS_FILENAME
+    reqs_path = Path(cwd) / settings.FileName.REQUIREMENTS
     if (reqs_path).exists():
         reqs_path.unlink()
     
@@ -96,7 +96,7 @@ def test_write_requirements_SHOULD_print_proper_message_when_update(caplog):
     cwd = TESTS_SETUPS_PATH / 'test_write_requirements_SHOULD_print_proper_message_when_update'
     Path(cwd).mkdir(parents=True, exist_ok=True)
      
-    reqs_path = Path(cwd) / settings.REQUIREMENTS_FILENAME
+    reqs_path = Path(cwd) / settings.FileName.REQUIREMENTS
     with open(reqs_path, 'w'):
         pass
      
@@ -113,7 +113,7 @@ def test_write_requirements_dev_SHOULD_not_overwriting_reqs_if_exists(caplog):
     cwd = TESTS_SETUPS_PATH / 'test_write_requirements_dev_SHOULD_not_overwriting_reqs_if_exists'
     Path(cwd).mkdir(parents=True, exist_ok=True)
      
-    reqs_path = Path(cwd) / settings.REQUIREMENTS_DEV_FILENAME
+    reqs_path = Path(cwd) / settings.FileName.REQUIREMENTS_DEV
     with open(reqs_path, 'w'):
         pass
      

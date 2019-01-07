@@ -171,12 +171,12 @@ def _get_latest_package_path(path):
 
 
 def _read_cloud_credentials(cwd='.'):
-    file_path = Path(cwd) / settings.CLOUD_CREDENTIALS_FILENAME
+    file_path = Path(cwd) / settings.FileName.CLOUD_CREDENTIALS
 
     if not file_path.exists():
         raise exceptions.FileNotFoundError(
             "{} file not found!".format(
-                settings.CLOUD_CREDENTIALS_FILENAME),
+                settings.FileName.CLOUD_CREDENTIALS),
             logger=_logger)
 
     with open(file_path, 'r') as file:
@@ -194,7 +194,7 @@ def _read_cloud_credentials(cwd='.'):
         if not credentials_dict[field]:
             raise exceptions.CredentialsError(
                 "{} field is empty in {} file!".format(
-                    field, settings.CLOUD_CREDENTIALS_FILENAME), logger=_logger)
+                    field, settings.FileName.CLOUD_CREDENTIALS), logger=_logger)
 
     return credentials_dict
 

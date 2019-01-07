@@ -30,7 +30,7 @@ def test_read_repo_config_file_SHOULD_read_config_properly():
     Path(cwd).mkdir(parents=True, exist_ok=True)
 
     expected_config = {
-        'project_type': settings.ProjectType.SCRIPT.value,
+        'project_type': settings.ProjectType.MODULE.value,
         'author': 'Damian',
         'author_email': 'damian@mail.com',
         'home_page': 'page.com',
@@ -57,7 +57,7 @@ def test_get_repo_config_from_setup_cfg_SHOULD_read_config_properly():
     Path(cwd).mkdir(parents=True, exist_ok=True)
 
     expected_config = {
-        'project_type': settings.ProjectType.SCRIPT.value,
+        'project_type': settings.ProjectType.MODULE.value,
         'author': 'Damian',
         'author_email': 'damian@mail.com',
         'home_page': 'page.com',
@@ -67,13 +67,13 @@ def test_get_repo_config_from_setup_cfg_SHOULD_read_config_properly():
         'repo_name': 'sample-repo',
         'short_description': 'This is a sample project.',
         'changelog_type': settings.ChangelogType.GENERATED.value,
-        'description_file': settings.README_FILENAME,
+        'description_file': settings.FileName.README,
         'keywords': ['sample_project'],
         'license': settings.LICENSE,
     }
     utils.add_auto_config_fields(expected_config)
     
-    config = utils.get_repo_config_from_setup_cfg(Path(cwd) / settings.SETUP_CFG_FILENAME)
+    config = utils.get_repo_config_from_setup_cfg(Path(cwd) / settings.FileName.SETUP_CFG)
     pprint(config)
 
     for key in expected_config:
@@ -82,7 +82,7 @@ def test_get_repo_config_from_setup_cfg_SHOULD_read_config_properly():
     
 def test_validate_config_SHOULD_raise_error_when_field_is_empty():
     config = {
-        'project_type': settings.ProjectType.SCRIPT.value,
+        'project_type': settings.ProjectType.MODULE.value,
         'repo_name': '',
         'project_name': 'sample_project',
         'author': 'Damian', 
@@ -123,7 +123,7 @@ validate_repo_config_metadata_testdata = [
     ),
     (    
         {
-            'project_type': 'script',
+            'project_type': settings.ProjectType.MODULE.value,
             'repo_name': 'myrepo',
             'project_name': 'sample_project',
             'author': 'Damian', 
@@ -141,7 +141,7 @@ validate_repo_config_metadata_testdata = [
     ),
     (    
         {
-            'project_type': 'script',
+            'project_type': settings.ProjectType.MODULE.value,
             'repo_name': 'myrepo',
             'project_name': 'sample_project',
             'author': 'Damian', 
@@ -159,7 +159,7 @@ validate_repo_config_metadata_testdata = [
     ),
     (    
         {
-            'project_type': 'script',
+            'project_type': settings.ProjectType.MODULE.value,
             'repo_name': 'myrepo',
             'project_name': 'sample_project',
             'author': 'Damian', 

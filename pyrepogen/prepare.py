@@ -39,14 +39,14 @@ def generate_repo_config(cwd='.', options=None):
     return path
 
 
-def generate_standalone_repo(config, cwd='.', options=None):
+def generate_module_repo(config, cwd='.', options=None):
     _logger.info("Generate repository files...")
 
     paths = []
 
     Path(cwd).mkdir(parents=True, exist_ok=True)
     paths.extend(_generate_repo_dirs(cwd))
-    paths.extend(_generate_standalone_repo_files(config, cwd, options))
+    paths.extend(_generate_module_repo_files(config, cwd, options))
     paths.extend(_generate_repoasist(config, cwd, options))
 
     _logger.info("Repository files generated.")
@@ -81,8 +81,8 @@ def _generate_package_repo_files(config, cwd, options=None):
     return _generate_repo_files(settings.PACKAGE_REPO_FILES_TO_GEN, config, cwd, options)
 
 
-def _generate_standalone_repo_files(config, cwd, options=None):
-    return _generate_repo_files(settings.STANDALONE_REPO_FILES_TO_GEN, config, cwd, options)
+def _generate_module_repo_files(config, cwd, options=None):
+    return _generate_repo_files(settings.MODULE_REPO_FILES_TO_GEN, config, cwd, options)
     
     
 def _generate_repo_files(files_list, config, cwd, options=None):
@@ -116,37 +116,24 @@ def _generate_repoasist(config, cwd, options=None):
     utils.validate_config_metadata(config)
 
     for filename in settings.REPOASSIST_FILES:
-        if filename in {settings.COLREQS_FILENAME,
-                        settings.SETTINGS_FILENAME,
-                        settings.LOGGER_FILENAME,
-                        settings.RELEASE_FILENAME,
-                        settings.EXCEPTIONS_FILENAME,
-                        settings.UTILS_FILENAME,
-                        settings.PYGITTOOLS_FILENAME,
-                        settings.CLOUD_FILENAME,
-                        settings.WIZARD_FILENAME,
-                        settings.FORMATTER_FILENAME,
-                        settings.PREPARE_FILENAME,
-                        settings.CLEAN_FILENAME}:
-            paths.extend(_copy_file(filename, Path(cwd) / settings.REPOASSIST_DIRNAME / filename, cwd, options))
-        elif filename == settings.REPOASSIST_MAIN_FILENAME:
+        if filename == settings.FileName.REPOASSIST_MAIN:
             paths.extend(_copy_file(filename,
-                                    Path(cwd) / settings.REPOASSIST_DIRNAME / settings.REPOASSIST_TARGET_MAIN_FILENAME,
+                                    Path(cwd) / settings.REPOASSIST_DIRNAME / settings.FileName.MAIN,
                                     cwd, options))
-        elif filename == settings.PYINIT_FILENAME:
-            paths.extend(write_file_from_template(Path(settings.TEMPLATES_DIRNAME) / settings.PYINIT_FILENAME,
+        elif filename == settings.FileName.PYINIT:
+            paths.extend(write_file_from_template(Path(settings.TEMPLATES_DIRNAME) / settings.FileName.PYINIT,
                                                   Path(cwd) / settings.REPOASSIST_DIRNAME / filename, config,
                                                   cwd, options))
-        elif filename == settings.CHANGELOG_FILENAME:
-            paths.extend(_copy_template_file(settings.CHANGELOG_GENERATED,
-                                             Path(cwd) / settings.REPOASSIST_DIRNAME / settings.TEMPLATES_DIRNAME / settings.CHANGELOG_GENERATED,
+        elif filename == settings.FileName.CHANGELOG:
+            paths.extend(_copy_template_file(settings.FileName.CHANGELOG_GENERATED,
+                                             Path(cwd) / settings.REPOASSIST_DIRNAME / settings.TEMPLATES_DIRNAME / settings.FileName.CHANGELOG_GENERATED,
                                              cwd, options))
-            paths.extend(_copy_template_file(settings.CHANGELOG_PREPARED,
-                                             Path(cwd) / settings.REPOASSIST_DIRNAME / settings.TEMPLATES_DIRNAME / settings.CHANGELOG_PREPARED,
+            paths.extend(_copy_template_file(settings.FileName.CHANGELOG_PREPARED,
+                                             Path(cwd) / settings.REPOASSIST_DIRNAME / settings.TEMPLATES_DIRNAME / settings.FileName.CHANGELOG_PREPARED,
                                              cwd, options))
         else:
-            paths.extend(_generate_empty_file(Path(cwd) / settings.REPOASSIST_DIRNAME / filename, cwd, options))
-
+            paths.extend(_copy_file(filename, Path(cwd) / settings.REPOASSIST_DIRNAME / filename, cwd, options))
+            
     return paths
 
 

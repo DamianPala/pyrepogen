@@ -17,7 +17,7 @@ TESTS_SETUPS_PATH = Path(inspect.getframeinfo(inspect.currentframe()).filename).
 SKIP_ALL_MARKED = False
 
 _DEFAULT_CONFIG = {
-    'project_type': settings.ProjectType.SCRIPT.value,
+    'project_type': settings.ProjectType.MODULE.value,
     'repo_name': 'sample-repo',
     'project_name': 'sample_project',
     'author': 'Damian', 
@@ -82,10 +82,10 @@ def test_make_release_SHOULD_prepare_release_properly():
     options = Args()
     options.force = True
     
-    paths = prepare.generate_standalone_repo(_DEFAULT_CONFIG, cwd, options)
+    paths = prepare.generate_module_repo(_DEFAULT_CONFIG, cwd, options)
     expected_paths = {path.relative_to(cwd).as_posix() for path in paths}
     expected_paths.remove(settings.DOCS_DIRNAME) # TODO: think about doc in feature
-    expected_paths.remove(settings.CLOUD_CREDENTIALS_FILENAME)
+    expected_paths.remove(settings.FileName.CLOUD_CREDENTIALS)
     pprint(expected_paths)
     
     pygittools.init(cwd)
@@ -125,7 +125,7 @@ def test_make_release_SHOULD_rise_error_when_no_commit():
     options = Args()
     options.force = True
     
-    prepare.generate_standalone_repo(_DEFAULT_CONFIG, cwd, options)
+    prepare.generate_module_repo(_DEFAULT_CONFIG, cwd, options)
     
     pygittools.init(cwd)
     
@@ -148,7 +148,7 @@ def test_make_release_SHOULD_rise_error_when_no_release_tag():
     options = Args()
     options.force = True
     
-    paths = prepare.generate_standalone_repo(_DEFAULT_CONFIG, cwd, options)
+    paths = prepare.generate_module_repo(_DEFAULT_CONFIG, cwd, options)
     pygittools.init(cwd)
     for path in paths:
         pygittools.add(path, cwd)
@@ -164,8 +164,8 @@ def test_make_release_SHOULD_rise_error_when_no_release_tag():
 
             
 @pytest.mark.skipif(SKIP_ALL_MARKED, reason="Skipped on request")
-def test_update_version_standalone_SHOULD_update_version_properly():
-    cwd = TESTS_SETUPS_PATH / 'test_update_version_standalone_SHOULD_update_version_properly'
+def test_update_version_module_SHOULD_update_version_properly():
+    cwd = TESTS_SETUPS_PATH / 'test_update_version_module_SHOULD_update_version_properly'
     if Path(cwd).exists():
         shutil.rmtree(Path(cwd), ignore_errors=False, onerror=_error_remove_readonly)
     Path(cwd).mkdir(parents=True, exist_ok=True)
@@ -173,8 +173,8 @@ def test_update_version_standalone_SHOULD_update_version_properly():
     options = Args()
     options.force = True
     
-    prepare.generate_standalone_repo(_DEFAULT_CONFIG, cwd, options)
-    release._update_version_standalone('1.2.3-alpha.4', cwd)
+    prepare.generate_module_repo(_DEFAULT_CONFIG, cwd, options)
+    release._update_version_module('1.2.3-alpha.4', cwd)
     
     project_name = _DEFAULT_CONFIG['project_name']
     project_module_name = utils.get_module_name_with_suffix(project_name)
@@ -189,8 +189,8 @@ def test_update_version_standalone_SHOULD_update_version_properly():
 
         
 @pytest.mark.skipif(SKIP_ALL_MARKED, reason="Skipped on request")
-def test_update_version_standalone_SHOULD_rise_error_when_no_project_module():
-    cwd = TESTS_SETUPS_PATH / 'test_update_version_standalone_SHOULD_rise_error_when_no_project_module'
+def test_update_version_module_SHOULD_rise_error_when_no_project_module():
+    cwd = TESTS_SETUPS_PATH / 'test_update_version_module_SHOULD_rise_error_when_no_project_module'
     if Path(cwd).exists():
         shutil.rmtree(Path(cwd), ignore_errors=False, onerror=_error_remove_readonly)
     Path(cwd).mkdir(parents=True, exist_ok=True)
@@ -201,11 +201,11 @@ def test_update_version_standalone_SHOULD_rise_error_when_no_project_module():
     project_name = _DEFAULT_CONFIG['project_name']
     project_module_name = utils.get_module_name_with_suffix(project_name)
     
-    prepare.generate_standalone_repo(_DEFAULT_CONFIG, cwd, options)
+    prepare.generate_module_repo(_DEFAULT_CONFIG, cwd, options)
     (cwd / project_module_name).unlink()
     
     try:
-        release._update_version_standalone('1.2.3-alpha.4', cwd)
+        release._update_version_module('1.2.3-alpha.4', cwd)
         assert False, "Expected error did not occured."
     except exceptions.FileNotFoundError as e:
         if Path(cwd).exists():
@@ -214,8 +214,8 @@ def test_update_version_standalone_SHOULD_rise_error_when_no_project_module():
         
         
 @pytest.mark.skipif(SKIP_ALL_MARKED, reason="Skipped on request")
-def test_update_version_standalone_SHOULD_rise_error_when_no_version_in_module():
-    cwd = TESTS_SETUPS_PATH / 'test_update_version_standalone_SHOULD_rise_error_when_no_project_module'
+def test_update_version_module_SHOULD_rise_error_when_no_version_in_module():
+    cwd = TESTS_SETUPS_PATH / 'test_update_version_module_SHOULD_rise_error_when_no_project_module'
     if Path(cwd).exists():
         shutil.rmtree(Path(cwd), ignore_errors=False, onerror=_error_remove_readonly)
     Path(cwd).mkdir(parents=True, exist_ok=True)
@@ -226,12 +226,12 @@ def test_update_version_standalone_SHOULD_rise_error_when_no_version_in_module()
     project_name = _DEFAULT_CONFIG['project_name']
     project_module_name = utils.get_module_name_with_suffix(project_name)
     
-    prepare.generate_standalone_repo(_DEFAULT_CONFIG, cwd, options)
+    prepare.generate_module_repo(_DEFAULT_CONFIG, cwd, options)
     with open(cwd / project_module_name, 'w'):
         pass
     
     try:
-        release._update_version_standalone('1.2.3-alpha.4', cwd)
+        release._update_version_module('1.2.3-alpha.4', cwd)
     except exceptions.VersionNotFoundError as e:
         if Path(cwd).exists():
             shutil.rmtree(Path(cwd), ignore_errors=False, onerror=_error_remove_readonly)
@@ -248,7 +248,7 @@ def test_update_changelog():
     options = Args()
     options.force = True
     
-    paths = prepare.generate_standalone_repo(_DEFAULT_CONFIG, cwd, options)
+    paths = prepare.generate_module_repo(_DEFAULT_CONFIG, cwd, options)
     
     pygittools.init(cwd)
     for path in paths:
@@ -272,7 +272,7 @@ def test_update_changelog():
     
     release._update_generated_changelog(_DEFAULT_CONFIG, new_release_tag, new_release_msg, cwd)
     
-    with open(Path(cwd) / settings.CHANGELOG_FILENAME, 'r') as file:
+    with open(Path(cwd) / settings.FileName.CHANGELOG, 'r') as file:
         content = file.read()
         
     if Path(cwd).exists():
@@ -291,7 +291,7 @@ def test_clean_filed_release():
     options = Args()
     options.force = True
     
-    paths = prepare.generate_standalone_repo(_DEFAULT_CONFIG, cwd, options)
+    paths = prepare.generate_module_repo(_DEFAULT_CONFIG, cwd, options)
     
     pygittools.init(cwd)
     for path in paths:
