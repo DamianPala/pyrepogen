@@ -2,9 +2,7 @@
 # -*- coding: utf-8 -*-
 
 
-import pytest
-
-from spackage import modulo
+from {{project_name}} import modulo
 
 
 def test_get_reminder():

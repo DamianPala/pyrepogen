@@ -54,10 +54,10 @@ def main():
                     
                     config = utils.read_repo_config_file(config_path)
                 else:
-                    _logger.info("Generate repository from the predefined config file {} from your current directory.".format(settings.REPO_CONFIG_FILENAME))
-                    config_path = Path(cwd) / settings.REPO_CONFIG_FILENAME
+                    _logger.info("Generate repository from the predefined config file {} from your current directory.".format(settings.FileName.REPO_CONFIG))
+                    config_path = Path(cwd) / settings.FileName.REPO_CONFIG
                     if not config_path.exists():
-                        _logger.error("Predefined repository config file {} not exists!".format(settings.REPO_CONFIG_FILENAME))
+                        _logger.error("Predefined repository config file {} not exists!".format(settings.FileName.REPO_CONFIG))
                         prepare.generate_repo_config(cwd, options=args)
                         sys.exit()
                     

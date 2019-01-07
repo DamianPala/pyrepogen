@@ -81,10 +81,11 @@ def test_make_release_SHOULD_prepare_release_properly():
     
     options = Args()
     options.force = True
+    options.cloud = True
     
     paths = prepare.generate_module_repo(_DEFAULT_CONFIG, cwd, options)
     expected_paths = {path.relative_to(cwd).as_posix() for path in paths}
-    expected_paths.remove(settings.DOCS_DIRNAME) # TODO: think about doc in feature
+    expected_paths.remove(settings.DirName.DOCS) # TODO: think about doc in feature
     expected_paths.remove(settings.FileName.CLOUD_CREDENTIALS)
     pprint(expected_paths)
     
@@ -174,7 +175,7 @@ def test_update_version_module_SHOULD_update_version_properly():
     options.force = True
     
     prepare.generate_module_repo(_DEFAULT_CONFIG, cwd, options)
-    release._update_version_module('1.2.3-alpha.4', cwd)
+    release._update_module_version('1.2.3-alpha.4', cwd)
     
     project_name = _DEFAULT_CONFIG['project_name']
     project_module_name = utils.get_module_name_with_suffix(project_name)
@@ -205,7 +206,7 @@ def test_update_version_module_SHOULD_rise_error_when_no_project_module():
     (cwd / project_module_name).unlink()
     
     try:
-        release._update_version_module('1.2.3-alpha.4', cwd)
+        release._update_module_version('1.2.3-alpha.4', cwd)
         assert False, "Expected error did not occured."
     except exceptions.FileNotFoundError as e:
         if Path(cwd).exists():
@@ -231,14 +232,14 @@ def test_update_version_module_SHOULD_rise_error_when_no_version_in_module():
         pass
     
     try:
-        release._update_version_module('1.2.3-alpha.4', cwd)
+        release._update_module_version('1.2.3-alpha.4', cwd)
     except exceptions.VersionNotFoundError as e:
         if Path(cwd).exists():
             shutil.rmtree(Path(cwd), ignore_errors=False, onerror=_error_remove_readonly)
         assert "__version__ variable not found in the sample_project.py file" in str(e)
     
 
-@pytest.mark.skipif(SKIP_ALL_MARKED, reason="Skipped on request")
+# @pytest.mark.skipif(SKIP_ALL_MARKED, reason="Skipped on request")
 def test_update_changelog():
     cwd = TESTS_SETUPS_PATH / 'test_update_changelog'
     if Path(cwd).exists():

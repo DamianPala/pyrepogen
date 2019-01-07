@@ -9,7 +9,7 @@ class PyRepoGenError(Exception):
 
 class ExecuteCmdError(PyRepoGenError):
     def __init__(self, returncode, msg, logger):
-        super().__init__(msg)
+        super().__init__(msg, logger)
         self.returncode = returncode
         self.logger = logger
         

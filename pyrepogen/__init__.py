@@ -9,8 +9,8 @@ from pathlib import Path
 from . import settings
 
 
-PARDIR = Path(inspect.getframeinfo(inspect.currentframe()).filename).parent
-PACKAGENAME = (Path(inspect.getfile(inspect.currentframe())) / '..').resolve().name
+PARDIR = Path(__file__).parent
+PACKAGENAME = (Path(__file__) / '..').resolve().name
 __version__ = '0.1.0'
 
 if sys.version_info < settings.MIN_PYTHON:

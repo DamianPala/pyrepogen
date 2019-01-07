@@ -4,7 +4,7 @@
 
 import argparse
 
-from spackage import modulo
+from {{project_name}} import modulo
 
 
 def main():

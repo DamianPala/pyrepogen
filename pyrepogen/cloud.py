@@ -19,7 +19,7 @@ _logger = logging.getLogger(__name__)
 
 def upload_to_cloud(cwd='.', prompt=True):
     _logger.info("Upload packages to the cloud server...")
-    latest_release_package_path = _get_latest_package_path(Path(cwd) / settings.RELEASE_DIRNAME)
+    latest_release_package_path = _get_latest_package_path(Path(cwd) / settings.DirName.RELEASE)
 
     if prompt:
         if latest_release_package_path:
@@ -37,7 +37,7 @@ def upload_to_cloud(cwd='.', prompt=True):
     with ftplib.FTP(credentials['server'], credentials['username'], credentials['password']) as ftp_conn:
         _create_main_bucket_tree(ftp_conn, credentials)
 
-        _upload_package(ftp_conn, latest_release_package_path, cloud_project_bucket_path, settings.RELEASE_DIRNAME)
+        _upload_package(ftp_conn, latest_release_package_path, cloud_project_bucket_path, settings.DirName.RELEASE)
 
 
 def list_cloud(cwd='.'):
@@ -47,7 +47,7 @@ def list_cloud(cwd='.'):
         cloud_project_bucket_path = _get_cloud_project_bucket_path(credentials)
 
         if _is_cloud_project_bucket_exists(ftp_conn, credentials):
-            _print_bucket_files(ftp_conn, cloud_project_bucket_path, settings.RELEASE_DIRNAME)
+            _print_bucket_files(ftp_conn, cloud_project_bucket_path, settings.DirName.RELEASE)
         else:
             _logger.info("There are no buckets on the cloud server.")
 
@@ -56,7 +56,7 @@ def download_package(cwd='.', package_name=None):
     if not package_name:
         package_name = input("Enter the name of the package to donwload: ")
     if settings.RELEASE_PACKAGE_SUFFIX in package_name:
-        bucket = settings.RELEASE_DIRNAME
+        bucket = settings.DirName.RELEASE
     else:
         raise exceptions.NameError("Incorrect package name!", logger=_logger)
 
@@ -70,7 +70,7 @@ def download_package(cwd='.', package_name=None):
             raise exceptions.FileNotFoundError(
                 "{} package not found on the cloud server".format(package_name), logger=_logger)
 
-        dir_where_to_download = Path(cwd) / settings.RELEASE_DIRNAME
+        dir_where_to_download = Path(cwd) / settings.DirName.RELEASE
         if not dir_where_to_download.exists():
             Path.mkdir(dir_where_to_download, parents=True)
 
@@ -215,5 +215,5 @@ def _create_main_bucket_tree(ftp_conn, credentials):
         ftp_conn.mkd(credentials['project_name'])
     ftp_conn.cwd(credentials['project_name'])
 
-    if settings.RELEASE_DIRNAME not in ftp_conn.nlst():
-        ftp_conn.mkd(settings.RELEASE_DIRNAME)
+    if settings.DirName.RELEASE not in ftp_conn.nlst():
+        ftp_conn.mkd(settings.DirName.RELEASE)

@@ -4,7 +4,7 @@
 
 import sys
 
-from spackage.cli import main
+from {{project_name}}.cli import main
 
 
 if __name__ == '__main__':

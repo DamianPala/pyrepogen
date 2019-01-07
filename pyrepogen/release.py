@@ -33,21 +33,21 @@ def make_release(prompt=True, cwd='.'):
     _logger.info("Preparing Release Package...")
     
     release_files_paths = []
-    config_metadata = utils.get_repo_config_from_setup_cfg(Path(cwd) / settings.FileName.SETUP_CFG)
+    config = utils.get_repo_config_from_setup_cfg(Path(cwd) / settings.FileName.SETUP_CFG)
     action = ReleaseAction.REGENERATE
     
     _check_if_changes_to_commit(cwd)
     
     if prompt:
-        action = _release_checkout(config_metadata)
+        action = _release_checkout(config)
         if action == ReleaseAction.MAKE_RELEASE:
             new_release_tag = _prompt_release_tag(cwd)
             new_release_msg = _prompt_release_msg()  
-            _update_project_version(config_metadata, new_release_tag, cwd)
+            _update_project_version(config, new_release_tag, cwd)
 
         if action == ReleaseAction.MAKE_RELEASE:
             files_to_add = []
-            files_to_add.append(_update_changelog(config_metadata, new_release_tag, new_release_msg, cwd))
+            files_to_add.append(_update_changelog(config, new_release_tag, new_release_msg, cwd))
             files_to_add.append(_update_authors(cwd))
             
             release_files_paths.extend(_commit_and_push_release_update(new_release_tag, new_release_msg, files_to_add, cwd))
@@ -94,13 +94,18 @@ def _release_checkout(config):
 
 def _update_project_version(config, release_tag, cwd='.'):
     if config['project_type'] == settings.ProjectType.MODULE.value:
-        _update_version_module(release_tag, cwd)
+        _update_module_version(release_tag, cwd)
     else:
-#                 TODO: package
+        _update_package_version(release_tag, cwd)
         pass
 
 
-def _update_version_module(release_tag, cwd='.'):
+def _update_package_version(release_tag, cwd='.'):
+    #TODO:
+    pass
+
+
+def _update_module_version(release_tag, cwd='.'):
     project_name = utils.get_repo_config_from_setup_cfg(Path(cwd) / settings.FileName.SETUP_CFG)['project_name']
     project_module_name = utils.get_module_name_with_suffix(project_name)
     new_version_string = "__version__ = '{}'".format(release_tag)
@@ -140,9 +145,8 @@ def _update_generated_changelog(config, new_release_tag, new_release_msg, cwd='.
     
     if changelog_path.exists():
         changelog_path.unlink()
-    prepare.write_file_from_template(Path(settings.TEMPLATES_DIRNAME) / settings.FileName.CHANGELOG_GENERATED, changelog_path, config, cwd, verbose=False)
+    prepare.write_file_from_template(Path(settings.DirName.TEMPLATES) / settings.FileName.CHANGELOG_GENERATED, changelog_path, config, cwd, verbose=False)
     with open(changelog_path, 'a') as file:
-        file.write('\n')
         file.write('\n')
         file.write(_get_changelog_entry(new_release_tag, new_release_msg))
         file.write(changelog_content)
@@ -305,7 +309,7 @@ def _generate_file_pbr(filename, gen_handler, cwd='.'):
     _logger.info("Generating {} file...".format(filename))
     
     file_path = Path(cwd) / filename
-    git_dir = Path(cwd) / settings.GIT_DIRNAME
+    git_dir = Path(cwd) / settings.DirName.GIT
     if file_path.exists():
         current_mtime = file_path.stat().st_mtime
     else:
@@ -337,8 +341,8 @@ def _prepare_release_archive(release_files_paths, cwd='.'):
     
     release_package_suffix = '.tar.gz'
     release_package_name = "{}_{}_{}{}".format(config['project_name'], release_metadata['release_tag'], release_metadata['latest_commit_hash'], settings.RELEASE_PACKAGE_SUFFIX)
-    release_package_temp_containter_path = Path(cwd).resolve() / settings.RELEASE_DIRNAME / release_package_name
-    release_package_path = Path(cwd).resolve() / settings.RELEASE_DIRNAME / (release_package_name + release_package_suffix)
+    release_package_temp_containter_path = Path(cwd).resolve() / settings.DirName.RELEASE / release_package_name
+    release_package_path = Path(cwd).resolve() / settings.DirName.RELEASE / (release_package_name + release_package_suffix)
     
     if Path(release_package_temp_containter_path).exists():
         shutil.rmtree(release_package_temp_containter_path)
@@ -347,7 +351,7 @@ def _prepare_release_archive(release_files_paths, cwd='.'):
         
     Path.mkdir(release_package_temp_containter_path, parents=True)
     
-    dist_path = Path(cwd).resolve() / settings.RELEASE_DIRNAME
+    dist_path = Path(cwd).resolve() / settings.DirName.RELEASE
     if not dist_path.exists():
         dist_path.mkdir()
     

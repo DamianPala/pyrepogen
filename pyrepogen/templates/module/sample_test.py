@@ -2,8 +2,6 @@
 # -*- coding: utf-8 -*-
 
 
-import pytest
-
 from {{project_name}} import get_sum
 
 

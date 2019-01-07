@@ -35,11 +35,18 @@ def format_file(path, with_meld=True, cwd='.'):
         formated_file_path.unlink()
     else:
         _logger.info("Formatted file has ben written to {}".format(formated_file_path))
+    
+    _logger.info("Lint formatted file and show report")
+    try:
+        utils.execute_cmd([settings.Tools.LINTER, str(path)], str(cwd))
+        _logger.info("Linter report is empty - file ok")
+    except exceptions.ExecuteCmdError as e:
+        print(e)
         
         
 def coverage_report(cwd='.'):
     _logger.info("Open the coverage html report in the default system browser.")
     
-    path_to_report = (Path(cwd).resolve() / settings.HTMLCOV_DIRNAME / 'index.html').as_posix()
+    path_to_report = (Path(cwd).resolve() / settings.DirName.HTMLCOV / 'index.html').as_posix()
     url = 'file://{}'.format(path_to_report)
     webbrowser.open(url)

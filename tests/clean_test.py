@@ -159,7 +159,7 @@ def test_clean_dirs_SHOULD_delete_directories_properly():
     dirs_to_clean = [
         {'name': '*.egg-info', 'flag': '.'},
         {'name': '__pycache__', 'flag': 'r'},
-        {'name': 'pytest_cache', 'flag': 'r'},
+        {'name': '.pytest_cache', 'flag': 'r'},
         {'name': '.tox', 'flag': '.'},
         {'name': 'build', 'flag': '.'},
         {'name': 'dist', 'flag': '.'},

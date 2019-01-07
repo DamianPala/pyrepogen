@@ -24,7 +24,7 @@ def collect_reqs_latest(cwd='.'):
 
 def collect_reqs_specific(cwd='.'):
     reqs = []
-    ignore_dirs = [str(Path(cwd).resolve() / settings.REPOASSIST_DIRNAME)]
+    ignore_dirs = [str(Path(cwd).resolve() / settings.DirName.REPOASSIST)]
     raw_reqs = pipreqs.get_all_imports(str(cwd), extra_ignore_dirs=ignore_dirs)
     for item in raw_reqs:
         if 'INFO' not in item:
@@ -79,7 +79,7 @@ def _transform_to_latest(reqs):
     final_reqs = []
     for req in reqs:
         splitted = req.split('==')
-        if len(splitted) == 1:
+        if splitted.__len__() == 1:
             splitted = req.split('>=')
         final_reqs.append(splitted[0]) 
         

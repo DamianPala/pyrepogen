@@ -112,13 +112,14 @@ def get_repo_config_from_setup_cfg(path):
 def add_auto_config_fields(config):
     config['year'] = str(datetime.datetime.now().year)
     config[settings.REPOASSIST_VERSION] = __version__
-    config['min_python'] = settings.MIN_PYTHON
+    config['min_python'] = "{}.{}".format(settings.MIN_PYTHON[0], settings.MIN_PYTHON[1])
     config['description_file'] = settings.FileName.README
-    config['tests_dirname'] = settings.TESTS_DIRNAME
+    config['tests_dirname'] = settings.DirName.TESTS
     config['tests_path'] = settings.TESTS_PATH
     config['metadata_section'] = settings.METADATA_CONFIG_SECTION_NAME
     config['generator_section'] = settings.GENERATOR_CONFIG_SECTION_NAME
     config['license'] = settings.LICENSE
+    config['repoassist_name'] = settings.DirName.REPOASSIST
 
 
 def validate_config_metadata(config):

@@ -32,8 +32,8 @@ def generate_package_repo(config, cwd='.', options=None):
 
 
 def generate_repo_config(cwd='.', options=None):
-    _logger.info("Creating the predefined repository config file {} in your current working directory...".format(settings.REPO_CONFIG_FILENAME))
-    path = _copy_template_file(settings.REPO_CONFIG_FILENAME, Path(cwd) / settings.REPO_CONFIG_FILENAME, cwd, options, verbose=False)
+    _logger.info("Creating the predefined repository config file {} in your current working directory...".format(settings.FileName.REPO_CONFIG))
+    path = _copy_template_file(settings.FileName.REPO_CONFIG, Path(cwd) / settings.FileName.REPO_CONFIG, cwd, options, verbose=False)
     _logger.info("Predefined repository config file created. Please fill it with relevant data and try to generate repository again!")
     
     return path
@@ -93,15 +93,19 @@ def _generate_repo_files(files_list, config, cwd, options=None):
     for file in files_list:
         src = file['src']
         dst = Path(cwd) / file['dst']
+        
+        if not options.cloud and (src.name == settings.FileName.CLOUD_CREDENTIALS):
+            continue
+        
         if settings.PROJECT_NAME_PATH_PLACEHOLDER in str(dst):
             dst = Path(str(dst).replace(settings.PROJECT_NAME_PATH_PLACEHOLDER, config['project_name']))
             
         src_parents = [item for item in src.parents]
-        if len(src_parents) >= 2 and (str(src_parents[-2]) == settings.TEMPLATES_DIRNAME):
+        if src_parents.__len__() >= 2 and (str(src_parents[-2]) == settings.DirName.TEMPLATES):
             is_from_template = True
         else:
             is_from_template = False
-            
+        
         if is_from_template:
             paths.extend(write_file_from_template(src, dst, config, cwd, options))
         else:
@@ -118,21 +122,21 @@ def _generate_repoasist(config, cwd, options=None):
     for filename in settings.REPOASSIST_FILES:
         if filename == settings.FileName.REPOASSIST_MAIN:
             paths.extend(_copy_file(filename,
-                                    Path(cwd) / settings.REPOASSIST_DIRNAME / settings.FileName.MAIN,
+                                    Path(cwd) / settings.DirName.REPOASSIST / settings.FileName.MAIN,
                                     cwd, options))
         elif filename == settings.FileName.PYINIT:
-            paths.extend(write_file_from_template(Path(settings.TEMPLATES_DIRNAME) / settings.FileName.PYINIT,
-                                                  Path(cwd) / settings.REPOASSIST_DIRNAME / filename, config,
+            paths.extend(write_file_from_template(Path(settings.DirName.TEMPLATES) / settings.FileName.PYINIT,
+                                                  Path(cwd) / settings.DirName.REPOASSIST / filename, config,
                                                   cwd, options))
         elif filename == settings.FileName.CHANGELOG:
             paths.extend(_copy_template_file(settings.FileName.CHANGELOG_GENERATED,
-                                             Path(cwd) / settings.REPOASSIST_DIRNAME / settings.TEMPLATES_DIRNAME / settings.FileName.CHANGELOG_GENERATED,
+                                             Path(cwd) / settings.DirName.REPOASSIST / settings.DirName.TEMPLATES / settings.FileName.CHANGELOG_GENERATED,
                                              cwd, options))
             paths.extend(_copy_template_file(settings.FileName.CHANGELOG_PREPARED,
-                                             Path(cwd) / settings.REPOASSIST_DIRNAME / settings.TEMPLATES_DIRNAME / settings.FileName.CHANGELOG_PREPARED,
+                                             Path(cwd) / settings.DirName.REPOASSIST / settings.DirName.TEMPLATES / settings.FileName.CHANGELOG_PREPARED,
                                              cwd, options))
         else:
-            paths.extend(_copy_file(filename, Path(cwd) / settings.REPOASSIST_DIRNAME / filename, cwd, options))
+            paths.extend(_copy_file(filename, Path(cwd) / settings.DirName.REPOASSIST / filename, cwd, options))
             
     return paths
 
@@ -160,7 +164,7 @@ def _copy_file(filename, dst, cwd, options=None, verbose=True):
 
 
 def _copy_template_file(filename, dst, cwd, options=None, verbose=True):
-    return _copy_file_from(PARDIR / settings.TEMPLATES_DIRNAME / filename, dst, cwd, options, verbose)
+    return _copy_file_from(PARDIR / settings.DirName.TEMPLATES / filename, dst, cwd, options, verbose)
 
 
 def _copy_file_from(src, dst, cwd, options=None, verbose=True):
@@ -184,7 +188,8 @@ def write_file_from_template(src, dst, keywords, cwd, options=None, verbose=True
         templateEnv = jinja2.Environment(loader=templateLoader,
                                          trim_blocks=True,
                                          lstrip_blocks=True,
-                                         newline_sequence='\r\n')
+                                         newline_sequence='\r\n',
+                                         keep_trailing_newline=True)
         template = templateEnv.get_template(src.name)
         template.stream(keywords, options=options).dump(str(dst))
 

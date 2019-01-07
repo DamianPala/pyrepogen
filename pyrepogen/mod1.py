@@ -27,11 +27,11 @@ if __name__ == '__main__':
     print(Path().cwd())
     print(Path('<project_name>') / 'test')
     
-    src = Path(settings.TEMPLATES_DIRNAME) / 'test' / 'fdafad' / settings.FileName.GITIGNORE
+    src = Path(settings.DirName.TEMPLATES) / 'test' / 'fdafad' / settings.FileName.GITIGNORE
     
     src_parents = [item for item in src.parents]
-    is_from_template = str(src_parents[-2]) == settings.TEMPLATES_DIRNAME
+    is_from_template = str(src_parents[-2]) == settings.DirName.TEMPLATES
     
     print(src_parents[-2])
     print(is_from_template)
-    print(settings.TEMPLATES_DIRNAME)
+    print(settings.DirName.TEMPLATES)

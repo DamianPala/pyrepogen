@@ -46,7 +46,7 @@ def test_read_repo_config_file_SHOULD_read_config_properly():
     utils.add_auto_config_fields(expected_config)
     
     
-    config = utils.read_repo_config_file(Path(cwd) / settings.REPO_CONFIG_FILENAME)
+    config = utils.read_repo_config_file(Path(cwd) / settings.FileName.REPO_CONFIG)
     pprint(config)
 
     assert config == expected_config
