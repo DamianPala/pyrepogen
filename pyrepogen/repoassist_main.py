@@ -26,8 +26,9 @@ def main():
     parser.add_argument('-q', '--quiet', dest='quiet', action='store_true', default=False, help="Disable output")
     parser.add_argument('-d', '--debug', dest='debug', action='store_true', default=False, help="Enable debug output")
     subparsers.add_parser('update_reqs', help="Prepare requirements.txt and requirements-dev.txt files. If file exists, updates it.")
-    subparsers.add_parser('release', help="Prepare a release package.")
-    subparsers.add_parser('upload', help="Upload a release package to the cloud.")
+    subparsers.add_parser('release', help="Prepare a source distribution package.")
+    subparsers.add_parser('install', help="Install a package.")
+    subparsers.add_parser('upload', help="Upload a source distribution package to the cloud.")
     subparsers.add_parser('list_cloud', help="List buckets on the cloud server.")
     subparsers.add_parser('download_package', help="Download package from the cloud server.")
     subparsers.add_parser('clean', help="Clean repository from dummy files.")
@@ -50,6 +51,8 @@ def main():
                 colreqs.write_requirements_dev(cwd)
             elif command == 'release':
                 release.make_release(cwd)
+            elif command == 'install':
+                release.make_install(cwd)
             elif command == 'upload':
                 cloud.upload_to_cloud(cwd)
             elif command == 'list_cloud':

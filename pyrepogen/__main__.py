@@ -63,20 +63,16 @@ def main():
                     
                     config = utils.read_repo_config_file(config_path)
                     
-                utils.validate_repo_config_metadata(config)
-                    
-                project_type = config['project_type']
-                is_cloud = utils.str2bool(config['is_cloud'])
-                is_sample_layout = utils.str2bool(config['is_sample_layout'])
-                
             else:
                 _logger.info("Start Python Repository Generator Wizard!")
                 config = {}
                 
                 config['project_type'] = wizard.choose_one(__name__, "Python package or standalone module layout?", settings.ProjectType)
-                project_type = config['project_type']
-                is_cloud = wizard.choose_bool(__name__, "Create a cloud server feature?")
-                is_sample_layout = wizard.choose_bool(__name__, "Generate sample python files?")
+                config['is_cloud'] = wizard.choose_bool(__name__, "Create a cloud server feature?")
+                config['is_sample_layout'] = wizard.choose_bool(__name__, "Generate sample python files?")
+                config['is_git'] = wizard.choose_bool(__name__, "Initialize GIT repository?")
+                if config['is_git']:
+                    config['git_origin'] = wizard.get_data(__name__, "Enter GIT origin url")
                 config['repo_name'] = wizard.get_data(__name__, "Enter repository name")
                 config['project_name'] = wizard.get_data(__name__, "Enter project name")
                 config['author'] = wizard.get_data(__name__, "Enter author")
@@ -90,17 +86,13 @@ def main():
                 prompt_dir = wizard.get_data(__name__, "Enter path to the directory where a repository will be generated (relative or absolute)")
                 repo_path = utils.get_dir_from_arg(prompt_dir)
 
-            args.cloud = is_cloud
-            args.sample_layout = is_sample_layout
+            args.cloud = (config['is_cloud'])
+            args.sample_layout = (config['is_sample_layout'])
             
             utils.add_auto_config_fields(config)
-                
-            if project_type == settings.ProjectType.PACKAGE.value:
-                prepare.generate_package_repo(config, cwd=repo_path, options=args)
-            elif project_type == settings.ProjectType.MODULE.value:
-                prepare.generate_module_repo(config, cwd=repo_path, options=args)
-            else:
-                sys.exit("Unknown project type.")
+            
+            prepare.generate_repo(config, cwd=repo_path, options=args)
+            
         except exceptions.PyRepoGenError as e:
             e.logger.error(str(e))
             sys.exit("Repository generation error!")

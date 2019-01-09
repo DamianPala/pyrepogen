@@ -91,6 +91,7 @@ class Tools():
     FILE_FORMATTER = 'autopep8'
     LINTER = 'flake8'
     MERGE_TOOL = 'Meld Merge'
+    PYTHON = 'python'
 
 
 MODULE_REPO_FILES_TO_GEN = [
@@ -102,6 +103,7 @@ MODULE_REPO_FILES_TO_GEN = [
     {'src': Path(TEMPLATES_MODULE_PATH) / FileName.MAKEFILE, 'dst': Path('.') / FileName.MAKEFILE},
     {'src': Path(DirName.TEMPLATES) / FileName.LICENSE, 'dst': Path('.') / FileName.LICENSE},
     {'src': Path(DirName.TEMPLATES) / FileName.SETUP_CFG, 'dst': Path('.') / FileName.SETUP_CFG},
+    {'src': Path(TEMPLATES_PACKAGE_PATH) / FileName.SETUP_PY, 'dst': Path('.') / FileName.SETUP_PY},
     {'src': Path(DirName.TEMPLATES) / FileName.CLOUD_CREDENTIALS, 'dst': Path('.') / FileName.CLOUD_CREDENTIALS},
     {'src': Path(TEMPLATES_MODULE_PATH) / FileName.REQUIREMENTS, 'dst': Path('.') / FileName.REQUIREMENTS},
     {'src': Path(DirName.TEMPLATES) / FileName.REQUIREMENTS_DEV, 'dst': Path('.') / FileName.REQUIREMENTS_DEV},

@@ -10,62 +10,68 @@ from pathlib import Path
 from . import settings
 from . import utils
 from . import PARDIR
+from . import exceptions
+from . import pygittools
 
 
 _logger = logging.getLogger(__name__)
 
 
-def generate_package_repo(config, cwd='.', options=None):
+def generate_repo(config, cwd='.', options=None):
     _logger.info("Generate repository files...")
 
     paths = []
-
-    Path(cwd).mkdir(parents=True, exist_ok=True)
-    paths.extend(_generate_repo_dirs(cwd))
-    paths.extend(_generate_package_dir(config, cwd))
-    paths.extend(_generate_package_repo_files(config, cwd, options))
-    paths.extend(_generate_repoasist(config, cwd, options))
-
-    _logger.info("Repository files generated.")
-
-    return paths
-
-
-def generate_repo_config(cwd='.', options=None):
-    _logger.info("Creating the predefined repository config file {} in your current working directory...".format(settings.FileName.REPO_CONFIG))
-    path = _copy_template_file(settings.FileName.REPO_CONFIG, Path(cwd) / settings.FileName.REPO_CONFIG, cwd, options, verbose=False)
-    _logger.info("Predefined repository config file created. Please fill it with relevant data and try to generate repository again!")
     
-    return path
-
-
-def generate_module_repo(config, cwd='.', options=None):
-    _logger.info("Generate repository files...")
-
-    paths = []
-
+    utils.validate_repo_config(config)
+    
     Path(cwd).mkdir(parents=True, exist_ok=True)
-    paths.extend(_generate_repo_dirs(cwd))
-    paths.extend(_generate_module_repo_files(config, cwd, options))
+    paths.extend(_generate_repo_dirs(config, cwd))
+    if config['project_type'] == settings.ProjectType.PACKAGE.value:
+        if options.sample_layout:
+            config['entry_point'] = "{} = {}.cli:main".format(config['project_name'], config['project_name'])
+        paths.extend(_generate_repo_files(settings.PACKAGE_REPO_FILES_TO_GEN, config, cwd, options))
+    elif config['project_type'] == settings.ProjectType.MODULE.value:
+        if options.sample_layout:
+            config['entry_point'] = "{} = {}.{}:main".format(config['project_name'], 
+                                                             config['project_name'], 
+                                                             config['project_name'])
+        paths.extend(_generate_repo_files(settings.MODULE_REPO_FILES_TO_GEN, config, cwd, options))
+    else:
+        raise exceptions.RuntimeError("Unknown project type.", _logger)
     paths.extend(_generate_repoasist(config, cwd, options))
+    
+    if 'is_git' in config and config['is_git']:
+        from pprint import pprint
+        pprint(config)
+        _init_git_repo(config, cwd)
 
     _logger.info("Repository files generated.")
 
     return paths
 
 
-def _generate_repo_dirs(cwd):
+def _init_git_repo(config, cwd):
+    ret = pygittools.init(cwd)
+    if ret['returncode'] != 0:
+        raise exceptions.RuntimeError("Git repository initializing error: {}".format(ret['msg']), _logger)
+    
+    if 'git_origin' in config:
+        ret = pygittools.add_origin(config['git_origin'], cwd)
+        if ret['returncode'] != 0:
+            raise exceptions.RuntimeError("Git repository origin set up error: {}".format(ret['msg']), _logger)
+    
+
+def _generate_repo_dirs(config, cwd):
     paths = []
 
     for dirname in settings.REPO_DIRS_TO_GEN:
         paths.extend(_generate_directory(dirname, cwd))
-
+        
+    if config['project_type'] == settings.ProjectType.PACKAGE.value:
+        paths.extend(_generate_directory(config['project_name'], cwd))
+        
     return paths
 
-
-def _generate_package_dir(config, cwd):
-    return _generate_directory(config['project_name'], cwd)
-    
 
 def _generate_directory(dirname, cwd):
     try:
@@ -77,18 +83,16 @@ def _generate_directory(dirname, cwd):
         return []
 
 
-def _generate_package_repo_files(config, cwd, options=None):
-    return _generate_repo_files(settings.PACKAGE_REPO_FILES_TO_GEN, config, cwd, options)
-
-
-def _generate_module_repo_files(config, cwd, options=None):
-    return _generate_repo_files(settings.MODULE_REPO_FILES_TO_GEN, config, cwd, options)
+def generate_repo_config(cwd='.', options=None):
+    _logger.info("Creating the predefined repository config file {} in your current working directory...".format(settings.FileName.REPO_CONFIG))
+    path = _copy_template_file(settings.FileName.REPO_CONFIG, Path(cwd) / settings.FileName.REPO_CONFIG, cwd, options, verbose=False)
+    _logger.info("Predefined repository config file created. Please fill it with relevant data and try to generate repository again!")
+    
+    return path
     
     
 def _generate_repo_files(files_list, config, cwd, options=None):
     paths = []
-
-    utils.validate_config_metadata(config)
 
     for file in files_list:
         src = file['src']
@@ -116,8 +120,6 @@ def _generate_repo_files(files_list, config, cwd, options=None):
 
 def _generate_repoasist(config, cwd, options=None):
     paths = []
-
-    utils.validate_config_metadata(config)
 
     for filename in settings.REPOASSIST_FILES:
         if filename == settings.FileName.REPOASSIST_MAIN:

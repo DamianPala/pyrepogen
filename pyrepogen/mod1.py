@@ -4,6 +4,9 @@
 
 import logging
 import jinja2
+from collections import namedtuple
+from pprint import pprint
+
 from pathlib import Path
 from pyrepogen import PARDIR
 from pyrepogen import settings
@@ -35,3 +38,24 @@ if __name__ == '__main__':
     print(src_parents[-2])
     print(is_from_template)
     print(settings.DirName.TEMPLATES)
+    
+    d = {'field1': 'val1', 'field2': 'val2', 'field3': 3}
+    namedTupleConstructor = namedtuple('myNamedTuple', ' '.join(sorted(d.keys())))
+    nt= namedTupleConstructor(**d)
+    pprint(nt)
+    print(nt.field1)
+
+    from types import SimpleNamespace
+    
+    sn = SimpleNamespace(**d)
+    print(sn)
+    print(sn.field3)
+    del sn.field3
+    
+    sn2 = SimpleNamespace(**{'2field1': 'val'})
+    print(sn2)
+    pprint(sn.__dict__)
+    
+    path = Path(Path().cwd() / 'test')
+    pprint(path)
+    pprint(path.__str__())

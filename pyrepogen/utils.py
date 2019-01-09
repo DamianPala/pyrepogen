@@ -7,6 +7,7 @@ import configparser
 import datetime
 import logging
 from pathlib import Path
+from collections import namedtuple
 
 from . import pygittools
 from . import settings
@@ -77,12 +78,16 @@ def read_repo_config_file(path):
     raw_config = read_config_file(path)
     config = {}
     
-    for key in raw_config[settings.REPO_CONFIG_SECTION_NAME]:
-        config[key.replace('-', '_')] = raw_config[settings.REPO_CONFIG_SECTION_NAME][key]
-        
+    for key, value in raw_config[settings.REPO_CONFIG_SECTION_NAME].items():
+        try:
+            boolean = str2bool(value)
+            config[key.replace('-', '_')] = boolean
+        except exceptions.ValueError:
+            config[key.replace('-', '_')] = value
+            
     add_auto_config_fields(config)
 
-    validate_config_metadata(config)
+    validate_repo_config(config)
     
     return config
 
@@ -99,12 +104,12 @@ def get_repo_config_from_setup_cfg(path):
         else:
             config[key.replace('-', '_')] = raw_config[settings.METADATA_CONFIG_SECTION_NAME][key]
            
-    for key in raw_config[settings.GENERATOR_CONFIG_SECTION_NAME]:
-        config[key.replace('-', '_')] = raw_config[settings.GENERATOR_CONFIG_SECTION_NAME][key] 
+    for key, value in raw_config[settings.GENERATOR_CONFIG_SECTION_NAME].items():
+        config[key.replace('-', '_')] = value
             
     add_auto_config_fields(config)
 
-    validate_config_metadata(config)
+    validate_config(config)
     
     return config
 
@@ -122,11 +127,11 @@ def add_auto_config_fields(config):
     config['repoassist_name'] = settings.DirName.REPOASSIST
 
 
-def validate_config_metadata(config):
+def validate_config(config):
     _validate_metadata(config, settings.REPO_CONFIG_MANDATORY_FIELDS)
         
         
-def validate_repo_config_metadata(config):
+def validate_repo_config(config):
     _validate_metadata(config, settings.EXTENDED_REPO_CONFIG_MANDATORY_FIELDS)
 
         
@@ -135,7 +140,7 @@ def _validate_metadata(config, validator):
         if field not in config:
             raise exceptions.ConfigError("The {} field not found in the config!".format(field), _logger)
         else:
-            if not config[field]:
+            if config[field] == "":
                 raise exceptions.ConfigError("The {} field is empty in the config!".format(field), _logger)
             else:
                 if field == 'project_type':
@@ -147,19 +152,53 @@ def _validate_metadata(config, validator):
                     if config[field] not in valid_values:
                         raise exceptions.ConfigError("The {} field has invalid value in the config!".format(field), _logger)
                 elif (field == 'is_cloud') or (field == 'is_sample_layout'):
-                    valid_values = ['true', 'false']
-                    if config[field].lower() not in valid_values:
+                    valid_values = [True, False]
+                    if config[field] not in valid_values:
                         raise exceptions.ConfigError("The {} field has invalid value in the config!".format(field), _logger)                    
                     
 
 def str2bool(string):
-    return string.lower() in ['yes', 'true', 't', '1']
+    if string.lower() in ['yes', 'true', 't', 'y', '1']:
+        return True
+    elif string.lower() in ['no', 'false', 'f', 'n', '0']:
+        return False
+    else:
+        raise exceptions.ValueError("No boolean", _logger)
 
 
 def get_module_name_with_suffix(module_name):
     return "{}.py".format(module_name)
 
 
+def get_project_module_path(config, cwd='.'):
+    path = Path(cwd) / '{}.py'.format(config.project_name)
+    
+    if not path.exists():
+        raise exceptions.FileNotFoundError("File {} not found. Please check repository and a project_name field in {} file".format(
+            path.relative_to(cwd.resolve()), settings.FileName.SETUP_CFG), _logger)
+    
+    return path
+
+
 def get_dir_from_arg(prompt_dir):
     return (Path().cwd() / prompt_dir).resolve()
+
+
+def get_latest_file(path):
+    if path:
+        path = Path(path)
+        if path.exists() and path.is_dir():
+            files_list = []
+            FileTime = namedtuple('FileTime', ['path', 'mtime'])
+            for item in path.iterdir():
+                if item.is_file():
+                    files_list.append(FileTime(item, Path(item).stat().st_mtime))
+                    
+            if files_list:
+                return max(files_list, key=lambda x: x.mtime).path
+            
+    return None
+    
+    
+    
 

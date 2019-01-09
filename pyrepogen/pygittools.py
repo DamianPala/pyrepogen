@@ -15,6 +15,10 @@ def add(path, cwd='.'):
     return _execute_cmd_and_strip(['git', 'add', str(path)], cwd)
 
 
+def add_origin(path, cwd='.'):
+    return _execute_cmd_and_strip(['git', 'remote', 'add', 'origin', str(path)], cwd)
+
+
 def commit(msg, cwd='.'):
     return _execute_cmd_and_strip(['git', 'commit', '-m', msg], cwd)
 
@@ -81,6 +85,17 @@ def list_git_repo_tree(cwd='.'):
     
     return ret
     
+
+def is_any_commit(cwd='.'):
+    ret = _execute_cmd_and_strip(['git', 'log'], cwd)
+    return True if ret['returncode'] == 0 else False
+
+
+def is_any_tag(cwd='.'):
+    ret = list_tags(cwd)
+    if ret['returncode'] == 0:
+        return True if ret['msg'].__len__() else False
+    
     
 def is_work_tree(cwd='.'):
     try:
@@ -110,6 +125,10 @@ def are_uncommited_changes(cwd='.'):
     
 def get_latest_commit_hash(cwd='.'):
     return _execute_cmd_and_strip(["git", "log", "--pretty=format:%h", "-n", "1"], cwd)
+
+
+def get_tag_commit_hash(tag, cwd='.'):
+    return _execute_cmd_and_strip(["git", "log", "--pretty=format:%h", "-n", "1", tag], cwd)
     
     
 def get_changelog(report_format=None, cwd='.'):

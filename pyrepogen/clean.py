@@ -25,6 +25,7 @@ def _clean_files(cwd, files_list=None):
     for file_pattern in files_list:
         files_paths = sorted(Path(cwd).glob(file_pattern))
         for file_path in files_paths:
+            _logger.info("Remove file: {}".format(file_path.relative_to(Path(cwd).resolve())))
             file_path.unlink()
             
             
@@ -40,11 +41,10 @@ def _clean_dirs(cwd, dirs_list=None):
         
         for dir_path in dirs_paths:
             if dir_path.is_dir():
+                _logger.info("Remove directory: {}".format(dir_path.relative_to(Path(cwd).resolve())))
                 shutil.rmtree(dir_path, ignore_errors=False, onerror=_error_remove_readonly)
         
-    
 
 def _error_remove_readonly(_action, name, _exc):
     Path(name).chmod(stat.S_IWRITE)
     Path(name).unlink()
-    

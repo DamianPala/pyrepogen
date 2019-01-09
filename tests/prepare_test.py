@@ -29,12 +29,15 @@ _DEFAULT_CONFIG = {
     'year': '2018',
     'repoassist_version': '0.1.0',
     'min_python': '3.7',
+    'is_cloud': True,
+    'is_sample_layout': True
 }
 
 
 class Args:
     force = True
     cloud = False
+    sample_layout = True
     
     
 def _error_remove_readonly(_action, name, _exc):
@@ -47,7 +50,9 @@ def test_generate_setup_cfg():
     cwd = TESTS_SETUPS_PATH / 'test_generate_setup_cfg'
     Path(cwd).mkdir(parents=True, exist_ok=True)
     
-    config = _DEFAULT_CONFIG
+    config = dict(_DEFAULT_CONFIG)
+    del config['is_cloud']
+    del config['is_sample_layout']
     utils.add_auto_config_fields(config)
     args = Args
     args.force = True
@@ -72,7 +77,7 @@ def test_generate_module_repo_dirs():
     cwd = TESTS_SETUPS_PATH / 'test_generate_module_repo_dirs'
     Path(cwd).mkdir(parents=True, exist_ok=True)
     
-    prepare._generate_repo_dirs(cwd)
+    prepare._generate_repo_dirs(_DEFAULT_CONFIG, cwd)
     
     generated_dirset = set()
     for dirname in Path(cwd).iterdir():
@@ -138,12 +143,15 @@ def test_generate_package_repo_SHOULD_generate_repo_tree_properly():
         'cloud_credentials.txt',
     }
     
+    config = dict(_DEFAULT_CONFIG)
+    config['project_type'] = settings.ProjectType.PACKAGE.value
+    utils.add_auto_config_fields(config)
+    
     args = Args
     args.force = False
     args.cloud = True
     
-    utils.add_auto_config_fields(_DEFAULT_CONFIG)
-    paths = prepare.generate_package_repo(_DEFAULT_CONFIG, cwd, options=args)
+    paths = prepare.generate_repo(config, cwd, options=args)
     paths = {path.relative_to(cwd).as_posix() for path in paths}
     pprint(paths)
     
@@ -176,6 +184,7 @@ def test_generate_module_repo_SHOULD_generate_repo_tree_properly():
         'LICENSE',
         'tox.ini',
         'setup.cfg',
+        'setup.py',
         'repoassist',
         'repoassist/templates',
         'repoassist/__init__.py',
@@ -197,11 +206,15 @@ def test_generate_module_repo_SHOULD_generate_repo_tree_properly():
         'cloud_credentials.txt',
     }
     
+    config = dict(_DEFAULT_CONFIG)
+    config['project_type'] = settings.ProjectType.MODULE.value
+    utils.add_auto_config_fields(config)
+    
     args = Args
     args.force = False
     args.cloud = True
     
-    paths = prepare.generate_module_repo(_DEFAULT_CONFIG, cwd, options=args)
+    paths = prepare.generate_repo(config, cwd, options=args)
     paths = {path.relative_to(cwd).as_posix() for path in paths}
     pprint(paths)
     
@@ -266,11 +279,16 @@ def test_generate_module_repo_SHOULD_force_properly():
         Path(cwd) / settings.DirName.REPOASSIST / settings.DirName.TEMPLATES / settings.FileName.CHANGELOG_PREPARED,
     ]
     
+    config = dict(_DEFAULT_CONFIG)
+    config['project_type'] = settings.ProjectType.MODULE.value
+    utils.add_auto_config_fields(config)
+    
     args = Args
     args.force = True
     args.cloud = True
+    args.sample_layout = True
     
-    prepare.generate_module_repo(_DEFAULT_CONFIG, cwd, options=args)
+    prepare.generate_repo(config, cwd, options=args)
      
     for path in files_paths_to_overwrite:
         with open(path, 'r') as file:
@@ -286,11 +304,15 @@ def test_generate_module_repo_SHOULD_generate_makefile_without_cloud_properly():
         shutil.rmtree(Path(cwd))
     Path(cwd).mkdir(parents=True, exist_ok=True)
     
+    config = dict(_DEFAULT_CONFIG)
+    config['project_type'] = settings.ProjectType.MODULE.value
+    utils.add_auto_config_fields(config)
+    
     options = Args
     options.force = True
     options.cloud = False
     
-    paths = prepare.generate_module_repo(_DEFAULT_CONFIG, cwd, options=options)
+    paths = prepare.generate_repo(config, cwd, options=options)
     paths = {path.relative_to(cwd).as_posix() for path in paths}
     
     with open(Path(cwd) / settings.FileName.MAKEFILE) as file:
@@ -309,11 +331,15 @@ def test_generate_module_repo_SHOULD_not_generate_cloud_credentials_without_clou
         shutil.rmtree(Path(cwd))
     Path(cwd).mkdir(parents=True, exist_ok=True)
     
+    config = dict(_DEFAULT_CONFIG)
+    config['project_type'] = settings.ProjectType.MODULE.value
+    utils.add_auto_config_fields(config)
+    
     options = Args
     options.force = True
     options.cloud = False
     
-    paths = prepare.generate_module_repo(_DEFAULT_CONFIG, cwd, options=options)
+    paths = prepare.generate_repo(config, cwd, options=options)
     paths = {path.relative_to(cwd).as_posix() for path in paths}
     
     if Path(cwd).exists():
@@ -329,11 +355,15 @@ def test_generate_module_repo_SHOULD_generate_makefile_with_cloud_properly():
         shutil.rmtree(Path(cwd))
     Path(cwd).mkdir(parents=True, exist_ok=True)
     
+    config = dict(_DEFAULT_CONFIG)
+    config['project_type'] = settings.ProjectType.MODULE.value
+    utils.add_auto_config_fields(config)
+    
     options = Args
     options.force = True
     options.cloud = True
     
-    paths = prepare.generate_module_repo(_DEFAULT_CONFIG, cwd, options=options)
+    paths = prepare.generate_repo(config, cwd, options=options)
     paths = {path.relative_to(cwd).as_posix() for path in paths}
     
     with open(Path(cwd) / settings.FileName.MAKEFILE) as file:
@@ -343,4 +373,48 @@ def test_generate_module_repo_SHOULD_generate_makefile_with_cloud_properly():
         shutil.rmtree(Path(cwd), ignore_errors=False, onerror=_error_remove_readonly)
         
     assert "make upload" in makefile_content
+    
+    
+def test_generate_empty_file_SHOULD_generate_file_when_no_exists():
+    cwd = TESTS_SETUPS_PATH / 'test_generate_empty_file_SHOULD_generate_file_when_no_exists'
+    if Path(cwd).exists():
+        shutil.rmtree(Path(cwd), ignore_errors=False, onerror=_error_remove_readonly)
+    Path(cwd).mkdir(parents=True, exist_ok=True)
+    
+    path = Path(cwd) / 'file.txt'
+    options = Args
+    options.force = True
+    
+    prepare._generate_empty_file(path, cwd, options)
+    
+    assert Path(path).exists()
+    
+    if Path(cwd).exists():
+        shutil.rmtree(Path(cwd), ignore_errors=False, onerror=_error_remove_readonly)
+
+
+def test_generate_empty_file_SHOULD_overwrite_file_when_force():
+    cwd = TESTS_SETUPS_PATH / 'test_generate_empty_file_SHOULD_overwrite_file_when_force'
+    if Path(cwd).exists():
+        shutil.rmtree(Path(cwd), ignore_errors=False, onerror=_error_remove_readonly)
+    Path(cwd).mkdir(parents=True, exist_ok=True)
+    
+    path = Path(cwd) / 'file.py'
+    options = Args
+    options.force = True
+    
+    with open(path, 'w') as file:
+        file.write("line")
+    
+    prepare._generate_empty_file(path, cwd, options)
+    
+    with open(path, 'r') as file:
+        content = file.read()
+    
+    assert content == ''
+    
+    if Path(cwd).exists():
+        shutil.rmtree(Path(cwd), ignore_errors=False, onerror=_error_remove_readonly)
+    
+    
     

@@ -23,6 +23,9 @@ prepare:
 release:
 	@$(PYTHON) -m repoassist release
 	
+install:
+	@$(PYTHON) -m repoassist install
+	
 test:
 	@$(PYTHON) -m pytest $(TEST_PATH) --color=yes
 	
@@ -72,6 +75,9 @@ help:
 	@echo "make release"
 	@echo "	Release the standalone script"
 	
+	@echo "make install"
+	@echo "	Install the standalone script"
+	
 	@echo "make test"
 	@echo "	Run tests using pytest"
 	
@@ -106,4 +112,4 @@ help:
 	@echo "	Clean build and distribution"
 	
 
-.PHONY: default requirements prepare release test coverage coverage_report tox format lint doc install_reqs update_reqs {% block cloud_targets_phony %}{% endblock %} clean help
+.PHONY: default requirements prepare release install test coverage coverage_report tox format lint doc install_reqs update_reqs {% block cloud_targets_phony %}{% endblock %} clean help
