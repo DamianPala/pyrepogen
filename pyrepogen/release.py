@@ -33,19 +33,27 @@ class ReleaseAction(Enum):
 
 def make_install(cwd='.'):
     _logger.info("Performing installation...")
+    
+    _check_repo_tree(cwd)
+    _check_if_changes_to_commit(cwd)
+    
     ret = pygittools.get_latest_tag(cwd)
     if ret['returncode'] != 0:
         raise exceptions.ReleaseMetadataError("Retrieving release tag error: {}".format(ret['msg']), _logger)
     else:
         release_tag = ret['msg']
 
+    config_raw = utils.get_repo_config_from_setup_cfg(Path(cwd) / settings.FileName.SETUP_CFG)
+    config = SimpleNamespace(**config_raw)
+
     final_release_tag = _get_final_release_tag(release_tag, cwd)
+    
+    if config.project_type == settings.ProjectType.MODULE.value:
+        _setup_module_as_package(config, cwd)
     
     _run_setup_cmd('install', release_tag=final_release_tag, cwd=cwd)
     
-    _logger.info("Installation completed")
-    
-    # TODO: check if sandboxxx package is created from module before install
+    _logger.info("Installation completed.")
     
 
 def make_release(action=ReleaseAction.REGENERATE, prompt=True, push=True, release_data=None, cwd='.'):
@@ -100,7 +108,7 @@ def make_release(action=ReleaseAction.REGENERATE, prompt=True, push=True, releas
         release_tag = new_release_tag
             
     if config.project_type == settings.ProjectType.MODULE.value:
-        _setup_module_release(config, cwd)
+        _setup_module_as_package(config, cwd)
         
     final_release_tag = _get_final_release_tag(release_tag, cwd, action)
     _run_setup_cmd('sdist', release_tag=final_release_tag, cwd=cwd)
@@ -116,8 +124,10 @@ def make_release(action=ReleaseAction.REGENERATE, prompt=True, push=True, releas
     return package_path
 
 
-def _setup_module_release(config, cwd):
+def _setup_module_as_package(config, cwd):
     temp_project_package_path = Path(cwd) / config.project_name
+    if temp_project_package_path.exists():
+        shutil.rmtree(temp_project_package_path)
     prepare._generate_directory(temp_project_package_path.name, cwd)
     project_module_path = utils.get_project_module_path(config, cwd)
     shutil.copy(project_module_path, temp_project_package_path / project_module_path.name)
@@ -306,7 +316,7 @@ def _commit_and_push_release_update(new_release_tag, new_release_msg, files_to_a
         _clean_failed_release(new_release_tag, cwd)
         raise exceptions.ReleaseTagSetError("Error while setting release tag: {}".format(release_tag_ret['msg']), _logger)
     
-    if push:
+    if push and pygittools.is_origin_set(cwd):
         ret = pygittools.push_with_tags(cwd)
         if ret['returncode'] != 0:
             _clean_failed_release(new_release_tag, cwd)
@@ -383,24 +393,6 @@ def _prompt_release_tag(cwd=''):
     return new_release_tag
 
 
-def _get_release_metadata(cwd='.'):
-    release_metadata = {}
-        
-    ret = pygittools.get_latest_commit_hash(cwd)
-    if ret['returncode'] != 0:
-        raise exceptions.ReleaseMetadataError("Retrieving latest commit hash error: {}".format(ret['msg']), _logger)
-    else:
-        release_metadata['latest_commit_hash'] = ret['msg']
-    
-    ret = pygittools.get_latest_tag(cwd)
-    if ret['returncode'] != 0:
-        raise exceptions.ReleaseMetadataError("Retrieving release tag error: {}".format(ret['msg']), _logger)
-    else:
-        release_metadata['release_tag'] = ret['msg']
-        
-    return release_metadata
-
-
 def _prompt_release_msg():
     _logger.info("Enter release message. Type '~' and press Enter key to comfirm. Markdown syntax allowed.")
     message = []
@@ -450,41 +442,3 @@ def _generate_file_pbr(filename, gen_handler, cwd='.'):
     _logger.info("The {} file generated".format(filename))
     
     return file_path.resolve()
-    
-    
-def _prepare_release_archive(release_files_paths, cwd='.'):
-    _logger.info("Compressing package...")
-    
-    config = utils.get_repo_config_from_setup_cfg(Path(cwd) / settings.FileName.SETUP_CFG)
-    release_metadata = _get_release_metadata(cwd)
-    
-    release_package_suffix = '.tar.gz'
-    release_package_name = "{}_{}_{}{}".format(config['project_name'], release_metadata['release_tag'], release_metadata['latest_commit_hash'], settings.RELEASE_PACKAGE_SUFFIX)
-    release_package_temp_containter_path = Path(cwd).resolve() / settings.DirName.RELEASE / release_package_name
-    release_package_path = Path(cwd).resolve() / settings.DirName.RELEASE / (release_package_name + release_package_suffix)
-    
-    if Path(release_package_temp_containter_path).exists():
-        shutil.rmtree(release_package_temp_containter_path)
-    if Path(release_package_path).exists():
-        Path(release_package_path).unlink()
-        
-    Path.mkdir(release_package_temp_containter_path, parents=True)
-    
-    dist_path = Path(cwd).resolve() / settings.DirName.RELEASE
-    if not dist_path.exists():
-        dist_path.mkdir()
-    
-    for path in release_files_paths:
-        dst = release_package_temp_containter_path / path.relative_to(Path(cwd).resolve())
-        if not dst.parent.exists():
-            dst.parent.mkdir()
-        shutil.copy(path, dst)
-        
-        
-    release_zip_package_name = shutil.make_archive(release_package_temp_containter_path, 'gztar', release_package_temp_containter_path)
-    shutil.rmtree(release_package_temp_containter_path)
-    
-    _logger.info("Package compressed properly.")
-    
-    return release_zip_package_name
-        

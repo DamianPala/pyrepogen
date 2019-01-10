@@ -19,3 +19,6 @@ Source distribution of module repo is made as package
 Regenerate release package has hash in package name if release tag is not on last commit
 When regenerate on the same commit as tag - dist will be overwritten and without a commit hash
  
+When you change project name in tree always change it in setup.cfg
+ 
+Repo inside parent repo without submodule is not allowed

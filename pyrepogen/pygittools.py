@@ -97,6 +97,11 @@ def is_any_tag(cwd='.'):
         return True if ret['msg'].__len__() else False
     
     
+def is_origin_set(cwd='.'):
+    ret = _execute_cmd_and_strip(['git', 'config', '--local', 'remote.origin.url'], cwd)
+    return True if ret['returncode'] == 0 else False    
+    
+    
 def is_work_tree(cwd='.'):
     try:
         process = subprocess.run(['git', 'rev-parse', '--is-inside-work-tree'],
