@@ -572,6 +572,8 @@ def test_clean_filed_release():
 
 - last line.""")
     
+    utils.execute_cmd(['git', 'config', '--local', 'remote.origin.url', 'some url'], cwd)
+    
     last_commit_hash = pygittools.get_latest_commit_hash(cwd)
     last_tag = pygittools.get_latest_tag(cwd)
 
@@ -584,9 +586,8 @@ def test_clean_filed_release():
     files_to_add.append(release._update_changelog(config, new_release_tag, new_release_msg, cwd))
     files_to_add.append(release._update_authors(cwd))
     
-    
     try:
-        release._commit_and_push_release_update(new_release_tag, new_release_msg, files_to_add, cwd)
+        release._commit_and_push_release_update(new_release_tag, new_release_msg, files_to_add=files_to_add, cwd=cwd)
         assert False, "Expected error not occured!"
     except exceptions.CommitAndPushReleaseUpdateError:
         assert last_commit_hash == pygittools.get_latest_commit_hash(cwd)
