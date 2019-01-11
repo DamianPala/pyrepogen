@@ -22,18 +22,15 @@ def generate_repo(config, cwd='.', options=None):
 
     paths = []
     
-    
     Path(cwd).mkdir(parents=True, exist_ok=True)
     paths.extend(_generate_repo_dirs(config, cwd))
     if config['project_type'] == settings.ProjectType.PACKAGE.value:
         if options.sample_layout:
-            config['entry_point'] = "{} = {}.cli:main".format(config['project_name'], config['project_name'])
+            config['entry_point'] = settings.PACKAGE_ENTRY_POINT.replace(settings.ENTRY_POINT_PLACEHOLDER, config['project_name'])
         paths.extend(_generate_repo_files(settings.PACKAGE_REPO_FILES_TO_GEN, config, cwd, options))
     elif config['project_type'] == settings.ProjectType.MODULE.value:
         if options.sample_layout:
-            config['entry_point'] = "{} = {}.{}:main".format(config['project_name'], 
-                                                             config['project_name'], 
-                                                             config['project_name'])
+            config['entry_point'] = settings.MODULE_ENTRY_POINT.replace(settings.ENTRY_POINT_PLACEHOLDER, config['project_name'])
         paths.extend(_generate_repo_files(settings.MODULE_REPO_FILES_TO_GEN, config, cwd, options))
     else:
         raise exceptions.RuntimeError("Unknown project type.", _logger)

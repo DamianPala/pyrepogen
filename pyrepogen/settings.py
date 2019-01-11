@@ -45,6 +45,10 @@ AUTOMATIC_RELEASE_COMMIT_MSG = "Automatic update of release data files."
 LICENSE = 'MIT'
 RELEASE_PACKAGE_SUFFIX = "_release"
 
+ENTRY_POINT_PLACEHOLDER = '<project_name>'
+MODULE_ENTRY_POINT = "{} = {}:main".format(ENTRY_POINT_PLACEHOLDER, ENTRY_POINT_PLACEHOLDER)
+PACKAGE_ENTRY_POINT = "{} = {}.cli:main".format(ENTRY_POINT_PLACEHOLDER, ENTRY_POINT_PLACEHOLDER)
+
 
 class FileName():
     REPO_CONFIG = 'gen_repo.cfg'

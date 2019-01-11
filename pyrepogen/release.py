@@ -5,7 +5,6 @@
 import os
 import re
 import logging
-import shutil
 import semver
 import datetime
 from pathlib import Path
@@ -43,13 +42,7 @@ def make_install(cwd='.'):
     else:
         release_tag = ret['msg']
 
-    config_raw = utils.get_repo_config_from_setup_cfg(Path(cwd) / settings.FileName.SETUP_CFG)
-    config = SimpleNamespace(**config_raw)
-
     final_release_tag = _get_final_release_tag(release_tag, cwd)
-    
-    if config.project_type == settings.ProjectType.MODULE.value:
-        _setup_module_as_package(config, cwd)
     
     _run_setup_cmd('install', release_tag=final_release_tag, cwd=cwd)
     
@@ -98,9 +91,6 @@ def make_release(action=ReleaseAction.REGENERATE, prompt=True, push=True, releas
         else:
             release_tag = ret['msg']
 
-    if config.project_type == settings.ProjectType.MODULE.value:
-        _setup_module_as_package(config, cwd)
-        
     final_release_tag = _get_final_release_tag(release_tag, cwd, action)
     _run_setup_cmd('sdist', release_tag=final_release_tag, cwd=cwd)
     
@@ -115,15 +105,6 @@ def make_release(action=ReleaseAction.REGENERATE, prompt=True, push=True, releas
     return package_path
 
 
-def _setup_module_as_package(config, cwd):
-    temp_project_package_path = Path(cwd) / config.project_name
-    if temp_project_package_path.exists():
-        shutil.rmtree(temp_project_package_path)
-    prepare._generate_directory(temp_project_package_path.name, cwd)
-    project_module_path = utils.get_project_module_path(config, cwd)
-    shutil.copy(project_module_path, temp_project_package_path / project_module_path.name)
-    
-    
 def _run_setup_cmd(cmd, release_tag=None, cwd='.'):
     setup_path = Path(cwd).resolve() / settings.FileName.SETUP_PY
     if not setup_path.exists():
