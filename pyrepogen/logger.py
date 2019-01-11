@@ -3,6 +3,10 @@
 
 
 import logging
+from pathlib import Path
+
+PACKAGENAME = (Path(__file__) / '..').resolve().name
+root_name = ''
 
 
 TIP_LVL_NUM = 21
@@ -12,7 +16,10 @@ CHECKPOINT_LVL_NUM = 23
 _logger_level = logging.DEBUG
 
 
-def create_logger(name=None):
+def create_logger(name=PACKAGENAME):
+    global root_name
+    root_name = name
+    
     logging.addLevelName(TIP_LVL_NUM, "TIP")
     logging.Logger.tip = tip
     logging.addLevelName(WIZARD_LVL_NUM, "WIZARD")
@@ -32,6 +39,16 @@ def create_logger(name=None):
     
     return logger
 
+
+def get_logger(name):
+    global root_name
+    
+    parents = name.split('.')
+    if root_name:
+        return logging.getLogger('{}.{}'.format(PACKAGENAME, parents[-1]))
+    else:
+        return logging.getLogger(parents[-1])
+    
 
 def set_level(logger, args):
     if args.debug:

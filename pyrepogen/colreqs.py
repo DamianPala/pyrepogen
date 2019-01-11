@@ -2,14 +2,14 @@
 # -*- coding: utf-8 -*-
 
 
-import logging
 from pathlib import Path
 from pipreqs import pipreqs
 
 from . import settings
+from . import logger
+from . import prepare
 
-
-_logger = logging.getLogger(__name__)
+_logger = logger.get_logger(__name__)
 
 
 def collect_reqs_min(cwd='.'):
@@ -52,14 +52,12 @@ def write_requirements(reqs, cwd='.'):
 def write_requirements_dev(cwd='.'):
     file_path = Path(cwd) / settings.FileName.REQUIREMENTS_DEV
     
-    try:
-        with open(file_path, 'x') as file:
-            for reg in settings.REQUIREMENTS_DEV:
-                file.write("{}\n".format(reg))
-                _logger.info("{} file prepared.".format(settings.FileName.REQUIREMENTS_DEV))
-    except FileExistsError:
+    if file_path.exists():
         _logger.warning("{} file already exists, not overwritten.".format(settings.FileName.REQUIREMENTS_DEV))
-            
+    else:
+        prepare.write_file_from_template(Path(settings.DirName.TEMPLATES) / file_path.name, file_path, None, cwd, verbose=False)
+        _logger.info("{} file prepared.".format(file_path.name))
+    
     return file_path
             
             

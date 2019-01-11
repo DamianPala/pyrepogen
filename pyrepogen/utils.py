@@ -5,17 +5,17 @@
 import subprocess
 import configparser
 import datetime
-import logging
 from pathlib import Path
 from collections import namedtuple
 
 from . import pygittools
 from . import settings
 from . import exceptions
+from . import logger
 from . import __version__
 
 
-_logger = logging.getLogger(__name__)
+_logger = logger.get_logger(__name__)
 
 
 def execute_cmd(args, cwd='.'):

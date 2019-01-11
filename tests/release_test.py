@@ -110,8 +110,6 @@ def test_make_release_SHOULD_release_module_properly():
         settings.FileName.AUTHORS,
         settings.FileName.CHANGELOG,
         'PKG-INFO',
-        '{}'.format(config['project_name']),
-        '{}/{}.py'.format(config['project_name'], config['project_name']),
         '{}.egg-info'.format(config['project_name']),
         '{}.egg-info/PKG-INFO'.format(config['project_name']),
         '{}.egg-info/SOURCES.txt'.format(config['project_name']),

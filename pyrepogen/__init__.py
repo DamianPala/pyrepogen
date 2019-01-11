@@ -7,12 +7,12 @@ import inspect
 from pathlib import Path
 
 from . import settings
+from . import logger
 
 
 __version__ = '0.1.0'
-
+_logger = logger.create_logger()
 PARDIR = Path(__file__).parent
-PACKAGENAME = (Path(__file__) / '..').resolve().name
 
 
 if sys.version_info < settings.MIN_PYTHON:

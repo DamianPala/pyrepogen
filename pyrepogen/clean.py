@@ -2,7 +2,6 @@
 # -*- coding: utf-8 -*-
 
 
-import logging
 import stat
 import shutil
 from pathlib import Path
@@ -10,9 +9,10 @@ from pprint import pprint
 
 from . import settings
 from . import exceptions
+from . import logger
 
 
-_logger = logging.getLogger(__name__)
+_logger = logger.get_logger(__name__)
 
 
 def clean(cwd='.'):

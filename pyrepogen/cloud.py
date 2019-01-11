@@ -6,15 +6,15 @@ import configparser
 import ftplib
 import os
 import datetime
-import logging
 from pathlib import Path
 
 from . import exceptions
 from . import settings
 from . import wizard
+from . import logger
 
 
-_logger = logging.getLogger(__name__)
+_logger = logger.get_logger(__name__)
 
 
 def upload_to_cloud(cwd='.', prompt=True):

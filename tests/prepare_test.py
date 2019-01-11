@@ -6,13 +6,11 @@ import stat
 from pathlib import Path
 from pprint import pprint
 
-from pyrepogen import prepare, settings, logger, utils, PARDIR
+from pyrepogen import prepare, settings, utils, PARDIR
 
 
 TESTS_SETUPS_PATH = Path(inspect.getframeinfo(inspect.currentframe()).filename).parent / 'tests_setups/prepare_test'
 SKIP_ALL_MARKED = False
-
-_logger = logger.create_logger()
 
 
 _DEFAULT_CONFIG = {

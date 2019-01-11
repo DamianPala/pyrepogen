@@ -7,12 +7,12 @@ import inspect
 from pathlib import Path
 
 from . import settings
+from . import logger
 
 
 __version__ = '{{repoassist_version}}'
-
+_logger = logger.create_logger()
 PARDIR = Path(inspect.getframeinfo(inspect.currentframe()).filename).parent
-PACKAGENAME = (Path(inspect.getfile(inspect.currentframe())) / '..').resolve().name
 
 
 if sys.version_info < settings.MIN_PYTHON:

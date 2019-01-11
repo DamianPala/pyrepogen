@@ -4,7 +4,6 @@
 
 import os
 import re
-import logging
 import semver
 import datetime
 from pathlib import Path
@@ -19,8 +18,10 @@ from . import exceptions
 from . import pygittools
 from . import wizard
 from . import prepare
+from . import logger
 
-_logger = logging.getLogger(__name__)
+
+_logger = logger.get_logger(__name__)
 
 _VERSION_REGEX = r"__version__ *= *['|\"]\S+"
 

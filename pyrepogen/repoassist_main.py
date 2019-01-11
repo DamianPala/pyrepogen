@@ -13,10 +13,7 @@ from . import exceptions
 from . import cloud
 from . import formatter
 from . import clean
-from . import PACKAGENAME
-
-
-_logger = logger.create_logger(PACKAGENAME)
+from . import _logger
 
 
 def main():

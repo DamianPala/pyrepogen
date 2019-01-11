@@ -3,16 +3,16 @@
 
 
 import autopep8
-import logging
 import webbrowser
 from pathlib import Path
 
 from . import exceptions
 from . import utils
 from . import settings
+from . import logger
 
 
-_logger = logging.getLogger(__name__)
+_logger = logger.get_logger(__name__)
 
 
 def format_file(path, with_meld=True, cwd='.'):

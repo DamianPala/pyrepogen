@@ -12,10 +12,8 @@ from . import exceptions
 from . import utils
 from . import settings
 from . import prepare
-from . import (__version__, PACKAGENAME)
-
-
-_logger = logger.create_logger(PACKAGENAME)
+from . import (__version__)
+from . import _logger
 
 
 def main():

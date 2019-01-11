@@ -6,12 +6,13 @@ import stat
 import shutil
 from pathlib import Path
 
-from pyrepogen import colreqs, settings, logger
+from pyrepogen import logger
+_logger = logger.create_logger(name=None)
+from pyrepogen import colreqs, settings
 
 
 TESTS_SETUPS_PATH = Path(inspect.getframeinfo(inspect.currentframe()).filename).parent / 'tests_setups/colreqs_test'
 
-_logger = logger.create_logger()
 
 
 def _error_remove_readonly(_action, name, _exc):
@@ -120,9 +121,7 @@ def test_write_requirements_dev_SHOULD_not_overwriting_reqs_if_exists(caplog):
     ret_path = colreqs.write_requirements_dev(cwd)
     
     shutil.rmtree(Path(cwd), ignore_errors=False, onerror=_error_remove_readonly)
-     
+    
     assert "requirements-dev.txt file already exists, not overwritten" in caplog.text
     assert ret_path == reqs_path
-
-
     

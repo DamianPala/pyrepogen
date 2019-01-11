@@ -3,7 +3,6 @@
 
 
 import shutil
-import logging
 import jinja2
 from pathlib import Path
 
@@ -12,9 +11,10 @@ from . import utils
 from . import PARDIR
 from . import exceptions
 from . import pygittools
+from . import logger
 
 
-_logger = logging.getLogger(__name__)
+_logger = logger.get_logger(__name__)
 
 
 def generate_repo(config, cwd='.', options=None):
