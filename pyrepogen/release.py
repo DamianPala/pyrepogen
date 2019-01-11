@@ -71,28 +71,11 @@ def make_release(action=ReleaseAction.REGENERATE, prompt=True, push=True, releas
         if action == ReleaseAction.MAKE_RELEASE:
             new_release_tag = _prompt_release_tag(cwd)
             new_release_msg = _prompt_release_msg()
-        elif action == ReleaseAction.REGENERATE:
-            ret = pygittools.get_latest_tag(cwd)
-            if ret['returncode'] != 0:
-                raise exceptions.ReleaseMetadataError("Retrieving release tag error: {}"
-                                                      "Repository must be tagged before regenerate.".format(
-                                                          ret['msg']), _logger)
-            else:
-                release_tag = ret['msg']
     else:
         if action == ReleaseAction.MAKE_RELEASE:
             new_release_tag = release_data.tag
             new_release_msg = release_data.msg
-            release_tag = new_release_tag
-        elif action == ReleaseAction.REGENERATE:
-            ret = pygittools.get_latest_tag(cwd)
-            if ret['returncode'] != 0:
-                raise exceptions.ReleaseMetadataError("Retrieving release tag error: {}".format(ret['msg']), _logger)
-            else:
-                release_tag = ret['msg']
-        else:
-            raise exceptions.ValueError("Unknown value: {}".format(action), _logger)
-              
+            
     if action == ReleaseAction.MAKE_RELEASE:
         files_to_add = []
         files_to_add.append(_update_project_version(config, new_release_tag, cwd))
@@ -104,9 +87,17 @@ def make_release(action=ReleaseAction.REGENERATE, prompt=True, push=True, releas
                                                                    files_to_add=files_to_add, 
                                                                    push=push, 
                                                                    cwd=cwd))
-        
         release_tag = new_release_tag
-            
+        
+    elif action == ReleaseAction.REGENERATE:
+        ret = pygittools.get_latest_tag(cwd)
+        if ret['returncode'] != 0:
+            raise exceptions.ReleaseMetadataError("Retrieving release tag error: {}"
+                                                  "Repository must be tagged before regenerate.".format(
+                                                      ret['msg']), _logger)
+        else:
+            release_tag = ret['msg']
+
     if config.project_type == settings.ProjectType.MODULE.value:
         _setup_module_as_package(config, cwd)
         
@@ -177,13 +168,13 @@ def _check_if_changes_to_commit(cwd):
     
     
 def _check_repo_tree(cwd):
-    if not pygittools.is_any_commit(cwd):
-        raise exceptions.NoCommitFoundError("There are no commits in repository. "
-                                            "Please commit before release.", _logger)
-    
     if not pygittools.is_work_tree(cwd):
         raise exceptions.WorkTreeNotFoundError("Git Work Tree not found! Please check "
                                                "if the git repository is initialized.", _logger)
+
+    if not pygittools.is_any_commit(cwd):
+        raise exceptions.NoCommitFoundError("There are no commits in repository. "
+                                            "Please commit before release.", _logger)
     
     if not utils.get_git_repo_tree(cwd):
         raise exceptions.EmptyRepositoryError("No files in repo tree!", _logger)
@@ -330,9 +321,12 @@ def _commit_and_push_release_update(new_release_tag, new_release_msg, files_to_a
 
 
 def _clean_failed_release(new_release_tag, cwd):
+    _logger.warning("Revert release process.")
+    
     ret = pygittools.revert(1, cwd)
     if ret['returncode'] != 0:
-        raise exceptions.CriticalError("Critical Error occured when reverting an automatic last commit. Please check git log, repo tree and cleanup the mess.", _logger)
+        raise exceptions.CriticalError("Critical Error occured when reverting an automatic last commit. "
+                                       "Please check git log, repo tree and cleanup the mess.", _logger)
     
     latest_tag_remove_error = False
     ret = pygittools.list_tags(cwd)
@@ -346,7 +340,8 @@ def _clean_failed_release(new_release_tag, cwd):
                 latest_tag_remove_error = True
         
     if latest_tag_remove_error:
-        raise exceptions.CriticalError("Critical Error occured when deleting an automatic latest tag. Please check git log, repo tree and cleanup the mess.", _logger)
+        raise exceptions.CriticalError("Critical Error occured when deleting an automatic latest tag. "
+                                       "Please check git log, repo tree and cleanup the mess.", _logger)
 
 
 def _prompt_release_tag(cwd=''):

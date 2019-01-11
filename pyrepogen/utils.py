@@ -198,7 +198,3 @@ def get_latest_file(path):
                 return max(files_list, key=lambda x: x.mtime).path
             
     return None
-    
-    
-    
-

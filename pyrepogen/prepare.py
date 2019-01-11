@@ -22,7 +22,6 @@ def generate_repo(config, cwd='.', options=None):
 
     paths = []
     
-    utils.validate_repo_config(config)
     
     Path(cwd).mkdir(parents=True, exist_ok=True)
     paths.extend(_generate_repo_dirs(config, cwd))
@@ -41,8 +40,6 @@ def generate_repo(config, cwd='.', options=None):
     paths.extend(_generate_repoasist(config, cwd, options))
     
     if 'is_git' in config and config['is_git']:
-        from pprint import pprint
-        pprint(config)
         _init_git_repo(config, cwd)
 
     _logger.info("Repository files generated.")
