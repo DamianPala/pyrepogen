@@ -5,26 +5,26 @@
 import logging
 from pathlib import Path
 
-PACKAGENAME = (Path(__file__) / '..').resolve().name
-root_name = ''
 
+PACKAGENAME = (Path(__file__) / '..').resolve().name
 
 TIP_LVL_NUM = 21
 WIZARD_LVL_NUM = 22
 CHECKPOINT_LVL_NUM = 23
 
 _logger_level = logging.DEBUG
+root_name = ''
 
 
 def create_logger(name=PACKAGENAME):
     global root_name
     root_name = name
     
-    logging.addLevelName(TIP_LVL_NUM, "TIP")
+    logging.addLevelName(TIP_LVL_NUM, 'TIP')
     logging.Logger.tip = tip
-    logging.addLevelName(WIZARD_LVL_NUM, "WIZARD")
+    logging.addLevelName(WIZARD_LVL_NUM, 'WIZARD')
     logging.Logger.wizard = wizard
-    logging.addLevelName(CHECKPOINT_LVL_NUM, "CHECKPOINT")
+    logging.addLevelName(CHECKPOINT_LVL_NUM, 'CHECKPOINT')
     logging.Logger.checkpoint = checkpoint
     
     logger = logging.getLogger(name)
@@ -45,7 +45,7 @@ def get_logger(name):
     
     parents = name.split('.')
     if root_name:
-        return logging.getLogger('{}.{}'.format(PACKAGENAME, parents[-1]))
+        return logging.getLogger(f'{PACKAGENAME}.{parents[-1]}')
     else:
         return logging.getLogger(parents[-1])
     
@@ -71,4 +71,5 @@ def wizard(self, message, *args, **kws):
         
 def checkpoint(self, message, *args, **kws):
     if self.isEnabledFor(CHECKPOINT_LVL_NUM):
-        self._log(CHECKPOINT_LVL_NUM, message, args, **kws) 
+        self._log(CHECKPOINT_LVL_NUM, message, args, **kws)
+        

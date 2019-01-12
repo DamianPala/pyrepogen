@@ -6,7 +6,7 @@ from enum import EnumMeta
 
 
 def get_data(name, msg):
-    return input("{}: [WIZARD]: {}: ".format(name, msg))
+    return input(f'{name}: [WIZARD]: {msg}: ')
     
     
 def choose_one(name, msg, choices):
@@ -15,7 +15,7 @@ def choose_one(name, msg, choices):
     
     no_choice = True
     while no_choice:
-        choice = input("{}: [CHECKPOINT]: {} ({}): ".format(name, msg, get_choices_string(choices)))
+        choice = input(f'{name}: [CHECKPOINT]: {msg} ({get_choices_string(choices)}): ')
         for item in choices:
             if item == choice:
                 no_choice = False
@@ -35,8 +35,8 @@ def is_checkpoint_ok(name, msg, choices=['y', 'n'], valid_value='y'):
 
 
 def get_choices_string(choices):
-    choices_string = ""
+    choices_string = ''
     for choice in choices:
-        choices_string += "{}/".format(choice)
+        choices_string += f'{choice}/'
         
     return choices_string[:-1]
