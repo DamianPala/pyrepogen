@@ -39,7 +39,7 @@ def format_file(path, with_meld=True, cwd='.'):
     
     _logger.info('Lint formatted file and show report')
     try:
-        utils.execute_cmd([settings.Tools.LINTER, str(path)], str(cwd))
+        utils.execute_cmd([settings.Tools.LINTER, str(path), f'--config={setup_file_path}'], cwd)
         _logger.info('Linter report is empty - file ok')
     except exceptions.ExecuteCmdError as e:
         print(e)
