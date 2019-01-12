@@ -1,1 +1,8 @@
+autopep8
+dataclasses
+jinja2
+pbr
+pipreqs
+pytest
+semver
 setuptools

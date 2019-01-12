@@ -128,6 +128,7 @@ class Config():
     keywords : list = None
     is_git : bool = False
     git_origin : str = ''
+    pipreqs_ignore : list = None
     
     def __post_init__(self):
         setattr(self, REPOASSIST_VERSION, __version__)

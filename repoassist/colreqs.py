@@ -18,14 +18,13 @@ def collect_reqs_min(cwd='.'):
     return _transform_to_min(reqs_equal)
 
 
-def collect_reqs_latest(cwd='.'):
-    reqs_equal = collect_reqs_specific(cwd)
+def collect_reqs_latest(config, cwd='.'):
+    reqs_equal = collect_reqs_specific(config, cwd)
     return _transform_to_latest(reqs_equal)
 
 
-def collect_reqs_specific(cwd='.'):
-    ignore_dirs = [str(Path(cwd).resolve() / settings.DirName.REPOASSIST)]
-    raw_reqs = pipreqs.get_all_imports(str(cwd), extra_ignore_dirs=ignore_dirs)
+def collect_reqs_specific(config, cwd='.'):
+    raw_reqs = pipreqs.get_all_imports(str(cwd), extra_ignore_dirs=config.pipreqs_ignore)
     reqs = [item for item in raw_reqs if 'INFO' not in item]
             
     return reqs
@@ -53,7 +52,8 @@ def write_requirements_dev(cwd='.'):
     if file_path.exists():
         _logger.warning(f'{settings.FileName.REQUIREMENTS_DEV} file already exists, not overwritten.')
     else:
-        prepare.write_file_from_template(Path(settings.DirName.TEMPLATES) / file_path.name, file_path, None, cwd, verbose=False)
+        prepare.write_file_from_template(Path(settings.DirName.TEMPLATES) / file_path.name, 
+                                         file_path, None, cwd, verbose=False)
         _logger.info(f'{file_path.name} file prepared.')
     
     return file_path

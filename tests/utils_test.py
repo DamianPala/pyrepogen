@@ -85,6 +85,7 @@ def test_get_repo_config_from_setup_cfg_SHOULD_read_config_properly():
         maintainer_email='mike@mail.com',
         keywords=['sample_project'],
         license=settings.LICENSE,
+        pipreqs_ignore=['dir1', 'dir2'],
     )
 
     config = utils.get_repo_config_from_setup_cfg(Path(cwd) / settings.FileName.SETUP_CFG)

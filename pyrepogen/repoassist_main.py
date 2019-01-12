@@ -13,6 +13,8 @@ from . import exceptions
 from . import cloud
 from . import formatter
 from . import clean
+from . import utils
+from . import settings
 from . import _logger
 
 
@@ -43,7 +45,8 @@ def main():
         command = args.command
         try:
             if command == 'update_reqs':
-                reqs = colreqs.collect_reqs_latest(cwd)
+                config = utils.get_repo_config_from_setup_cfg(Path(cwd) / settings.FileName.SETUP_CFG)
+                reqs = colreqs.collect_reqs_latest(config, cwd)
                 colreqs.write_requirements(reqs, cwd)
                 colreqs.write_requirements_dev(cwd)
             elif command == 'release':

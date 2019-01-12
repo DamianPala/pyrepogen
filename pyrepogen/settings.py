@@ -128,6 +128,7 @@ class Config():
     keywords : list = None
     is_git : bool = False
     git_origin : str = ''
+    pipreqs_ignore : list = None
     
     def __post_init__(self):
         setattr(self, REPOASSIST_VERSION, __version__)
@@ -149,7 +150,7 @@ class Config():
 MODULE_REPO_FILES_TO_GEN = [
     {'src': Path('') / FileName.README, 'dst': Path('.') / FileName.README},
     {'src': Path('') / FileName.TODO, 'dst': Path('.') / FileName.TODO},
-    {'src': Path('') / FileName.CONFTEST, 'dst': Path('.') / FileName.CONFTEST},
+    {'src': Path(DirName.TEMPLATES) / FileName.CONFTEST, 'dst': Path('.') / FileName.CONFTEST},
     {'src': Path(TEMPLATES_MODULE_PATH) / FileName.GITIGNORE, 'dst': Path('.') / FileName.GITIGNORE},
     {'src': Path(TEMPLATES_MODULE_PATH) / FileName.TOX, 'dst': Path('.') / FileName.TOX},
     {'src': Path(TEMPLATES_MODULE_PATH) / FileName.MAKEFILE, 'dst': Path('.') / FileName.MAKEFILE},
@@ -167,7 +168,7 @@ MODULE_REPO_FILES_TO_GEN = [
 PACKAGE_REPO_FILES_TO_GEN = [
     {'src': Path('') / FileName.README, 'dst': Path('.') / FileName.README},
     {'src': Path('') / FileName.TODO, 'dst': Path('.') / FileName.TODO},
-    {'src': Path('') / FileName.CONFTEST, 'dst': Path('.') / FileName.CONFTEST},
+    {'src': Path(DirName.TEMPLATES) / FileName.CONFTEST, 'dst': Path('.') / FileName.CONFTEST},
     {'src': Path(TEMPLATES_PACKAGE_PATH) / FileName.GITIGNORE, 'dst': Path('.') / FileName.GITIGNORE},
     {'src': Path(TEMPLATES_PACKAGE_PATH) / FileName.TOX, 'dst': Path('.') / FileName.TOX},
     {'src': Path(TEMPLATES_PACKAGE_PATH) / FileName.PYINIT, 'dst': Path('.') / PROJECT_NAME_PATH_PLACEHOLDER / FileName.PYINIT},

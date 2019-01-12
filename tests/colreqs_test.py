@@ -13,6 +13,16 @@ from pyrepogen import colreqs, settings
 
 TESTS_SETUPS_PATH = Path(inspect.getframeinfo(inspect.currentframe()).filename).parent / 'tests_setups/colreqs_test'
 
+_DEFAULT_CONFIG = {
+    'project_type': settings.ProjectType.MODULE.value,
+    'repo_name': 'sample-repo',
+    'project_name': 'sample_project',
+    'author': 'Damian', 
+    'author_email': 'mail@mail.com',
+    'short_description': 'This is a sample project',
+    'changelog_type': settings.ChangelogType.GENERATED.value,
+    'pipreqs_ignore': [settings.DirName.REPOASSIST]
+}
 
 
 def _error_remove_readonly(_action, name, _exc):
@@ -60,7 +70,8 @@ def test_collect_reqs_latest_SHOULD_collect_reqs_properly():
     cwd = TESTS_SETUPS_PATH / 'test_collect_reqs_latest_SHOULD_collect_reqs_properly'
     Path(cwd).mkdir(parents=True, exist_ok=True)
     
-    reqs = colreqs.collect_reqs_latest(cwd)
+    config = settings.Config(**_DEFAULT_CONFIG)
+    reqs = colreqs.collect_reqs_latest(config, cwd)
     print(reqs)
     
     assert reqs == ['pytest']
@@ -70,7 +81,8 @@ def test_collect_reqs_latest_SHOULD_exclude_repoassist_reqs_properly():
     cwd = TESTS_SETUPS_PATH / 'test_collect_reqs_latest_SHOULD_exclude_repoassist_reqs_properly'
     Path(cwd).mkdir(parents=True, exist_ok=True)
     
-    reqs = colreqs.collect_reqs_latest(cwd)
+    config = settings.Config(**_DEFAULT_CONFIG)
+    reqs = colreqs.collect_reqs_latest(config, cwd)
     print(reqs)
     
     assert reqs == ['pytest']
