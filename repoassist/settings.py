@@ -48,6 +48,7 @@ REPOASSIST_VERSION = f'{DirName.REPOASSIST}_version'
 AUTOMATIC_RELEASE_COMMIT_MSG = 'Automatic update of release data files.'
 LICENSE = 'MIT'
 RELEASE_PACKAGE_SUFFIX = '_release'
+JINJA2_TEMPLATE_EXT = '.j2'
 
 ENTRY_POINT_PLACEHOLDER = '<project_name>'
 MODULE_ENTRY_POINT = f'{ENTRY_POINT_PLACEHOLDER} = {ENTRY_POINT_PLACEHOLDER}:main'
@@ -150,7 +151,7 @@ class Config():
 MODULE_REPO_FILES_TO_GEN = [
     {'src': Path('') / FileName.README, 'dst': Path('.') / FileName.README},
     {'src': Path('') / FileName.TODO, 'dst': Path('.') / FileName.TODO},
-    {'src': Path('') / FileName.CONFTEST, 'dst': Path('.') / FileName.CONFTEST},
+    {'src': Path(DirName.TEMPLATES) / FileName.CONFTEST, 'dst': Path('.') / FileName.CONFTEST},
     {'src': Path(TEMPLATES_MODULE_PATH) / FileName.GITIGNORE, 'dst': Path('.') / FileName.GITIGNORE},
     {'src': Path(TEMPLATES_MODULE_PATH) / FileName.TOX, 'dst': Path('.') / FileName.TOX},
     {'src': Path(TEMPLATES_MODULE_PATH) / FileName.MAKEFILE, 'dst': Path('.') / FileName.MAKEFILE},
@@ -168,7 +169,7 @@ MODULE_REPO_FILES_TO_GEN = [
 PACKAGE_REPO_FILES_TO_GEN = [
     {'src': Path('') / FileName.README, 'dst': Path('.') / FileName.README},
     {'src': Path('') / FileName.TODO, 'dst': Path('.') / FileName.TODO},
-    {'src': Path('') / FileName.CONFTEST, 'dst': Path('.') / FileName.CONFTEST},
+    {'src': Path(DirName.TEMPLATES) / FileName.CONFTEST, 'dst': Path('.') / FileName.CONFTEST},
     {'src': Path(TEMPLATES_PACKAGE_PATH) / FileName.GITIGNORE, 'dst': Path('.') / FileName.GITIGNORE},
     {'src': Path(TEMPLATES_PACKAGE_PATH) / FileName.TOX, 'dst': Path('.') / FileName.TOX},
     {'src': Path(TEMPLATES_PACKAGE_PATH) / FileName.PYINIT, 'dst': Path('.') / PROJECT_NAME_PATH_PLACEHOLDER / FileName.PYINIT},

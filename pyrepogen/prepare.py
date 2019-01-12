@@ -159,6 +159,7 @@ def _copy_file(filename, dst, cwd, options=None, verbose=True):
 
 
 def _copy_template_file(filename, dst, cwd, options=None, verbose=True):
+    filename = f'{filename}{settings.JINJA2_TEMPLATE_EXT}'
     return _copy_file_from(PARDIR / settings.DirName.TEMPLATES / filename, dst, cwd, options, verbose)
 
 
@@ -178,6 +179,7 @@ def _copy_file_from(src, dst, cwd, options=None, verbose=True):
 
 
 def write_file_from_template(src, dst, keywords, cwd, options=None, verbose=True):
+    src = src.parent / f'{src.name}{settings.JINJA2_TEMPLATE_EXT}'
     if (options and options.force) or (not Path(dst).exists()):
         templateLoader = jinja2.FileSystemLoader(searchpath=str(Path(PARDIR) / src.parent))
         templateEnv = jinja2.Environment(loader=templateLoader,

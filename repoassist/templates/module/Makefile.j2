@@ -1,0 +1,33 @@
+{% extends "Makefile_base.j2" %}
+{% block cloud_targets %}
+	{% if options.cloud %}
+upload:
+	@echo "Run Package Uploader!"
+	@$(PYTHON) -m repoassist upload
+	
+list_cloud:
+	@echo "List buckets on the cloud server!"
+	@$(PYTHON) -m repoassist list_cloud
+	
+download_package:
+	@echo "Run Package Downloader!"
+	@$(PYTHON) -m repoassist download_package
+	
+	{% endif %}
+{% endblock %}
+
+{% block cloud_targets_help %}
+	{% if options.cloud %}
+	@echo "make upload"
+	@echo "	Upload the release and client packages to the cloud server."
+	
+	@echo "make list_cloud"
+	@echo "	List buckets on the cloud server."
+	
+	@echo "make download_package"
+	@echo "	Download specified package from the cloud server."
+	{% endif %}
+{% endblock %}
+{% block cloud_targets_phony %}
+	{% if options.cloud %}upload list_cloud download_package{% endif %}
+{% endblock %}
