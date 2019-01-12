@@ -2,10 +2,14 @@
 # -*- coding: utf-8 -*-
 
 
+import datetime
 from enum import Enum
 from pathlib import Path
+import dataclasses
 
-MIN_PYTHON = (3, 7)
+from . import (__version__, MIN_PYTHON)
+
+
 SUGGESTED_INITIAL_RELEASE_TAG = '0.1.0'
 
 
@@ -26,7 +30,7 @@ class DirName():
     DISTRIBUTION = 'dist'
     REPOASSIST = 'repoassist'
     GIT = '.git'
-    RELEASE = "release"
+    RELEASE = 'release'
     HTMLCOV = 'htmlcov'
 
 
@@ -40,14 +44,14 @@ TEMPLATES_PACKAGE_PATH = 'templates/package'
 TEMPLATES_PACKAGE_TESTS_PATH = 'templates/package/tests'
 TEMPLATES_MODULE_PATH = 'templates/module'
 
-REPOASSIST_VERSION = '{}_version'.format(DirName.REPOASSIST)
-AUTOMATIC_RELEASE_COMMIT_MSG = "Automatic update of release data files."
+REPOASSIST_VERSION = f'{DirName.REPOASSIST}_version'
+AUTOMATIC_RELEASE_COMMIT_MSG = 'Automatic update of release data files.'
 LICENSE = 'MIT'
-RELEASE_PACKAGE_SUFFIX = "_release"
+RELEASE_PACKAGE_SUFFIX = '_release'
 
 ENTRY_POINT_PLACEHOLDER = '<project_name>'
-MODULE_ENTRY_POINT = "{} = {}:main".format(ENTRY_POINT_PLACEHOLDER, ENTRY_POINT_PLACEHOLDER)
-PACKAGE_ENTRY_POINT = "{} = {}.cli:main".format(ENTRY_POINT_PLACEHOLDER, ENTRY_POINT_PLACEHOLDER)
+MODULE_ENTRY_POINT = f'{ENTRY_POINT_PLACEHOLDER} = {ENTRY_POINT_PLACEHOLDER}:main'
+PACKAGE_ENTRY_POINT = f'{ENTRY_POINT_PLACEHOLDER} = {ENTRY_POINT_PLACEHOLDER}.cli:main'
 
 
 class FileName():
@@ -86,7 +90,7 @@ class FileName():
     FORMATTER = 'formatter.py'
     PREPARE = 'prepare.py'
     CLEAN = 'clean.py'
-    CLOUD_CREDENTIALS = "cloud_credentials.txt"
+    CLOUD_CREDENTIALS = 'cloud_credentials.txt'
     REQUIREMENTS = 'requirements.txt'
     REQUIREMENTS_DEV = 'requirements-dev.txt'
 
@@ -97,6 +101,50 @@ class Tools():
     MERGE_TOOL = 'Meld Merge'
     PYTHON = 'python'
 
+
+@dataclasses.dataclass
+class Config():
+    project_type : str
+    repo_name : str
+    project_name : str
+    author : str
+    author_email : str
+    short_description : str
+    changelog_type : str
+    is_cloud : bool = None
+    is_sample_layout : bool = None
+    maintainer : str = ''
+    maintainer_email : str = ''
+    home_page : str = ''
+    year : str = str(datetime.datetime.now().year)
+    min_python : str = f'{MIN_PYTHON[0]}.{MIN_PYTHON[1]}'
+    tests_path : str = TESTS_PATH
+    description_file : str = FileName.README
+    tests_dirname : str = DirName.TESTS
+    repoassist_name : str = DirName.REPOASSIST
+    license : str = LICENSE
+    generator_section : str = GENERATOR_CONFIG_SECTION_NAME
+    metadata_section : str = METADATA_CONFIG_SECTION_NAME
+    keywords : list = None
+    is_git : bool = False
+    git_origin : str = ''
+    
+    def __post_init__(self):
+        setattr(self, REPOASSIST_VERSION, __version__)
+    
+    @staticmethod
+    def get_fields():
+        return [field.name for field in dataclasses.fields(Config)]
+    
+    @staticmethod
+    def get_mandatory_fields():
+        return [field.name for field in dataclasses.fields(Config) if field.default == dataclasses.MISSING]
+    
+    @staticmethod
+    def get_default_fields():
+        return dir(Config)
+    
+    
 
 MODULE_REPO_FILES_TO_GEN = [
     {'src': Path('') / FileName.README, 'dst': Path('.') / FileName.README},
@@ -162,21 +210,7 @@ REPOASSIST_FILES = [
     FileName.CLEAN,
 ]
 
-REPO_CONFIG_MANDATORY_FIELDS = [
-    'project_type',
-    'repo_name',
-    'project_name',
-    'author',
-    'author_email',
-    'short_description',
-    'changelog_type',
-    'year',
-    REPOASSIST_VERSION,
-    'min_python',
-    'tests_path'
-]
-
-EXTENDED_REPO_CONFIG_MANDATORY_FIELDS = REPO_CONFIG_MANDATORY_FIELDS + [
+GEN_REPO_CONFIG_MANDATORY_FIELDS = [
     'is_cloud',
     'is_sample_layout'
 ]

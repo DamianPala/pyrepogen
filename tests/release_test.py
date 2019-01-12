@@ -10,7 +10,6 @@ import time
 from pathlib import Path
 from pprint import pprint
 from pbr import git
-from types import SimpleNamespace
 
 from pyrepogen import (prepare, settings, logger, release, pygittools, exceptions, utils)
 
@@ -26,12 +25,6 @@ _DEFAULT_CONFIG = {
     'author_email': 'mail@mail.com',
     'short_description': 'This is a sample project',
     'changelog_type': settings.ChangelogType.GENERATED.value,
-    'year': '2018',
-    'repoassist_version': '0.1.0',
-    'min_python': '3.7',
-    'tests_path': settings.TESTS_PATH,
-    'is_cloud': True,
-    'is_sample_layout': True
 }
 
 _logger = logger.create_logger()
@@ -90,8 +83,8 @@ def test_make_release_SHOULD_release_module_properly():
         shutil.rmtree(Path(cwd), ignore_errors=False, onerror=_error_remove_readonly)
     Path(cwd).mkdir(parents=True, exist_ok=True)
     
-    config = dict(_DEFAULT_CONFIG)
-    config['project_type'] = settings.ProjectType.MODULE.value
+    config = settings.Config(**_DEFAULT_CONFIG)
+    config.project_type = settings.ProjectType.MODULE.value
     
     options = Args()
     options.force = True
@@ -110,14 +103,14 @@ def test_make_release_SHOULD_release_module_properly():
         settings.FileName.AUTHORS,
         settings.FileName.CHANGELOG,
         'PKG-INFO',
-        '{}.egg-info'.format(config['project_name']),
-        '{}.egg-info/PKG-INFO'.format(config['project_name']),
-        '{}.egg-info/SOURCES.txt'.format(config['project_name']),
-        '{}.egg-info/dependency_links.txt'.format(config['project_name']),
-        '{}.egg-info/not-zip-safe'.format(config['project_name']),
-        '{}.egg-info/pbr.json'.format(config['project_name']),
-        '{}.egg-info/top_level.txt'.format(config['project_name']),
-        '{}.egg-info/entry_points.txt'.format(config['project_name']),
+        '{}.egg-info'.format(config.project_name),
+        '{}.egg-info/PKG-INFO'.format(config.project_name),
+        '{}.egg-info/SOURCES.txt'.format(config.project_name),
+        '{}.egg-info/dependency_links.txt'.format(config.project_name),
+        '{}.egg-info/not-zip-safe'.format(config.project_name),
+        '{}.egg-info/pbr.json'.format(config.project_name),
+        '{}.egg-info/top_level.txt'.format(config.project_name),
+        '{}.egg-info/entry_points.txt'.format(config.project_name),
         '.'
     }
     pprint(expected_paths)
@@ -166,8 +159,8 @@ def test_make_release_SHOULD_release_package_properly():
         shutil.rmtree(Path(cwd), ignore_errors=False, onerror=_error_remove_readonly)
     Path(cwd).mkdir(parents=True, exist_ok=True)
     
-    config = dict(_DEFAULT_CONFIG)
-    config['project_type'] = settings.ProjectType.PACKAGE.value
+    config = settings.Config(**_DEFAULT_CONFIG)
+    config.project_type = settings.ProjectType.PACKAGE.value
     
     options = Args()
     options.force = True
@@ -186,16 +179,16 @@ def test_make_release_SHOULD_release_package_properly():
         settings.FileName.AUTHORS,
         settings.FileName.CHANGELOG,
         'PKG-INFO',
-        '{}'.format(config['project_name']),
-        '{}.egg-info'.format(config['project_name']),
-        '{}.egg-info/PKG-INFO'.format(config['project_name']),
-        '{}.egg-info/SOURCES.txt'.format(config['project_name']),
-        '{}.egg-info/dependency_links.txt'.format(config['project_name']),
-        '{}.egg-info/not-zip-safe'.format(config['project_name']),
-        '{}.egg-info/pbr.json'.format(config['project_name']),
-        '{}.egg-info/top_level.txt'.format(config['project_name']),
-        '{}.egg-info/requires.txt'.format(config['project_name']),
-        '{}.egg-info/entry_points.txt'.format(config['project_name']),
+        '{}'.format(config.project_name),
+        '{}.egg-info'.format(config.project_name),
+        '{}.egg-info/PKG-INFO'.format(config.project_name),
+        '{}.egg-info/SOURCES.txt'.format(config.project_name),
+        '{}.egg-info/dependency_links.txt'.format(config.project_name),
+        '{}.egg-info/not-zip-safe'.format(config.project_name),
+        '{}.egg-info/pbr.json'.format(config.project_name),
+        '{}.egg-info/top_level.txt'.format(config.project_name),
+        '{}.egg-info/requires.txt'.format(config.project_name),
+        '{}.egg-info/entry_points.txt'.format(config.project_name),
         '.'
     }
     pprint(expected_paths)
@@ -244,8 +237,8 @@ def test_make_release_SHOULD_regenerate_package_properly_on_the_same_commit():
         shutil.rmtree(Path(cwd), ignore_errors=False, onerror=_error_remove_readonly)
     Path(cwd).mkdir(parents=True, exist_ok=True)
     
-    config = dict(_DEFAULT_CONFIG)
-    config['project_type'] = settings.ProjectType.PACKAGE.value
+    config = settings.Config(**_DEFAULT_CONFIG)
+    config.project_type = settings.ProjectType.PACKAGE.value
     
     options = Args()
     options.force = True
@@ -290,8 +283,8 @@ def test_make_release_SHOULD_regenerate_package_properly_on_the_different_commit
         shutil.rmtree(Path(cwd), ignore_errors=False, onerror=_error_remove_readonly)
     Path(cwd).mkdir(parents=True, exist_ok=True)
     
-    config = dict(_DEFAULT_CONFIG)
-    config['project_type'] = settings.ProjectType.PACKAGE.value
+    config = settings.Config(**_DEFAULT_CONFIG)
+    config.project_type = settings.ProjectType.PACKAGE.value
     
     options = Args()
     options.force = True
@@ -336,8 +329,8 @@ def test_make_release_SHOULD_regenerate_package_properly_on_the_different_commit
     
     assert pygittools.get_latest_commit_hash(cwd)['msg'] in archive_name_regenerated.__str__()
     
-#     if Path(cwd).exists():
-#         shutil.rmtree(Path(cwd), ignore_errors=False, onerror=_error_remove_readonly)
+    if Path(cwd).exists():
+        shutil.rmtree(Path(cwd), ignore_errors=False, onerror=_error_remove_readonly)
 
     
 @pytest.mark.skipif(SKIP_ALL_MARKED, reason="Skipped on request")
@@ -350,7 +343,8 @@ def test_make_release_SHOULD_rise_error_when_no_commit():
     options = Args()
     options.force = True
     
-    prepare.generate_repo(_DEFAULT_CONFIG, cwd, options)
+    config = settings.Config(**_DEFAULT_CONFIG)
+    prepare.generate_repo(config, cwd, options)
     
     pygittools.init(cwd)
     
@@ -373,7 +367,8 @@ def test_make_release_SHOULD_rise_error_when_no_release_tag():
     options = Args()
     options.force = True
     
-    paths = prepare.generate_repo(_DEFAULT_CONFIG, cwd, options)
+    config = settings.Config(**_DEFAULT_CONFIG)
+    paths = prepare.generate_repo(config, cwd, options)
     pygittools.init(cwd)
     for path in paths:
         pygittools.add(path, cwd)
@@ -395,16 +390,16 @@ def test_update_version_module_SHOULD_update_version_properly():
         shutil.rmtree(Path(cwd), ignore_errors=False, onerror=_error_remove_readonly)
     Path(cwd).mkdir(parents=True, exist_ok=True)
     
-    _DEFAULT_CONFIG['project_type'] = settings.ProjectType.MODULE.value
+    config = settings.Config(**_DEFAULT_CONFIG)
+    config.project_type = settings.ProjectType.MODULE.value
     
     options = Args()
     options.force = True
     
-    prepare.generate_repo(_DEFAULT_CONFIG, cwd, options)
-    config = SimpleNamespace(**_DEFAULT_CONFIG)
+    prepare.generate_repo(config, cwd, options)
     release._update_project_version(config, '1.2.3-alpha.4', cwd)
     
-    project_name = _DEFAULT_CONFIG['project_name']
+    project_name = config.project_name
     project_module_name = utils.get_module_name_with_suffix(project_name)
     file_version_path = Path(cwd) / project_module_name
     with open(file_version_path, 'r') as file:
@@ -424,18 +419,17 @@ def test_update_version_package_SHOULD_update_version_properly():
         shutil.rmtree(Path(cwd), ignore_errors=False, onerror=_error_remove_readonly)
     Path(cwd).mkdir(parents=True, exist_ok=True)
     
-    config = dict(_DEFAULT_CONFIG)
-    config['project_type'] = settings.ProjectType.PACKAGE.value
+    config = settings.Config(**_DEFAULT_CONFIG)
+    config.project_type = settings.ProjectType.PACKAGE.value
     
     options = Args()
     options.force = True
     
     prepare.generate_repo(config, cwd, options)
     
-    config_namespace = SimpleNamespace(**config)
-    release._update_project_version(config_namespace, '1.2.3-alpha.4', cwd)
+    release._update_project_version(config, '1.2.3-alpha.4', cwd)
     
-    project_name = config['project_name']
+    project_name = config.project_name
     file_version_path = Path(cwd) / project_name / settings.FileName.PYINIT
     with open(file_version_path, 'r') as file:
         content = file.read()
@@ -454,14 +448,16 @@ def test_update_version_module_SHOULD_rise_error_when_no_project_module():
         shutil.rmtree(Path(cwd), ignore_errors=False, onerror=_error_remove_readonly)
     Path(cwd).mkdir(parents=True, exist_ok=True)
     
+    config = settings.Config(**_DEFAULT_CONFIG)
+    
     options = Args()
     options.force = True
     
-    project_name = _DEFAULT_CONFIG['project_name']
+    project_name = config.project_name
     project_module_name = utils.get_module_name_with_suffix(project_name)
     file_version_path = Path(cwd) / project_module_name
     
-    prepare.generate_repo(_DEFAULT_CONFIG, cwd, options)
+    prepare.generate_repo(config, cwd, options)
     (cwd / project_module_name).unlink()
     
     try:
@@ -480,14 +476,16 @@ def test_update_version_module_SHOULD_rise_error_when_no_version_in_module():
         shutil.rmtree(Path(cwd), ignore_errors=False, onerror=_error_remove_readonly)
     Path(cwd).mkdir(parents=True, exist_ok=True)
     
+    config = settings.Config(**_DEFAULT_CONFIG)
+    
     options = Args()
     options.force = True
     
-    project_name = _DEFAULT_CONFIG['project_name']
+    project_name = config.project_name
     project_module_name = utils.get_module_name_with_suffix(project_name)
     file_version_path = Path(cwd) / project_module_name
     
-    prepare.generate_repo(_DEFAULT_CONFIG, cwd, options)
+    prepare.generate_repo(config, cwd, options)
     with open(cwd / project_module_name, 'w'):
         pass
     
@@ -506,10 +504,12 @@ def test_update_changelog():
         shutil.rmtree(Path(cwd), ignore_errors=False, onerror=_error_remove_readonly)
     Path(cwd).mkdir(parents=True, exist_ok=True)
     
+    config = settings.Config(**_DEFAULT_CONFIG)
+    
     options = Args()
     options.force = True
     
-    paths = prepare.generate_repo(_DEFAULT_CONFIG, cwd, options)
+    paths = prepare.generate_repo(config, cwd, options)
     
     pygittools.init(cwd)
     for path in paths:
@@ -531,7 +531,7 @@ def test_update_changelog():
     tagger_date = datetime.date.today().strftime('%Y-%m-%d')
     expected_changelog = '# sample_project - Change Log\nThis is a sample project\n\n### Version: 0.2.0 | Released: {} \n- Next Release\n- another line\n\n- last line.\n\n### Version: 0.1.0 | Released: {} \nFirst Release'.format(tagger_date, tagger_date)
     
-    config = SimpleNamespace(**_DEFAULT_CONFIG)
+    config = settings.Config(**_DEFAULT_CONFIG)
     release._update_generated_changelog(config, new_release_tag, new_release_msg, cwd)
     
     with open(Path(cwd) / settings.FileName.CHANGELOG, 'r') as file:
@@ -550,10 +550,12 @@ def test_clean_filed_release():
         shutil.rmtree(Path(cwd), ignore_errors=False, onerror=_error_remove_readonly)
     Path(cwd).mkdir(parents=True, exist_ok=True)
     
+    config = settings.Config(**_DEFAULT_CONFIG)
+    
     options = Args()
     options.force = True
     
-    paths = prepare.generate_repo(_DEFAULT_CONFIG, cwd, options)
+    paths = prepare.generate_repo(config, cwd, options)
     
     pygittools.init(cwd)
     for path in paths:
@@ -580,7 +582,7 @@ def test_clean_filed_release():
     new_release_tag = '0.3.0'
     new_release_msg = "next release"
     
-    config = SimpleNamespace(**_DEFAULT_CONFIG)
+    config = settings.Config(**_DEFAULT_CONFIG)
     files_to_add.append(release._update_changelog(config, new_release_tag, new_release_msg, cwd))
     files_to_add.append(release._update_authors(cwd))
     

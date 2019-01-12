@@ -57,8 +57,7 @@ def make_release(action=ReleaseAction.REGENERATE, prompt=True, push=True, releas
     _check_if_changes_to_commit(cwd)
     
     release_files_paths = []
-    config_raw = utils.get_repo_config_from_setup_cfg(Path(cwd) / settings.FileName.SETUP_CFG)
-    config = SimpleNamespace(**config_raw)
+    config = utils.get_repo_config_from_setup_cfg(Path(cwd) / settings.FileName.SETUP_CFG)
     
     if prompt:
         action = _release_checkout(config)
@@ -164,7 +163,7 @@ def _check_repo_tree(cwd):
 
 def _release_checkout(config):
     action = wizard.choose_one(__name__, 
-                               "Make Release or Regenerate a release package ""using the actual release metadata",
+                               "Make Release or Regenerate a release package using the actual release metadata",
                                choices=[ReleaseAction.MAKE_RELEASE.value, ReleaseAction.REGENERATE.value])
     action = ReleaseAction.MAKE_RELEASE if action == ReleaseAction.MAKE_RELEASE.value else ReleaseAction.REGENERATE
     
@@ -172,7 +171,7 @@ def _release_checkout(config):
         if not wizard.is_checkpoint_ok(__name__, "Are you on the relevant branch?"):
             raise exceptions.ReleaseCheckoutError("Checkout to the proper branch!", _logger)
         if not wizard.is_checkpoint_ok(__name__, "Are there any uncommited changes or files not "
-                                       "added into the repo tree? (y/n): ", valid_value='n'):
+                                       "added into the repo tree?", valid_value='n'):
             raise exceptions.ReleaseCheckoutError("Commit your changes!", _logger)
         if not wizard.is_checkpoint_ok(__name__, "Is the {} file prepared correctly?".format(settings.FileName.README)):
             raise exceptions.ReleaseCheckoutError("Complete {} file!".format(settings.FileName.README), _logger)

@@ -19,16 +19,8 @@ _DEFAULT_CONFIG = {
     'project_name': 'sample_project',
     'author': 'Damian', 
     'author_email': 'mail@mail.com',
-    'maintainer': 'Mike', 
-    'maintainer_email': 'mike@mail.com',
     'short_description': 'This is a sample project',
-    'home_page': 'page.com',
     'changelog_type': settings.ChangelogType.GENERATED.value,
-    'year': '2018',
-    'repoassist_version': '0.1.0',
-    'min_python': '3.7',
-    'is_cloud': True,
-    'is_sample_layout': True
 }
 
 
@@ -48,34 +40,32 @@ def test_generate_setup_cfg():
     cwd = TESTS_SETUPS_PATH / 'test_generate_setup_cfg'
     Path(cwd).mkdir(parents=True, exist_ok=True)
     
-    config = dict(_DEFAULT_CONFIG)
-    del config['is_cloud']
-    del config['is_sample_layout']
-    utils.add_auto_config_fields(config)
+    config = settings.Config(**_DEFAULT_CONFIG)
+    config.keywords = ['sample_project']
+    
     args = Args
     args.force = True
     args.cloud = True
     
     path = prepare.write_file_from_template(Path(PARDIR) / settings.DirName.TEMPLATES / settings.FileName.SETUP_CFG, 
-                                     Path(cwd) / settings.FileName.SETUP_CFG, config, cwd, args)
+                                     Path(cwd) / settings.FileName.SETUP_CFG, config.__dict__, cwd, args)
     
     config_from_setup = utils.get_repo_config_from_setup_cfg(path[0])
-    del config_from_setup['classifier']
-    keywords = config_from_setup['keywords']
-    del config_from_setup['keywords']
     
-    pprint(config_from_setup)
+    if Path(cwd).exists():
+        shutil.rmtree(Path(cwd), ignore_errors=False, onerror=_error_remove_readonly)
     
-    assert config == config_from_setup
-    assert keywords[0] == config['project_name']
+    assert config.__dict__ == config_from_setup.__dict__
+    assert config_from_setup.keywords[0] == config.project_name
 
 
 @pytest.mark.skipif(SKIP_ALL_MARKED, reason="Skipped on request")
 def test_generate_module_repo_dirs():
     cwd = TESTS_SETUPS_PATH / 'test_generate_module_repo_dirs'
     Path(cwd).mkdir(parents=True, exist_ok=True)
-    
-    prepare._generate_repo_dirs(_DEFAULT_CONFIG, cwd)
+
+    config = settings.Config(**_DEFAULT_CONFIG)
+    prepare._generate_repo_dirs(config, cwd)
     
     generated_dirset = set()
     for dirname in Path(cwd).iterdir():
@@ -141,9 +131,8 @@ def test_generate_package_repo_SHOULD_generate_repo_tree_properly():
         'cloud_credentials.txt',
     }
     
-    config = dict(_DEFAULT_CONFIG)
-    config['project_type'] = settings.ProjectType.PACKAGE.value
-    utils.add_auto_config_fields(config)
+    config = settings.Config(**_DEFAULT_CONFIG)
+    config.project_type = settings.ProjectType.PACKAGE.value
     
     args = Args
     args.force = False
@@ -204,9 +193,8 @@ def test_generate_module_repo_SHOULD_generate_repo_tree_properly():
         'cloud_credentials.txt',
     }
     
-    config = dict(_DEFAULT_CONFIG)
-    config['project_type'] = settings.ProjectType.MODULE.value
-    utils.add_auto_config_fields(config)
+    config = settings.Config(**_DEFAULT_CONFIG)
+    config.project_type = settings.ProjectType.MODULE.value
     
     args = Args
     args.force = False
@@ -277,9 +265,8 @@ def test_generate_module_repo_SHOULD_force_properly():
         Path(cwd) / settings.DirName.REPOASSIST / settings.DirName.TEMPLATES / settings.FileName.CHANGELOG_PREPARED,
     ]
     
-    config = dict(_DEFAULT_CONFIG)
-    config['project_type'] = settings.ProjectType.MODULE.value
-    utils.add_auto_config_fields(config)
+    config = settings.Config(**_DEFAULT_CONFIG)
+    config.project_type = settings.ProjectType.MODULE.value
     
     args = Args
     args.force = True
@@ -302,9 +289,8 @@ def test_generate_module_repo_SHOULD_generate_makefile_without_cloud_properly():
         shutil.rmtree(Path(cwd))
     Path(cwd).mkdir(parents=True, exist_ok=True)
     
-    config = dict(_DEFAULT_CONFIG)
-    config['project_type'] = settings.ProjectType.MODULE.value
-    utils.add_auto_config_fields(config)
+    config = settings.Config(**_DEFAULT_CONFIG)
+    config.project_type = settings.ProjectType.MODULE.value
     
     options = Args
     options.force = True
@@ -329,9 +315,8 @@ def test_generate_module_repo_SHOULD_not_generate_cloud_credentials_without_clou
         shutil.rmtree(Path(cwd))
     Path(cwd).mkdir(parents=True, exist_ok=True)
     
-    config = dict(_DEFAULT_CONFIG)
-    config['project_type'] = settings.ProjectType.MODULE.value
-    utils.add_auto_config_fields(config)
+    config = settings.Config(**_DEFAULT_CONFIG)
+    config.project_type = settings.ProjectType.MODULE.value
     
     options = Args
     options.force = True
@@ -353,9 +338,8 @@ def test_generate_module_repo_SHOULD_generate_makefile_with_cloud_properly():
         shutil.rmtree(Path(cwd))
     Path(cwd).mkdir(parents=True, exist_ok=True)
     
-    config = dict(_DEFAULT_CONFIG)
-    config['project_type'] = settings.ProjectType.MODULE.value
-    utils.add_auto_config_fields(config)
+    config = settings.Config(**_DEFAULT_CONFIG)
+    config.project_type = settings.ProjectType.MODULE.value
     
     options = Args
     options.force = True
@@ -372,7 +356,8 @@ def test_generate_module_repo_SHOULD_generate_makefile_with_cloud_properly():
         
     assert "make upload" in makefile_content
     
-    
+
+@pytest.mark.skipif(SKIP_ALL_MARKED, reason="Skipped on request")
 def test_generate_empty_file_SHOULD_generate_file_when_no_exists():
     cwd = TESTS_SETUPS_PATH / 'test_generate_empty_file_SHOULD_generate_file_when_no_exists'
     if Path(cwd).exists():
@@ -391,6 +376,7 @@ def test_generate_empty_file_SHOULD_generate_file_when_no_exists():
         shutil.rmtree(Path(cwd), ignore_errors=False, onerror=_error_remove_readonly)
 
 
+@pytest.mark.skipif(SKIP_ALL_MARKED, reason="Skipped on request")
 def test_generate_empty_file_SHOULD_overwrite_file_when_force():
     cwd = TESTS_SETUPS_PATH / 'test_generate_empty_file_SHOULD_overwrite_file_when_force'
     if Path(cwd).exists():

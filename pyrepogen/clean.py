@@ -5,7 +5,6 @@
 import stat
 import shutil
 from pathlib import Path
-from pprint import pprint
 
 from . import settings
 from . import exceptions
@@ -25,7 +24,7 @@ def _clean_files(cwd, files_list=None):
     for file_pattern in files_list:
         files_paths = sorted(Path(cwd).glob(file_pattern))
         for file_path in files_paths:
-            _logger.info("Remove file: {}".format(file_path.relative_to(Path(cwd).resolve())))
+            _logger.info(f'Remove file: {file_path.relative_to(Path(cwd).resolve())}')
             file_path.unlink()
             
             
@@ -37,11 +36,11 @@ def _clean_dirs(cwd, dirs_list=None):
         elif directory['flag'] == 'r':
             dirs_paths = sorted(Path(cwd).rglob(directory['name']))
         else:
-            raise exceptions.ValueError("Unknown remove flag {}".format(directory['flag']), _logger)
+            raise exceptions.ValueError(f'Unknown remove flag {directory["flag"]}', _logger)
         
         for dir_path in dirs_paths:
             if dir_path.is_dir():
-                _logger.info("Remove directory: {}".format(dir_path.relative_to(Path(cwd).resolve())))
+                _logger.info(f'Remove directory: {dir_path.relative_to(Path(cwd).resolve())}')
                 shutil.rmtree(dir_path, ignore_errors=False, onerror=_error_remove_readonly)
         
 

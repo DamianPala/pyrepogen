@@ -4,7 +4,6 @@
 
 import subprocess
 import configparser
-import datetime
 from pathlib import Path
 from collections import namedtuple
 
@@ -12,7 +11,6 @@ from . import pygittools
 from . import settings
 from . import exceptions
 from . import logger
-from . import __version__
 
 
 _logger = logger.get_logger(__name__)
@@ -25,7 +23,7 @@ def execute_cmd(args, cwd='.'):
                                  cwd=str(cwd),
                                  stdout=subprocess.PIPE,
                                  stderr=subprocess.STDOUT,
-                                 encoding="utf-8")
+                                 encoding='utf-8')
         return process.stdout
     except subprocess.CalledProcessError as e:
         raise exceptions.ExecuteCmdError(e.returncode, msg=e.output, logger=_logger)
@@ -38,7 +36,7 @@ def execute_cmd_and_split_lines_to_list(args, cwd='.'):
                                  cwd=str(cwd),
                                  stdout=subprocess.PIPE,
                                  stderr=subprocess.STDOUT,
-                                 encoding="utf-8")
+                                 encoding='utf-8')
         return process.stdout.split('\n')
     except subprocess.CalledProcessError as e:
         raise exceptions.ExecuteCmdError(e.returncode, msg=e.output, logger=_logger)
@@ -48,7 +46,34 @@ def get_git_repo_tree(cwd='.'):
     return [Path(cwd).resolve() / path for path in pygittools.list_git_repo_tree(str(cwd))['msg']]
 
 
-def read_config_file(path):
+def read_repo_config_file(path):
+    return _prepare_config(path, [settings.REPO_CONFIG_SECTION_NAME])
+
+
+def get_repo_config_from_setup_cfg(path):
+    return _prepare_config(path, [settings.METADATA_CONFIG_SECTION_NAME, settings.GENERATOR_CONFIG_SECTION_NAME])
+
+
+def _prepare_config(path, sections):
+    raw_config = _read_config_file(path)
+    config_dict = {}
+
+    for section in sections:
+        for field, value in raw_config[section].items():
+            config_dict.update(_parse_config_field(field, value))
+
+    _remove_junk_fields(config_dict)
+
+    try:
+        config = settings.Config(**config_dict)
+    except TypeError as e:
+        raise exceptions.ConfigError(f'Invalid config file structure: {str(e)}', _logger)
+    _validate_config(config)
+
+    return config
+
+
+def _read_config_file(path):
     def is_list_option(option):
         if option and '"' not in option[0]:
             return True if '\n' in option[0] else False
@@ -58,7 +83,7 @@ def read_config_file(path):
 
     config = configparser.ConfigParser()
     if not config.read(filepath, 'utf-8'):
-        raise exceptions.FileNotFoundError("{} file not found!".format(filepath.name), _logger)
+        raise exceptions.FileNotFoundError(f'{filepath.name} file not found!', _logger)
 
     for section in config.sections():
         config_dict[section] = {}
@@ -70,92 +95,57 @@ def read_config_file(path):
             else:
                 config_dict[section][option] = option_val
 
-
     return config_dict
 
 
-def read_repo_config_file(path):
-    raw_config = read_config_file(path)
-    config = {}
-    
-    for key, value in raw_config[settings.REPO_CONFIG_SECTION_NAME].items():
+def _parse_config_field(field, value):
+    if not isinstance(value, list):
         try:
-            boolean = str2bool(value)
-            config[key.replace('-', '_')] = boolean
+            new_value = str2bool(value)
         except exceptions.ValueError:
-            config[key.replace('-', '_')] = value
-            
-    add_auto_config_fields(config)
+            new_value = value
+    else:
+        new_value = value
 
-    validate_repo_config(config)
-    
-    return config
+    if field == 'name':
+        new_field = 'project_name'
+    elif field == 'summary':
+        new_field = 'short_description'
+    else:
+        new_field = field.replace('-', '_')
 
-
-def get_repo_config_from_setup_cfg(path):
-    raw_config = read_config_file(path)
-    config = {}
-    
-    for key in raw_config[settings.METADATA_CONFIG_SECTION_NAME]:
-        if key == 'name':
-            config['project_name'] = raw_config[settings.METADATA_CONFIG_SECTION_NAME][key]
-        elif key == 'summary':
-            config['short_description'] = raw_config[settings.METADATA_CONFIG_SECTION_NAME][key]
-        else:
-            config[key.replace('-', '_')] = raw_config[settings.METADATA_CONFIG_SECTION_NAME][key]
-           
-    for key, value in raw_config[settings.GENERATOR_CONFIG_SECTION_NAME].items():
-        config[key.replace('-', '_')] = value
-            
-    add_auto_config_fields(config)
-
-    validate_config(config)
-    
-    return config
+    return {new_field: new_value}
 
 
-def add_auto_config_fields(config):
-    config['year'] = str(datetime.datetime.now().year)
-    config[settings.REPOASSIST_VERSION] = __version__
-    config['min_python'] = "{}.{}".format(settings.MIN_PYTHON[0], settings.MIN_PYTHON[1])
-    config['description_file'] = settings.FileName.README
-    config['tests_dirname'] = settings.DirName.TESTS
-    config['tests_path'] = settings.TESTS_PATH
-    config['metadata_section'] = settings.METADATA_CONFIG_SECTION_NAME
-    config['generator_section'] = settings.GENERATOR_CONFIG_SECTION_NAME
-    config['license'] = settings.LICENSE
-    config['repoassist_name'] = settings.DirName.REPOASSIST
+def _remove_junk_fields(config_dict):
+    fields_to_remove = [field for field in config_dict if field not in settings.Config.get_fields()]
+
+    for field in fields_to_remove:
+        _logger.warning(f'Detected unknown field: {field}')
+        config_dict.pop(field)
 
 
-def validate_config(config):
-    _validate_metadata(config, settings.REPO_CONFIG_MANDATORY_FIELDS)
-        
-        
-def validate_repo_config(config):
-    _validate_metadata(config, settings.EXTENDED_REPO_CONFIG_MANDATORY_FIELDS)
+def _validate_config(config, extra_fields=[]):
+    for field in extra_fields:
+        if getattr(config, field) is None:
+            raise exceptions.ConfigError(f'The {field} field is empty in the config!', _logger)
 
-        
-def _validate_metadata(config, validator):
-    for field in validator:
-        if field not in config:
-            raise exceptions.ConfigError("The {} field not found in the config!".format(field), _logger)
-        else:
-            if config[field] == "":
-                raise exceptions.ConfigError("The {} field is empty in the config!".format(field), _logger)
-            else:
-                if field == 'project_type':
-                    valid_values = [item.value for item in settings.ProjectType]
-                    if config[field] not in valid_values:
-                        raise exceptions.ConfigError("The {} field has invalid value in the config!".format(field), _logger)
-                elif field == 'changelog_type':
-                    valid_values = [item.value for item in settings.ChangelogType]
-                    if config[field] not in valid_values:
-                        raise exceptions.ConfigError("The {} field has invalid value in the config!".format(field), _logger)
-                elif (field == 'is_cloud') or (field == 'is_sample_layout'):
-                    valid_values = [True, False]
-                    if config[field] not in valid_values:
-                        raise exceptions.ConfigError("The {} field has invalid value in the config!".format(field), _logger)                    
-                    
+    for field, value in config.__dict__.items():
+        if field not in config.get_default_fields() and value == '':
+            raise exceptions.ConfigError(f'The {field} field is empty in the config!', _logger)
+        if field == 'project_type':
+            valid_values = [item.value for item in settings.ProjectType]
+            if value not in valid_values:
+                raise exceptions.ConfigError(f'The {field} field has invalid value: {value} in the config!', _logger)
+        elif field == 'changelog_type':
+            valid_values = [item.value for item in settings.ChangelogType]
+            if value not in valid_values:
+                raise exceptions.ConfigError(f'The {field} field has invalid value: {value} in the config!', _logger)
+        elif extra_fields and ((field == 'is_cloud') or (field == 'is_sample_layout')):
+            valid_values = [True, False]
+            if value not in valid_values:
+                raise exceptions.ConfigError(f'The {field} field has invalid value: {value} in the config!', _logger)
+
 
 def str2bool(string):
     if string.lower() in ['yes', 'true', 't', 'y', '1']:
@@ -163,20 +153,21 @@ def str2bool(string):
     elif string.lower() in ['no', 'false', 'f', 'n', '0']:
         return False
     else:
-        raise exceptions.ValueError("No boolean", _logger)
+        raise exceptions.ValueError('No boolean', _logger)
 
 
 def get_module_name_with_suffix(module_name):
-    return "{}.py".format(module_name)
+    return f'{module_name}.py'
 
 
 def get_project_module_path(config, cwd='.'):
-    path = Path(cwd) / '{}.py'.format(config.project_name)
-    
+    path = Path(cwd) / f'{config.project_name}.py'
+
     if not path.exists():
-        raise exceptions.FileNotFoundError("File {} not found. Please check repository and a project_name field in {} file".format(
-            path.relative_to(cwd.resolve()), settings.FileName.SETUP_CFG), _logger)
-    
+        raise exceptions.FileNotFoundError(f'File {path.relative_to(cwd.resolve())} not found. '
+                                           f'Please check repository and a project_name field in '
+                                           f'{settings.FileName.SETUP_CFG} file', _logger)
+
     return path
 
 
@@ -188,13 +179,10 @@ def get_latest_file(path):
     if path:
         path = Path(path)
         if path.exists() and path.is_dir():
-            files_list = []
             FileTime = namedtuple('FileTime', ['path', 'mtime'])
-            for item in path.iterdir():
-                if item.is_file():
-                    files_list.append(FileTime(item, Path(item).stat().st_mtime))
-                    
+            files_list = [FileTime(item, Path(item).stat().st_mtime) for item in path.iterdir() if item.is_file()]
+
             if files_list:
                 return max(files_list, key=lambda x: x.mtime).path
-            
+
     return None

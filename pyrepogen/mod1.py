@@ -8,7 +8,6 @@ from dataclasses import dataclass, make_dataclass
 from pprint import pprint
 
 from pathlib import Path
-from pyrepogen import PARDIR
 from pyrepogen import settings
 from pyrepogen import logger
 import semver
@@ -92,5 +91,9 @@ if __name__ == '__main__':
     print(dc.__dict__)
     for k, v in dc.__dict__.items():
         print(k, v)
+        
+    str = ''
+    if str != None:
+        print(True)
     
     

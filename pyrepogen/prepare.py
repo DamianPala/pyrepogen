@@ -7,7 +7,6 @@ import jinja2
 from pathlib import Path
 
 from . import settings
-from . import utils
 from . import PARDIR
 from . import exceptions
 from . import pygittools
@@ -24,19 +23,19 @@ def generate_repo(config, cwd='.', options=None):
     
     Path(cwd).mkdir(parents=True, exist_ok=True)
     paths.extend(_generate_repo_dirs(config, cwd))
-    if config['project_type'] == settings.ProjectType.PACKAGE.value:
+    if config.project_type == settings.ProjectType.PACKAGE.value:
         if options.sample_layout:
-            config['entry_point'] = settings.PACKAGE_ENTRY_POINT.replace(settings.ENTRY_POINT_PLACEHOLDER, config['project_name'])
+            config.entry_point = settings.PACKAGE_ENTRY_POINT.replace(settings.ENTRY_POINT_PLACEHOLDER, config.project_name)
         paths.extend(_generate_repo_files(settings.PACKAGE_REPO_FILES_TO_GEN, config, cwd, options))
-    elif config['project_type'] == settings.ProjectType.MODULE.value:
+    elif config.project_type == settings.ProjectType.MODULE.value:
         if options.sample_layout:
-            config['entry_point'] = settings.MODULE_ENTRY_POINT.replace(settings.ENTRY_POINT_PLACEHOLDER, config['project_name'])
+            config.entry_point = settings.MODULE_ENTRY_POINT.replace(settings.ENTRY_POINT_PLACEHOLDER, config.project_name)
         paths.extend(_generate_repo_files(settings.MODULE_REPO_FILES_TO_GEN, config, cwd, options))
     else:
         raise exceptions.RuntimeError("Unknown project type.", _logger)
     paths.extend(_generate_repoasist(config, cwd, options))
     
-    if 'is_git' in config and config['is_git']:
+    if config.is_git:
         _init_git_repo(config, cwd)
 
     _logger.info("Repository files generated.")
@@ -49,8 +48,8 @@ def _init_git_repo(config, cwd):
     if ret['returncode'] != 0:
         raise exceptions.RuntimeError("Git repository initializing error: {}".format(ret['msg']), _logger)
     
-    if 'git_origin' in config:
-        ret = pygittools.add_origin(config['git_origin'], cwd)
+    if config.git_origin:
+        ret = pygittools.add_origin(config.git_origin, cwd)
         if ret['returncode'] != 0:
             raise exceptions.RuntimeError("Git repository origin set up error: {}".format(ret['msg']), _logger)
     
@@ -61,8 +60,8 @@ def _generate_repo_dirs(config, cwd):
     for dirname in settings.REPO_DIRS_TO_GEN:
         paths.extend(_generate_directory(dirname, cwd))
         
-    if config['project_type'] == settings.ProjectType.PACKAGE.value:
-        paths.extend(_generate_directory(config['project_name'], cwd))
+    if config.project_type == settings.ProjectType.PACKAGE.value:
+        paths.extend(_generate_directory(config.project_name, cwd))
         
     return paths
 
@@ -96,7 +95,7 @@ def _generate_repo_files(files_list, config, cwd, options=None):
             continue
         
         if settings.PROJECT_NAME_PATH_PLACEHOLDER in str(dst):
-            dst = Path(str(dst).replace(settings.PROJECT_NAME_PATH_PLACEHOLDER, config['project_name']))
+            dst = Path(str(dst).replace(settings.PROJECT_NAME_PATH_PLACEHOLDER, config.project_name))
             
         src_parents = [item for item in src.parents]
         if src_parents.__len__() >= 2 and (str(src_parents[-2]) == settings.DirName.TEMPLATES):
@@ -105,7 +104,7 @@ def _generate_repo_files(files_list, config, cwd, options=None):
             is_from_template = False
         
         if is_from_template:
-            paths.extend(write_file_from_template(src, dst, config, cwd, options))
+            paths.extend(write_file_from_template(src, dst, config.__dict__, cwd, options))
         else:
             paths.extend(_generate_empty_file(dst, cwd, options))
 
@@ -122,7 +121,7 @@ def _generate_repoasist(config, cwd, options=None):
                                     cwd, options))
         elif filename == settings.FileName.PYINIT:
             paths.extend(write_file_from_template(Path(settings.DirName.TEMPLATES) / settings.FileName.PYINIT,
-                                                  Path(cwd) / settings.DirName.REPOASSIST / filename, config,
+                                                  Path(cwd) / settings.DirName.REPOASSIST / filename, config.__dict__,
                                                   cwd, options))
         elif filename == settings.FileName.CHANGELOG:
             paths.extend(_copy_template_file(settings.FileName.CHANGELOG_GENERATED,
