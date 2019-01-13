@@ -15,7 +15,6 @@ SKIP_ALL_MARKED = False
 
 _DEFAULT_CONFIG = {
     'project_type': settings.ProjectType.MODULE.value,
-    'repo_name': 'sample-repo',
     'project_name': 'sample_project',
     'author': 'Damian', 
     'author_email': 'mail@mail.com',
@@ -134,6 +133,68 @@ def test_generate_package_repo_SHOULD_generate_repo_tree_properly():
     
     config = settings.Config(**_DEFAULT_CONFIG)
     config.project_type = settings.ProjectType.PACKAGE.value
+    config.is_sample_layout = True
+    
+    args = Args
+    args.force = False
+    args.cloud = True
+    
+    paths = prepare.generate_repo(config, cwd, options=args)
+    paths = {path.relative_to(cwd).as_posix() for path in paths}
+    pprint(paths)
+    
+    if Path(cwd).exists():
+        shutil.rmtree(Path(cwd), ignore_errors=False, onerror=_error_remove_readonly)
+
+    assert paths == expected_paths
+    
+    
+@pytest.mark.skipif(SKIP_ALL_MARKED, reason="Skipped on request")
+def test_generate_package_repo_SHOULD_generate_repo_tree_properly_WHEN_no_sample():
+    cwd = TESTS_SETUPS_PATH / 'test_generate_package_repo_SHOULD_generate_repo_tree_properly_WHEN_no_sample'
+    if Path(cwd).exists():
+        shutil.rmtree(Path(cwd))
+    Path(cwd).mkdir(parents=True, exist_ok=True)
+    
+    expected_paths = {
+        'docs',
+        'README.md',
+        '.gitignore',
+        'TODO.md',
+        'conftest.py',
+        'requirements.txt',
+        'requirements-dev.txt',
+        'Makefile',
+        'LICENSE',
+        'tox.ini',
+        'setup.cfg',
+        'setup.py',
+        _DEFAULT_CONFIG['project_name'],
+        'tests',
+        'repoassist',
+        'repoassist/templates',
+        'repoassist/__init__.py',
+        'repoassist/__main__.py',
+        'repoassist/colreqs.py',
+        'repoassist/settings.py',
+        'repoassist/logger.py',
+        'repoassist/release.py',
+        'repoassist/pygittools.py',
+        'repoassist/utils.py',
+        'repoassist/formatter.py',
+        'repoassist/wizard.py',
+        'repoassist/cloud.py',
+        'repoassist/exceptions.py',
+        'repoassist/prepare.py',
+        'repoassist/clean.py',
+        'repoassist/templates/CHANGELOG_generated.md',
+        'repoassist/templates/CHANGELOG_prepared.md',
+        'cloud_credentials.txt',
+    }
+    
+    config = settings.Config(**_DEFAULT_CONFIG)
+    config.project_type = settings.ProjectType.PACKAGE.value
+    config.is_sample_layout = False
     
     args = Args
     args.force = False
@@ -196,6 +257,68 @@ def test_generate_module_repo_SHOULD_generate_repo_tree_properly():
     
     config = settings.Config(**_DEFAULT_CONFIG)
     config.project_type = settings.ProjectType.MODULE.value
+    config.is_sample_layout = True
+    
+    args = Args
+    args.force = False
+    args.cloud = True
+    
+    paths = prepare.generate_repo(config, cwd, options=args)
+    paths = {path.relative_to(cwd).as_posix() for path in paths}
+    pprint(paths)
+    
+    if Path(cwd).exists():
+        shutil.rmtree(Path(cwd), ignore_errors=False, onerror=_error_remove_readonly)
+
+    assert paths == expected_paths
+    
+    
+@pytest.mark.skipif(SKIP_ALL_MARKED, reason="Skipped on request")
+def test_generate_module_repo_SHOULD_generate_repo_tree_properly_WHEN_no_sample():
+    cwd = TESTS_SETUPS_PATH / 'test_generate_module_repo_SHOULD_generate_repo_tree_properly_WHEN_no_sample'
+    if Path(cwd).exists():
+        shutil.rmtree(Path(cwd))
+    Path(cwd).mkdir(parents=True, exist_ok=True)
+    
+    expected_paths = {
+        'docs',
+        'tests',
+        'README.md',
+        '.gitignore',
+        'TODO.md',
+        'conftest.py',
+        'tests/__init__.py',
+        'requirements.txt',
+        'requirements-dev.txt',
+        'Makefile',
+        'LICENSE',
+        'tox.ini',
+        'setup.cfg',
+        'setup.py',
+        'repoassist',
+        'repoassist/templates',
+        'repoassist/__init__.py',
+        'repoassist/__main__.py',
+        'repoassist/colreqs.py',
+        'repoassist/settings.py',
+        'repoassist/logger.py',
+        'repoassist/release.py',
+        'repoassist/pygittools.py',
+        'repoassist/utils.py',
+        'repoassist/formatter.py',
+        'repoassist/wizard.py',
+        'repoassist/cloud.py',
+        'repoassist/exceptions.py',
+        'repoassist/prepare.py',
+        'repoassist/clean.py',
+        'repoassist/templates/CHANGELOG_generated.md',
+        'repoassist/templates/CHANGELOG_prepared.md',
+        'cloud_credentials.txt',
+    }
+    
+    config = settings.Config(**_DEFAULT_CONFIG)
+    config.project_type = settings.ProjectType.MODULE.value
+    config.is_sample_layout = False
     
     args = Args
     args.force = False
@@ -222,7 +345,7 @@ def test_generate_module_repo_SHOULD_force_properly():
         Path(Path(cwd) / dirname).mkdir(exist_ok=True)
     
     for file in settings.MODULE_REPO_FILES_TO_GEN:
-        filename = file['src'].name
+        filename = file.src.name
         if filename == settings.FileName.PYINIT:
             path = cwd / settings.DirName.TESTS
         elif filename == settings.FileName.SAMPLE_MODULE:
@@ -268,6 +391,7 @@ def test_generate_module_repo_SHOULD_force_properly():
     
     config = settings.Config(**_DEFAULT_CONFIG)
     config.project_type = settings.ProjectType.MODULE.value
+    config.is_sample_layout = True
     
     args = Args
     args.force = True

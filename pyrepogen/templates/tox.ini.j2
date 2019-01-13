@@ -1,5 +1,7 @@
 [tox]
 envlist = py37
+{% if options.project_type == 'module' %}skipsdist = true
+{% endif %}
 
 [testenv]
 commands = pytest {{tests_dirname}} --color=yes

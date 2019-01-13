@@ -15,7 +15,6 @@ TESTS_SETUPS_PATH = Path(inspect.getframeinfo(inspect.currentframe()).filename).
 
 _DEFAULT_CONFIG = {
     'project_type': settings.ProjectType.MODULE.value,
-    'repo_name': 'sample-repo',
     'project_name': 'sample_project',
     'author': 'Damian', 
     'author_email': 'mail@mail.com',

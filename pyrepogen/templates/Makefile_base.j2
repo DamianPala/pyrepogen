@@ -78,12 +78,12 @@ help:
 	@echo "	Prepare a development environment based on the requirements.txt and requirements-dev.txt, use only once"
 	
 	@echo "make release"
-	@echo "	Release the standalone module"
+	@echo "	Release the {% if options.project_type == 'module' %}standalone module{% else %}package{% endif %}"
 	@echo "	Usage: make release [force]"
 	@echo "	If you want to omit repository check and git check type: make release force"
 	
 	@echo "make install"
-	@echo "	Install the standalone module"
+	@echo "	Install the {% if options.project_type == 'module' %}standalone module{% else %}package{% endif %}"
 	
 	@echo "make test"
 	@echo "	Run tests using pytest"

@@ -88,25 +88,26 @@ def _generate_repo_files(files_list, config, cwd, options=None):
     paths = []
 
     for file in files_list:
-        src = file['src']
-        dst = Path(cwd) / file['dst']
+        src = file.src
+        dst = Path(cwd) / file.dst
         
-        if not options.cloud and (src.name == settings.FileName.CLOUD_CREDENTIALS):
-            continue
-        
-        if settings.PROJECT_NAME_PATH_PLACEHOLDER in str(dst):
-            dst = Path(str(dst).replace(settings.PROJECT_NAME_PATH_PLACEHOLDER, config.project_name))
+        if not file.is_sample or (file.is_sample and config.is_sample_layout):
+            if not options.cloud and (src.name == settings.FileName.CLOUD_CREDENTIALS):
+                continue
             
-        src_parents = [item for item in src.parents]
-        if src_parents.__len__() >= 2 and (str(src_parents[-2]) == settings.DirName.TEMPLATES):
-            is_from_template = True
-        else:
-            is_from_template = False
-        
-        if is_from_template:
-            paths.extend(write_file_from_template(src, dst, config.__dict__, cwd, options))
-        else:
-            paths.extend(_generate_empty_file(dst, cwd, options))
+            if settings.PROJECT_NAME_PATH_PLACEHOLDER in str(dst):
+                dst = Path(str(dst).replace(settings.PROJECT_NAME_PATH_PLACEHOLDER, config.project_name))
+                
+            src_parents = [item for item in src.parents]
+            if src_parents.__len__() >= 2 and (str(src_parents[-2]) == settings.DirName.TEMPLATES):
+                is_from_template = True
+            else:
+                is_from_template = False
+            
+            if is_from_template:
+                paths.extend(write_file_from_template(src, dst, config.__dict__, cwd, options))
+            else:
+                paths.extend(_generate_empty_file(dst, cwd, options))
 
     return paths
 

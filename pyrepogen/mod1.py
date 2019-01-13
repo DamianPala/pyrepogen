@@ -13,6 +13,7 @@ from pyrepogen import logger
 import semver
 import pbr
 
+
 _logger = logger.get_logger(__name__)
 
 
@@ -95,5 +96,11 @@ if __name__ == '__main__':
     str = ''
     if str != None:
         print(True)
+    
+    
+    FileGenEntry = namedtuple('FileGeneratorEntry', 'src dst is_sample')
+    file_entry = FileGenEntry(src='source', dst='destination', is_sample=True)
+    print(file_entry)
+    print(file_entry.is_sample)
     
     

@@ -19,7 +19,6 @@ SKIP_ALL_MARKED = False
 
 _DEFAULT_CONFIG = {
     'project_type': settings.ProjectType.MODULE.value,
-    'repo_name': 'sample-repo',
     'project_name': 'sample_project',
     'author': 'Damian', 
     'author_email': 'mail@mail.com',
@@ -85,6 +84,7 @@ def test_make_release_SHOULD_release_module_properly():
     
     config = settings.Config(**_DEFAULT_CONFIG)
     config.project_type = settings.ProjectType.MODULE.value
+    config.is_sample_layout = True
     
     options = Args()
     options.force = True
@@ -161,6 +161,7 @@ def test_make_release_SHOULD_release_package_properly():
     
     config = settings.Config(**_DEFAULT_CONFIG)
     config.project_type = settings.ProjectType.PACKAGE.value
+    config.is_sample_layout = True
     
     options = Args()
     options.force = True
@@ -239,6 +240,7 @@ def test_make_release_SHOULD_regenerate_package_properly_on_the_same_commit():
     
     config = settings.Config(**_DEFAULT_CONFIG)
     config.project_type = settings.ProjectType.PACKAGE.value
+    config.is_sample_layout = True
     
     options = Args()
     options.force = True
@@ -285,6 +287,7 @@ def test_make_release_SHOULD_regenerate_package_properly_on_the_different_commit
     
     config = settings.Config(**_DEFAULT_CONFIG)
     config.project_type = settings.ProjectType.PACKAGE.value
+    config.is_sample_layout = True
     
     options = Args()
     options.force = True
@@ -392,6 +395,7 @@ def test_update_version_module_SHOULD_update_version_properly():
     
     config = settings.Config(**_DEFAULT_CONFIG)
     config.project_type = settings.ProjectType.MODULE.value
+    config.is_sample_layout = True
     
     options = Args()
     options.force = True
@@ -421,6 +425,7 @@ def test_update_version_package_SHOULD_update_version_properly():
     
     config = settings.Config(**_DEFAULT_CONFIG)
     config.project_type = settings.ProjectType.PACKAGE.value
+    config.is_sample_layout = True
     
     options = Args()
     options.force = True
@@ -452,6 +457,7 @@ def test_update_version_module_SHOULD_rise_error_when_no_project_module():
     
     options = Args()
     options.force = True
+    config.is_sample_layout = True
     
     project_name = config.project_name
     project_module_name = utils.get_module_name_with_suffix(project_name)
@@ -477,6 +483,7 @@ def test_update_version_module_SHOULD_rise_error_when_no_version_in_module():
     Path(cwd).mkdir(parents=True, exist_ok=True)
     
     config = settings.Config(**_DEFAULT_CONFIG)
+    config.is_sample_layout = True
     
     options = Args()
     options.force = True

@@ -74,7 +74,6 @@ def main():
                 config_dict['is_git'] = wizard.choose_bool(__name__, 'Initialize GIT repository?')
                 if config_dict['is_git']:
                     config_dict['git_origin'] = wizard.get_data(__name__, 'Enter GIT origin url')
-                config_dict['repo_name'] = wizard.get_data(__name__, 'Enter repository name')
                 config_dict['project_name'] = wizard.get_data(__name__, 'Enter project name')
                 config_dict['author'] = wizard.get_data(__name__, 'Enter author')
                 config_dict['author_email'] = wizard.get_data(__name__, 'Enter author email')
@@ -92,8 +91,9 @@ def main():
                                              'will be generated (relative or absolute)')
                 repo_path = utils.get_dir_from_arg(prompt_dir)
 
-            args.cloud = (config.is_cloud)
-            args.sample_layout = (config.is_sample_layout)
+            args.cloud = config.is_cloud
+            args.sample_layout = config.is_sample_layout
+            args.project_type = config.project_type
             
             prepare.generate_repo(config, cwd=repo_path, options=args)
             

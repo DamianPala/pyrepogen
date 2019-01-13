@@ -35,7 +35,7 @@ pipreqs-ignore =
     {{repoassist_name}}
 
 [options]
-{% if options.sample_layout %}py_modules = 
+{% if options.sample_layout and options.project_type == 'module' %}py_modules = 
     {{project_name}}
 {% endif %}
 

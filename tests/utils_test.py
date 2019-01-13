@@ -33,7 +33,6 @@ def test_read_repo_config_file_SHOULD_read_config_properly():
 
     expected_config = settings.Config(
         project_type=settings.ProjectType.MODULE.value,
-        repo_name='sample-repo',
         project_name='sample_project',
         author='Damian',
         author_email='damian@mail.com',
@@ -74,7 +73,6 @@ def test_get_repo_config_from_setup_cfg_SHOULD_read_config_properly():
 
     expected_config = settings.Config(
         project_type=settings.ProjectType.MODULE.value,
-        repo_name='sample-repo',
         project_name='sample_project',
         author='Damian',
         author_email='damian@mail.com',
@@ -98,8 +96,7 @@ def test_get_repo_config_from_setup_cfg_SHOULD_read_config_properly():
 def test_validate_config_SHOULD_raise_error_when_field_is_empty():
     config = settings.Config(
         project_type=settings.ProjectType.MODULE.value,
-        repo_name='',
-        project_name='sample_project',
+        project_name='',
         author='Damian',
         author_email='damian@mail.com',
         short_description='This is a sample project.',
@@ -115,14 +112,13 @@ def test_validate_config_SHOULD_raise_error_when_field_is_empty():
         utils._validate_config(config)
         assert False, "Error was expected but not occured!"
     except exceptions.ConfigError as e:
-        assert "The repo_name field is empty in the config" in str(e)
+        assert "The project_name field is empty in the config" in str(e)
         
 
 validate_repo_config_metadata_testdata = [
     (    
         settings.Config(
             project_type='raise error',
-            repo_name='sample-repo',
             project_name='sample_project',
             author='Damian',
             author_email='damian@mail.com',
@@ -141,7 +137,6 @@ validate_repo_config_metadata_testdata = [
     (
         settings.Config(
             project_type=settings.ProjectType.MODULE.value,
-            repo_name='sample-repo',
             project_name='sample_project',
             author='Damian',
             author_email='damian@mail.com',
@@ -160,7 +155,6 @@ validate_repo_config_metadata_testdata = [
     (    
         settings.Config(
             project_type=settings.ProjectType.MODULE.value,
-            repo_name='sample-repo',
             project_name='sample_project',
             author='Damian',
             author_email='damian@mail.com',
@@ -179,7 +173,6 @@ validate_repo_config_metadata_testdata = [
     (
         settings.Config(
             project_type=settings.ProjectType.MODULE.value,
-            repo_name='sample-repo',
             project_name='sample_project',
             author='Damian',
             author_email='damian@mail.com',
