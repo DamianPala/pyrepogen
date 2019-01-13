@@ -10,7 +10,6 @@ from pathlib import Path
 from pbr import git
 from pprint import pprint
 from enum import Enum
-from types import SimpleNamespace
 
 from . import settings
 from . import utils
@@ -31,11 +30,12 @@ class ReleaseAction(Enum):
     REGENERATE = 'reg'
 
 
-def make_install(cwd='.'):
+def make_install(options=None, cwd='.'):
     _logger.info("Performing installation...")
     
-    _check_repo_tree(cwd)
-    _check_if_changes_to_commit(cwd)
+    if not options or (options and options.force != 'force'):
+        _check_repo_tree(cwd)
+        _check_if_changes_to_commit(cwd)
     
     ret = pygittools.get_latest_tag(cwd)
     if ret['returncode'] != 0:
@@ -50,11 +50,12 @@ def make_install(cwd='.'):
     _logger.info("Installation completed.")
     
 
-def make_release(action=ReleaseAction.REGENERATE, prompt=True, push=True, release_data=None, cwd='.'):
+def make_release(action=ReleaseAction.REGENERATE, prompt=True, push=True, release_data=None, options=None, cwd='.'):
     _logger.info("Preparing Source Distribution...")
     
-    _check_repo_tree(cwd)
-    _check_if_changes_to_commit(cwd)
+    if not options or (options and options.force != 'force'):
+        _check_repo_tree(cwd)
+        _check_if_changes_to_commit(cwd)
     
     release_files_paths = []
     config = utils.get_repo_config_from_setup_cfg(Path(cwd) / settings.FileName.SETUP_CFG)

@@ -34,8 +34,8 @@ class ReleaseAction(Enum):
 def make_install(cwd='.'):
     _logger.info("Performing installation...")
     
-    _check_repo_tree(cwd)
-    _check_if_changes_to_commit(cwd)
+#    _check_repo_tree(cwd)
+#    _check_if_changes_to_commit(cwd)
     
     ret = pygittools.get_latest_tag(cwd)
     if ret['returncode'] != 0:

@@ -2,6 +2,11 @@ PYTHON     := python
 TEST_PATH  := {{tests_path}}
 
 
+ifeq (release,$(firstword $(MAKECMDGOALS)))
+RELEASE_ARGS := $(wordlist 2,$(words $(MAKECMDGOALS)),$(MAKECMDGOALS))
+$(eval $(RELEASE_ARGS):;@:)
+endif
+
 ifeq (format,$(firstword $(MAKECMDGOALS)))
 FORMAT_ARGS := $(wordlist 2,$(words $(MAKECMDGOALS)),$(MAKECMDGOALS))
 $(eval $(FORMAT_ARGS):;@:)
@@ -21,10 +26,10 @@ prepare:
 	@$(PYTHON) -m pip install -r requirements.txt
 
 release:
-	@$(PYTHON) -m repoassist release
+	@$(PYTHON) -m repoassist release $(RELEASE_ARGS)
 	
 install:
-	@$(PYTHON) -m repoassist install
+	@$(PYTHON) setup.py install
 	
 test:
 	@$(PYTHON) -m pytest $(TEST_PATH) --color=yes
@@ -51,7 +56,7 @@ doc:
 	@$(PYTHON) -m flake8
 
 install_reqs:
-	@$(PYTHON) -m pip install --user -r requirements.txt
+	@$(PYTHON) -m pip install -r requirements.txt
 
 update_reqs:
 	@$(PYTHON) -m repoassist update_reqs
@@ -73,10 +78,12 @@ help:
 	@echo "	Prepare a development environment based on the requirements.txt and requirements-dev.txt, use only once"
 	
 	@echo "make release"
-	@echo "	Release the standalone script"
+	@echo "	Release the package"
+	@echo "	Usage: make release [force]"
+	@echo "	If you want to omit repository check and git check type: make release force"
 	
 	@echo "make install"
-	@echo "	Install the standalone script"
+	@echo "	Install the package"
 	
 	@echo "make test"
 	@echo "	Run tests using pytest"
