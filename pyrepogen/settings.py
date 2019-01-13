@@ -24,6 +24,11 @@ class ChangelogType(Enum):
     PREPARED = 'prepared'
 
 
+class AuthorsType(Enum):
+    GENERATED = 'generated'
+    PREPARED = 'prepared'
+
+
 class DirName():
     TEMPLATES = 'templates'
     TESTS = 'tests'
@@ -64,6 +69,7 @@ class FileName():
     CHANGELOG_GENERATED = 'CHANGELOG_generated.md'
     CHANGELOG_PREPARED = 'CHANGELOG_prepared.md'
     AUTHORS = 'AUTHORS'
+    AUTHORS_PREPARED = 'AUTHORS_prepared.md'
     GITIGNORE = '.gitignore'
     README = 'README.md'
     TODO = 'TODO.md'
@@ -112,6 +118,7 @@ class Config():
     author_email : str
     short_description : str
     changelog_type : str
+    authors_type : str
     is_cloud : bool = None
     is_sample_layout : bool = None
     maintainer : str = ''
@@ -209,6 +216,7 @@ REPOASSIST_FILES = [
     FileName.WIZARD,
     FileName.FORMATTER,
     FileName.CHANGELOG,
+    FileName.AUTHORS,
     FileName.PREPARE,
     FileName.CLEAN,
 ]

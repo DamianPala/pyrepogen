@@ -24,6 +24,7 @@ _DEFAULT_CONFIG = {
     'author_email': 'mail@mail.com',
     'short_description': 'This is a sample project',
     'changelog_type': settings.ChangelogType.GENERATED.value,
+    'authors_type': settings.AuthorsType.GENERATED.value,
 }
 
 _logger = logger.create_logger()
@@ -591,7 +592,7 @@ def test_clean_filed_release():
     
     config = settings.Config(**_DEFAULT_CONFIG)
     files_to_add.append(release._update_changelog(config, new_release_tag, new_release_msg, cwd))
-    files_to_add.append(release._update_authors(cwd))
+    files_to_add.append(release._update_authors(config, cwd))
     
     try:
         release._commit_and_push_release_update(new_release_tag, new_release_msg, files_to_add=files_to_add, cwd=cwd)
@@ -602,4 +603,71 @@ def test_clean_filed_release():
         
     if Path(cwd).exists():
         shutil.rmtree(Path(cwd), ignore_errors=False, onerror=_error_remove_readonly)
+        
+        
+@pytest.mark.skipif(SKIP_ALL_MARKED, reason="Skipped on request")
+def test_update_authors_SHOULD_leave_prepare_authors_WHEN_prepare():
+    cwd = TESTS_SETUPS_PATH / 'test_update_authors_SHOULD_leave_prepare_authors_WHEN_prepare'
+    if Path(cwd).exists():
+        shutil.rmtree(Path(cwd), ignore_errors=False, onerror=_error_remove_readonly)
+    Path(cwd).mkdir(parents=True, exist_ok=True)
     
+    config = settings.Config(**_DEFAULT_CONFIG)
+    config.authors_type = settings.AuthorsType.PREPARED.value
+    
+    options = Args()
+    options.force = True
+    
+    paths = prepare.generate_repo(config, cwd, options)
+    
+    pygittools.init(cwd)
+    for path in paths:
+        pygittools.add(path, cwd)
+    pygittools.commit("Initial Commit", cwd)
+    
+    release._update_authors(config, cwd)
+    
+    authors_path = Path(cwd) / settings.FileName.AUTHORS
+    with open(authors_path, 'r') as file:
+        authors_content = file.read()    
+    
+    print(authors_content)
+    
+    assert '# sample_project - Authors' in authors_content
+    
+    if Path(cwd).exists():
+        shutil.rmtree(Path(cwd), ignore_errors=False, onerror=_error_remove_readonly)
+    
+    
+@pytest.mark.skipif(SKIP_ALL_MARKED, reason="Skipped on request")
+def test_update_authors_SHOULD_leave_prepare_authors_WHEN_generate():
+    cwd = TESTS_SETUPS_PATH / 'test_update_authors_SHOULD_leave_prepare_authors_WHEN_generate'
+    if Path(cwd).exists():
+        shutil.rmtree(Path(cwd), ignore_errors=False, onerror=_error_remove_readonly)
+    Path(cwd).mkdir(parents=True, exist_ok=True)
+    
+    config = settings.Config(**_DEFAULT_CONFIG)
+    config.authors_type = settings.AuthorsType.GENERATED.value
+    
+    options = Args()
+    options.force = True
+    
+    paths = prepare.generate_repo(config, cwd, options)
+    
+    pygittools.init(cwd)
+    for path in paths:
+        pygittools.add(path, cwd)
+    pygittools.commit("Initial Commit", cwd)
+    
+    release._update_authors(config, cwd)
+    
+    authors_path = Path(cwd) / settings.FileName.AUTHORS
+    with open(authors_path, 'r') as file:
+        authors_content = file.read()
+        
+    print(authors_content)
+    
+    assert '# sample_project - Authors' not in authors_content
+    
+    if Path(cwd).exists():
+        shutil.rmtree(Path(cwd), ignore_errors=False, onerror=_error_remove_readonly)

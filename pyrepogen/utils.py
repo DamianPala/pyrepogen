@@ -133,18 +133,23 @@ def _validate_config(config, extra_fields=[]):
     for field, value in config.__dict__.items():
         if field not in config.get_default_fields() and value == '':
             raise exceptions.ConfigError(f'The {field} field is empty in the config!', _logger)
+        
+        invalid_value_msg = f'The {field} field has invalid value: {value} in the config!'
         if field == 'project_type':
             valid_values = [item.value for item in settings.ProjectType]
             if value not in valid_values:
-                raise exceptions.ConfigError(f'The {field} field has invalid value: {value} in the config!', _logger)
-        elif field == 'changelog_type':
-            valid_values = [item.value for item in settings.ChangelogType]
+                raise exceptions.ConfigError(invalid_value_msg, _logger)
+        elif field == 'changelog_type' or field == 'authors_type':
+            if field == 'changelog_type':
+                valid_values = [item.value for item in settings.ChangelogType]
+            if field == 'authors_type':
+                valid_values = [item.value for item in settings.AuthorsType]
             if value not in valid_values:
-                raise exceptions.ConfigError(f'The {field} field has invalid value: {value} in the config!', _logger)
+                raise exceptions.ConfigError(invalid_value_msg, _logger)
         elif extra_fields and ((field == 'is_cloud') or (field == 'is_sample_layout')):
             valid_values = [True, False]
             if value not in valid_values:
-                raise exceptions.ConfigError(f'The {field} field has invalid value: {value} in the config!', _logger)
+                raise exceptions.ConfigError(invalid_value_msg, _logger)
 
 
 def str2bool(string):

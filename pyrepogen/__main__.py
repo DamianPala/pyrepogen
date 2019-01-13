@@ -83,6 +83,9 @@ def main():
                 config_dict['home_page'] = wizard.get_data(__name__, 'Enter home page')
                 config_dict['changelog_type'] = wizard.choose_one(__name__, 'Select a changelog type', 
                                                                   settings.ChangelogType)
+                config_dict['authors_type'] = wizard.choose_one(__name__, 
+                                                                f'Select an {settings.FileName.AUTHORS} file type', 
+                                                                settings.ChangelogType) 
                 
                 config = settings.Config(**config_dict)
                 

@@ -20,6 +20,7 @@ _DEFAULT_CONFIG = {
     'author_email': 'mail@mail.com',
     'short_description': 'This is a sample project',
     'changelog_type': settings.ChangelogType.GENERATED.value,
+    'authors_type': settings.AuthorsType.GENERATED.value,
     'pipreqs_ignore': [settings.DirName.REPOASSIST]
 }
 

@@ -20,6 +20,7 @@ _DEFAULT_CONFIG = {
     'author_email': 'mail@mail.com',
     'short_description': 'This is a sample project',
     'changelog_type': settings.ChangelogType.GENERATED.value,
+    'authors_type': settings.AuthorsType.GENERATED.value,
     'pipreqs_ignore': [settings.DirName.REPOASSIST]
 }
 
@@ -128,6 +129,7 @@ def test_generate_package_repo_SHOULD_generate_repo_tree_properly():
         'repoassist/clean.py',
         'repoassist/templates/CHANGELOG_generated.md',
         'repoassist/templates/CHANGELOG_prepared.md',
+        'repoassist/templates/AUTHORS_prepared.md',
         'cloud_credentials.txt',
     }
     
@@ -189,6 +191,7 @@ def test_generate_package_repo_SHOULD_generate_repo_tree_properly_WHEN_no_sample
         'repoassist/clean.py',
         'repoassist/templates/CHANGELOG_generated.md',
         'repoassist/templates/CHANGELOG_prepared.md',
+        'repoassist/templates/AUTHORS_prepared.md',
         'cloud_credentials.txt',
     }
     
@@ -252,6 +255,7 @@ def test_generate_module_repo_SHOULD_generate_repo_tree_properly():
         'repoassist/clean.py',
         'repoassist/templates/CHANGELOG_generated.md',
         'repoassist/templates/CHANGELOG_prepared.md',
+        'repoassist/templates/AUTHORS_prepared.md',
         'cloud_credentials.txt',
     }
     
@@ -313,6 +317,7 @@ def test_generate_module_repo_SHOULD_generate_repo_tree_properly_WHEN_no_sample(
         'repoassist/clean.py',
         'repoassist/templates/CHANGELOG_generated.md',
         'repoassist/templates/CHANGELOG_prepared.md',
+        'repoassist/templates/AUTHORS_prepared.md',
         'cloud_credentials.txt',
     }
     
@@ -387,6 +392,7 @@ def test_generate_module_repo_SHOULD_force_properly():
         Path(cwd) / settings.DirName.REPOASSIST / settings.FileName.FORMATTER,
         Path(cwd) / settings.DirName.REPOASSIST / settings.DirName.TEMPLATES / settings.FileName.CHANGELOG_GENERATED,
         Path(cwd) / settings.DirName.REPOASSIST / settings.DirName.TEMPLATES / settings.FileName.CHANGELOG_PREPARED,
+        Path(cwd) / settings.DirName.REPOASSIST / settings.DirName.TEMPLATES / settings.FileName.AUTHORS_PREPARED,
     ]
     
     config = settings.Config(**_DEFAULT_CONFIG)

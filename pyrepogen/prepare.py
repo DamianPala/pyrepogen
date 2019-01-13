@@ -131,6 +131,10 @@ def _generate_repoasist(config, cwd, options=None):
             paths.extend(_copy_template_file(settings.FileName.CHANGELOG_PREPARED,
                                              Path(cwd) / settings.DirName.REPOASSIST / settings.DirName.TEMPLATES / settings.FileName.CHANGELOG_PREPARED,
                                              cwd, options))
+        elif filename == settings.FileName.AUTHORS:
+            paths.extend(_copy_template_file(settings.FileName.AUTHORS_PREPARED,
+                                             Path(cwd) / settings.DirName.REPOASSIST / settings.DirName.TEMPLATES / settings.FileName.AUTHORS_PREPARED,
+                                             cwd, options))
         else:
             paths.extend(_copy_file(filename, Path(cwd) / settings.DirName.REPOASSIST / filename, cwd, options))
             
