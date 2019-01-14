@@ -71,7 +71,7 @@ def test_collect_reqs_latest_SHOULD_collect_reqs_properly():
     Path(cwd).mkdir(parents=True, exist_ok=True)
     
     config = settings.Config(**_DEFAULT_CONFIG)
-    reqs = colreqs.collect_reqs_latest(config, cwd)
+    reqs = colreqs.collect_reqs_latest(config, prompt=False, cwd=cwd)
     print(reqs)
     
     assert reqs == ['pytest']
@@ -82,7 +82,7 @@ def test_collect_reqs_latest_SHOULD_exclude_repoassist_reqs_properly():
     Path(cwd).mkdir(parents=True, exist_ok=True)
     
     config = settings.Config(**_DEFAULT_CONFIG)
-    reqs = colreqs.collect_reqs_latest(config, cwd)
+    reqs = colreqs.collect_reqs_latest(config, prompt=False, cwd=cwd)
     print(reqs)
     
     assert reqs == ['pytest']

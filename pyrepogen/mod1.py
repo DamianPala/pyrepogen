@@ -10,7 +10,6 @@ from pprint import pprint
 from pathlib import Path
 from pyrepogen import settings
 from pyrepogen import logger
-import semver
 import pbr
 
 
@@ -24,12 +23,6 @@ def mod1_msg():
 
 if __name__ == '__main__':
     _logger.info("This is file!")
-    
-    version_info1 = semver.VersionInfo.parse("1.0.1-rc2")
-    version_info2 = semver.VersionInfo.parse("1.0.1-rc1")
-    print(version_info1)
-    print(version_info2)
-    print(version_info1 > version_info2)
     
     print(str(Path('') / settings.FileName.README) == (Path('') / settings.FileName.README).name)
     print(Path().cwd())

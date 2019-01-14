@@ -94,7 +94,7 @@ def make_release(action=ReleaseAction.REGENERATE, prompt=True, push=True, releas
     final_release_tag = _get_final_release_tag(release_tag, cwd, action)
     _run_setup_cmd(['sdist', 'bdist_wheel'], release_tag=final_release_tag, cwd=cwd)
     
-    package_path = utils.get_latest_file(Path(cwd) / settings.DirName.DISTRIBUTION)
+    package_path = utils.get_latest_tarball(Path(cwd) / settings.DirName.DISTRIBUTION)
     
     if final_release_tag and final_release_tag not in package_path.name:
         raise exceptions.RuntimeError('Source Distribution preparing error! '
@@ -115,7 +115,7 @@ def _run_setup_cmd(cmd, release_tag=None, cwd='.'):
     if release_tag:
         os.environ['PBR_VERSION'] = release_tag
     else:
-        _logger.info('Release tag will be set by pbr automatically')
+        _logger.info('Release tag will be set by pbr automatically.')
     result = utils.execute_cmd([settings.Tools.PYTHON, setup_path.__str__()] + cmd, cwd)
     for line in result.splitlines():
         _logger.info(line)

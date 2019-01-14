@@ -8,26 +8,46 @@ from pipreqs import pipreqs
 from . import settings
 from . import logger
 from . import prepare
+from . import wizard
+from . import clean
 
 
 _logger = logger.get_logger(__name__)
 
 
-def collect_reqs_min(cwd='.'):
-    reqs_equal = collect_reqs_specific(cwd)
+def collect_reqs_min(config, prompt=False, cwd='.'):
+    if prompt:
+        _prompt_and_clean(cwd)
+    reqs_equal = collect_reqs_specific(config, prompt=False, cwd=cwd)
     return _transform_to_min(reqs_equal)
 
 
-def collect_reqs_latest(config, cwd='.'):
-    reqs_equal = collect_reqs_specific(config, cwd)
+def collect_reqs_latest(config, prompt=False, cwd='.'):
+    if prompt:
+        _prompt_and_clean(cwd)
+    reqs_equal = collect_reqs_specific(config, prompt=False, cwd=cwd)
     return _transform_to_latest(reqs_equal)
 
 
-def collect_reqs_specific(config, cwd='.'):
-    raw_reqs = pipreqs.get_all_imports(str(cwd), extra_ignore_dirs=config.pipreqs_ignore)
-    reqs = [item for item in raw_reqs if 'INFO' not in item]
+def collect_reqs_specific(config, prompt=False, cwd='.'):
+    if prompt:
+        _prompt_and_clean(cwd)
+    candidates = pipreqs.get_all_imports(str(cwd), extra_ignore_dirs=config.pipreqs_ignore)
+    candidates = pipreqs.get_pkg_names(candidates)
+    local = pipreqs.get_import_local(candidates)
+    difference = [x for x in candidates
+                  if x.lower() not in [z['name'].lower() for z in local]]
+    imports = local + pipreqs.get_imports_info(difference)
+    reqs = [f"{item['name']}=={item['version']}" for item in imports if 'INFO' not in item]
             
     return reqs
+
+
+def _prompt_and_clean(cwd='.'):
+    if wizard.choose_bool(__name__, 
+                          'Run cleaner to clean generated directories? '
+                          'Recommended to better requirements discovery.'):
+        clean.clean(cwd)
 
 
 def write_requirements(reqs, cwd='.'):
@@ -80,4 +100,3 @@ def _transform_to_latest(reqs):
         final_reqs.append(splitted[0]) 
         
     return final_reqs
-

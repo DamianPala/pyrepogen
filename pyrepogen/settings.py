@@ -235,6 +235,7 @@ FILES_TO_CLEAN = [
 
 DIRS_TO_CLEAN = [
     {'name': '*.egg-info', 'flag': '.'},
+    {'name': '.eggs', 'flag': '.'},
     {'name': '__pycache__', 'flag': 'r'},
     {'name': '.pytest_cache', 'flag': 'r'},
     {'name': '.tox', 'flag': '.'},

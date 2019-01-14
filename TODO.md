@@ -4,9 +4,8 @@ Add setup and teardown into tests
 Add ignore dir to dist for instalnce in pyrepogen
 After repo creation with git all files should be added into repo tree?
 
-Check why pipreqs fail in pyrepogen dir
-Pipreqs shall be run directly inside package when packge repo
 target update_reqs shall use minimal reqs not latest
+Parse config in __main__ before repo gen. The best will be dynamically parsing.
 
 # TESTS
 - git init and origin

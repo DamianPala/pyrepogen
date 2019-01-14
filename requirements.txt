@@ -1,8 +1,6 @@
-autopep8>=1.4.3
+Jinja2>=2.10
 dataclasses>=0.6
-jinja2>=2.10
+autopep8>=1.4.3
+packaging>=18.0
 pbr>=5.1.1
 pipreqs>=0.4.9
-pytest>=4.0.2
-semver>=2.8.1
-setuptools>=39.0.1

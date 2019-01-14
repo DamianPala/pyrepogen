@@ -8,7 +8,7 @@ from pathlib import Path
 from . import logger
 
 
-__version__ = '0.1.1'
+__version__ = '0.1.2'
 _logger = logger.create_logger()
 PARDIR = Path(__file__).parent
 MIN_PYTHON = (3, 7)

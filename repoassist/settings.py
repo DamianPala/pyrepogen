@@ -56,6 +56,7 @@ AUTOMATIC_RELEASE_COMMIT_MSG = 'Automatic update of release data files.'
 LICENSE = 'MIT'
 RELEASE_PACKAGE_SUFFIX = '_release'
 JINJA2_TEMPLATE_EXT = '.j2'
+TARBALL_SUFFIX = '.tar'
 
 ENTRY_POINT_PLACEHOLDER = '<project_name>'
 MODULE_ENTRY_POINT = f'{ENTRY_POINT_PLACEHOLDER} = {ENTRY_POINT_PLACEHOLDER}:main'
@@ -234,6 +235,7 @@ FILES_TO_CLEAN = [
 
 DIRS_TO_CLEAN = [
     {'name': '*.egg-info', 'flag': '.'},
+    {'name': '.eggs', 'flag': '.'},
     {'name': '__pycache__', 'flag': 'r'},
     {'name': '.pytest_cache', 'flag': 'r'},
     {'name': '.tox', 'flag': '.'},

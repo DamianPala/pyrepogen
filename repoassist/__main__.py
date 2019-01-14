@@ -50,7 +50,11 @@ def main():
         try:
             if command == 'update_reqs':
                 config = utils.get_repo_config_from_setup_cfg(Path(cwd) / settings.FileName.SETUP_CFG)
-                reqs = colreqs.collect_reqs_latest(config, cwd)
+                if config.project_type == settings.ProjectType.PACKAGE.value:
+                    reqs_cwd = cwd / config.project_name
+                else:
+                    reqs_cwd = cwd
+                reqs = colreqs.collect_reqs_min(config, prompt=True, cwd=reqs_cwd)
                 colreqs.write_requirements(reqs, cwd)
                 colreqs.write_requirements_dev(cwd)
             elif command == 'release':
