@@ -10,7 +10,6 @@ from pathlib import Path
 from pbr import git
 from pprint import pprint
 from enum import Enum
-from types import SimpleNamespace
 
 from . import settings
 from . import utils
@@ -31,11 +30,12 @@ class ReleaseAction(Enum):
     REGENERATE = 'reg'
 
 
-def make_install(cwd='.'):
+def make_install(options=None, cwd='.'):
     _logger.info("Performing installation...")
     
-#    _check_repo_tree(cwd)
-#    _check_if_changes_to_commit(cwd)
+    if not options or (options and options.force != 'force'):
+        _check_repo_tree(cwd)
+        _check_if_changes_to_commit(cwd)
     
     ret = pygittools.get_latest_tag(cwd)
     if ret['returncode'] != 0:
@@ -50,11 +50,12 @@ def make_install(cwd='.'):
     _logger.info("Installation completed.")
     
 
-def make_release(action=ReleaseAction.REGENERATE, prompt=True, push=True, release_data=None, cwd='.'):
+def make_release(action=ReleaseAction.REGENERATE, prompt=True, push=True, release_data=None, options=None, cwd='.'):
     _logger.info("Preparing Source Distribution...")
     
-    _check_repo_tree(cwd)
-    _check_if_changes_to_commit(cwd)
+    if not options or (options and options.force != 'force'):
+        _check_repo_tree(cwd)
+        _check_if_changes_to_commit(cwd)
     
     release_files_paths = []
     config = utils.get_repo_config_from_setup_cfg(Path(cwd) / settings.FileName.SETUP_CFG)
@@ -73,8 +74,8 @@ def make_release(action=ReleaseAction.REGENERATE, prompt=True, push=True, releas
         files_to_add = []
         files_to_add.append(_update_project_version(config, new_release_tag, cwd))
         files_to_add.append(_update_changelog(config, new_release_tag, new_release_msg, cwd))
-        files_to_add.append(_update_authors(cwd))
-            
+        files_to_add.append(_update_authors(config, cwd))
+
         release_files_paths.extend(_commit_and_push_release_update(new_release_tag, 
                                                                    new_release_msg, 
                                                                    files_to_add=files_to_add, 
@@ -223,7 +224,8 @@ def _update_changelog(config, new_release_tag, new_release_msg, cwd='.'):
     if config.changelog_type == settings.ChangelogType.GENERATED.value:
         changelog_filepath = _update_generated_changelog(config, new_release_tag, new_release_msg, cwd)
     else:
-        changelog_filepath = _generate_prepared_changelog(config, cwd)
+        changelog_filepath = _generate_prepared_file(config, settings.FileName.CHANGELOG, 
+                                                   settings.FileName.CHANGELOG_PREPARED, cwd)
         
     return changelog_filepath
 
@@ -255,16 +257,6 @@ def _get_changelog_entry(release_tag, release_msg):
     tagger_date = datetime.date.today().strftime('%Y-%m-%d')
     
     return "### Version: {} | Released: {} \n{}\n\n".format(release_tag, tagger_date, release_msg)
-
-
-def _generate_prepared_changelog(config, cwd='.'):
-    changelog_path = Path(cwd).resolve() / settings.FileName.CHANGELOG
-    if not changelog_path.exists(): 
-        _logger.info("Generating {} file...".format(settings.FileName.CHANGELOG))
-        prepare.write_file_from_template(settings.FileName.CHANGELOG_PREPARED, changelog_path, config, cwd, verbose=False)
-        _logger.info("{} file generated".format(settings.FileName.CHANGELOG))    
-    
-    return changelog_path
 
 
 def _commit_and_push_release_update(new_release_tag, new_release_msg, files_to_add=None, push=True, cwd='.'):
@@ -387,9 +379,25 @@ def _prompt_release_msg():
     return message
 
 
-def _update_authors(cwd='.'):
-    return _generate_file_pbr(settings.FileName.AUTHORS, git.generate_authors, cwd)
+def _update_authors(config, cwd='.'):
+    if config.authors_type == settings.AuthorsType.GENERATED.value:
+        authors_filepath = _generate_file_pbr(settings.FileName.AUTHORS, git.generate_authors, cwd)
+    else:
+        authors_filepath = _generate_prepared_file(config, settings.FileName.AUTHORS, 
+                                                   settings.FileName.AUTHORS_PREPARED, cwd)
+        
+    return authors_filepath
     
+
+def _generate_prepared_file(config, filename, template_name, cwd='.'):
+    file_path = Path(cwd).resolve() / filename
+    if not file_path.exists(): 
+        _logger.info(f'Generating {filename} file...')
+        prepare.write_file_from_template(Path(settings.DirName.TEMPLATES) / template_name, file_path, config.__dict__, cwd, verbose=False)
+        _logger.info(f'{filename} file generated')    
+    
+    return file_path
+
     
 def _generate_file_pbr(filename, gen_handler, cwd='.'):
     is_error = False

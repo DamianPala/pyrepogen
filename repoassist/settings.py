@@ -6,6 +6,7 @@ import datetime
 from enum import Enum
 from pathlib import Path
 import dataclasses
+from collections import namedtuple
 
 from . import (__version__, MIN_PYTHON)
 
@@ -19,6 +20,11 @@ class ProjectType(Enum):
     
 
 class ChangelogType(Enum):
+    GENERATED = 'generated'
+    PREPARED = 'prepared'
+
+
+class AuthorsType(Enum):
     GENERATED = 'generated'
     PREPARED = 'prepared'
 
@@ -63,6 +69,7 @@ class FileName():
     CHANGELOG_GENERATED = 'CHANGELOG_generated.md'
     CHANGELOG_PREPARED = 'CHANGELOG_prepared.md'
     AUTHORS = 'AUTHORS'
+    AUTHORS_PREPARED = 'AUTHORS_prepared.md'
     GITIGNORE = '.gitignore'
     README = 'README.md'
     TODO = 'TODO.md'
@@ -106,12 +113,12 @@ class Tools():
 @dataclasses.dataclass
 class Config():
     project_type : str
-    repo_name : str
     project_name : str
     author : str
     author_email : str
     short_description : str
     changelog_type : str
+    authors_type : str
     is_cloud : bool = None
     is_sample_layout : bool = None
     maintainer : str = ''
@@ -146,45 +153,46 @@ class Config():
     def get_default_fields():
         return dir(Config)
     
-    
+
+FileGenEntry = namedtuple('FileGeneratorEntry', 'src dst is_sample')
 
 MODULE_REPO_FILES_TO_GEN = [
-    {'src': Path('') / FileName.README, 'dst': Path('.') / FileName.README},
-    {'src': Path('') / FileName.TODO, 'dst': Path('.') / FileName.TODO},
-    {'src': Path(DirName.TEMPLATES) / FileName.CONFTEST, 'dst': Path('.') / FileName.CONFTEST},
-    {'src': Path(TEMPLATES_MODULE_PATH) / FileName.GITIGNORE, 'dst': Path('.') / FileName.GITIGNORE},
-    {'src': Path(TEMPLATES_MODULE_PATH) / FileName.TOX, 'dst': Path('.') / FileName.TOX},
-    {'src': Path(TEMPLATES_MODULE_PATH) / FileName.MAKEFILE, 'dst': Path('.') / FileName.MAKEFILE},
-    {'src': Path(DirName.TEMPLATES) / FileName.LICENSE, 'dst': Path('.') / FileName.LICENSE},
-    {'src': Path(DirName.TEMPLATES) / FileName.SETUP_CFG, 'dst': Path('.') / FileName.SETUP_CFG},
-    {'src': Path(TEMPLATES_PACKAGE_PATH) / FileName.SETUP_PY, 'dst': Path('.') / FileName.SETUP_PY},
-    {'src': Path(DirName.TEMPLATES) / FileName.CLOUD_CREDENTIALS, 'dst': Path('.') / FileName.CLOUD_CREDENTIALS},
-    {'src': Path(TEMPLATES_MODULE_PATH) / FileName.REQUIREMENTS, 'dst': Path('.') / FileName.REQUIREMENTS},
-    {'src': Path(DirName.TEMPLATES) / FileName.REQUIREMENTS_DEV, 'dst': Path('.') / FileName.REQUIREMENTS_DEV},
-    {'src': Path(DirName.TEMPLATES) / FileName.SAMPLE_MODULE, 'dst': Path('.') / DirName.TESTS / FileName.PYINIT},
-    {'src': Path(TEMPLATES_MODULE_PATH) / FileName.MODULE_SAMPLE, 'dst': Path('.') / (PROJECT_NAME_PATH_PLACEHOLDER + '.py')},
-    {'src': Path(TEMPLATES_MODULE_PATH) / FileName.MODULE_SAMPLE_TEST_FILENAME, 'dst': Path('.') / DirName.TESTS / (PROJECT_NAME_PATH_PLACEHOLDER + '_test.py')},
+    FileGenEntry(src=Path('') / FileName.README, dst=Path('.') / FileName.README, is_sample=False),
+    FileGenEntry(src=Path('') / FileName.TODO, dst=Path('.') / FileName.TODO, is_sample=False),
+    FileGenEntry(src=Path(DirName.TEMPLATES) / FileName.CONFTEST, dst=Path('.') / FileName.CONFTEST, is_sample=False),
+    FileGenEntry(src=Path(DirName.TEMPLATES) / FileName.GITIGNORE, dst=Path('.') / FileName.GITIGNORE, is_sample=False),
+    FileGenEntry(src=Path(DirName.TEMPLATES) / FileName.TOX, dst=Path('.') / FileName.TOX, is_sample=False),
+    FileGenEntry(src=Path(DirName.TEMPLATES) / FileName.MAKEFILE, dst=Path('.') / FileName.MAKEFILE, is_sample=False),
+    FileGenEntry(src=Path(DirName.TEMPLATES) / FileName.LICENSE, dst=Path('.') / FileName.LICENSE, is_sample=False),
+    FileGenEntry(src=Path(DirName.TEMPLATES) / FileName.SETUP_CFG, dst=Path('.') / FileName.SETUP_CFG, is_sample=False),
+    FileGenEntry(src=Path(TEMPLATES_PACKAGE_PATH) / FileName.SETUP_PY, dst=Path('.') / FileName.SETUP_PY, is_sample=False),
+    FileGenEntry(src=Path(DirName.TEMPLATES) / FileName.CLOUD_CREDENTIALS, dst=Path('.') / FileName.CLOUD_CREDENTIALS, is_sample=False),
+    FileGenEntry(src=Path(TEMPLATES_MODULE_PATH) / FileName.REQUIREMENTS, dst=Path('.') / FileName.REQUIREMENTS, is_sample=False),
+    FileGenEntry(src=Path(DirName.TEMPLATES) / FileName.REQUIREMENTS_DEV, dst=Path('.') / FileName.REQUIREMENTS_DEV, is_sample=False),
+    FileGenEntry(src=Path(DirName.TEMPLATES) / FileName.SAMPLE_MODULE, dst=Path('.') / DirName.TESTS / FileName.PYINIT, is_sample=False),
+    FileGenEntry(src=Path(TEMPLATES_MODULE_PATH) / FileName.MODULE_SAMPLE, dst=Path('.') / (PROJECT_NAME_PATH_PLACEHOLDER + '.py'), is_sample=True),
+    FileGenEntry(src=Path(TEMPLATES_MODULE_PATH) / FileName.MODULE_SAMPLE_TEST_FILENAME, dst=Path('.') / DirName.TESTS / (PROJECT_NAME_PATH_PLACEHOLDER + '_test.py'), is_sample=True),
 ]
 
 PACKAGE_REPO_FILES_TO_GEN = [
-    {'src': Path('') / FileName.README, 'dst': Path('.') / FileName.README},
-    {'src': Path('') / FileName.TODO, 'dst': Path('.') / FileName.TODO},
-    {'src': Path(DirName.TEMPLATES) / FileName.CONFTEST, 'dst': Path('.') / FileName.CONFTEST},
-    {'src': Path(TEMPLATES_PACKAGE_PATH) / FileName.GITIGNORE, 'dst': Path('.') / FileName.GITIGNORE},
-    {'src': Path(TEMPLATES_PACKAGE_PATH) / FileName.TOX, 'dst': Path('.') / FileName.TOX},
-    {'src': Path(TEMPLATES_PACKAGE_PATH) / FileName.PYINIT, 'dst': Path('.') / PROJECT_NAME_PATH_PLACEHOLDER / FileName.PYINIT},
-    {'src': Path(TEMPLATES_PACKAGE_PATH) / FileName.MAIN, 'dst': Path('.') / PROJECT_NAME_PATH_PLACEHOLDER / FileName.MAIN},
-    {'src': Path(TEMPLATES_PACKAGE_PATH) / FileName.CLI, 'dst': Path('.') / PROJECT_NAME_PATH_PLACEHOLDER / FileName.CLI},
-    {'src': Path(TEMPLATES_PACKAGE_PATH) / FileName.PACKAGE_SAMPLE_MODULE, 'dst': Path('.') / PROJECT_NAME_PATH_PLACEHOLDER / FileName.PACKAGE_SAMPLE_MODULE},
-    {'src': Path(TEMPLATES_PACKAGE_TESTS_PATH) / FileName.PYINIT, 'dst': Path('.') / DirName.TESTS / FileName.PYINIT},
-    {'src': Path(TEMPLATES_PACKAGE_TESTS_PATH) / FileName.PACKAGE_SAMPLE_TEST, 'dst': Path('.') / DirName.TESTS / FileName.PACKAGE_SAMPLE_TEST},
-    {'src': Path(TEMPLATES_PACKAGE_PATH) / FileName.MAKEFILE, 'dst': Path('.') / FileName.MAKEFILE},
-    {'src': Path(DirName.TEMPLATES) / FileName.LICENSE, 'dst': Path('.') / FileName.LICENSE},
-    {'src': Path(DirName.TEMPLATES) / FileName.SETUP_CFG, 'dst': Path('.') / FileName.SETUP_CFG},
-    {'src': Path(TEMPLATES_PACKAGE_PATH) / FileName.SETUP_PY, 'dst': Path('.') / FileName.SETUP_PY},
-    {'src': Path(DirName.TEMPLATES) / FileName.CLOUD_CREDENTIALS, 'dst': Path('.') / FileName.CLOUD_CREDENTIALS},
-    {'src': Path(TEMPLATES_PACKAGE_PATH) / FileName.REQUIREMENTS, 'dst': Path('.') / FileName.REQUIREMENTS},
-    {'src': Path(DirName.TEMPLATES) / FileName.REQUIREMENTS_DEV, 'dst': Path('.') / FileName.REQUIREMENTS_DEV},
+    FileGenEntry(src=Path('') / FileName.README, dst=Path('.') / FileName.README, is_sample=False),
+    FileGenEntry(src=Path('') / FileName.TODO, dst=Path('.') / FileName.TODO, is_sample=False),
+    FileGenEntry(src=Path(DirName.TEMPLATES) / FileName.CONFTEST, dst=Path('.') / FileName.CONFTEST, is_sample=False),
+    FileGenEntry(src=Path(DirName.TEMPLATES) / FileName.GITIGNORE, dst=Path('.') / FileName.GITIGNORE, is_sample=False),
+    FileGenEntry(src=Path(DirName.TEMPLATES) / FileName.TOX, dst=Path('.') / FileName.TOX, is_sample=False),
+    FileGenEntry(src=Path(TEMPLATES_PACKAGE_PATH) / FileName.PYINIT, dst=Path('.') / PROJECT_NAME_PATH_PLACEHOLDER / FileName.PYINIT, is_sample=True),
+    FileGenEntry(src=Path(TEMPLATES_PACKAGE_PATH) / FileName.MAIN, dst=Path('.') / PROJECT_NAME_PATH_PLACEHOLDER / FileName.MAIN, is_sample=True),
+    FileGenEntry(src=Path(TEMPLATES_PACKAGE_PATH) / FileName.CLI, dst=Path('.') / PROJECT_NAME_PATH_PLACEHOLDER / FileName.CLI, is_sample=True),
+    FileGenEntry(src=Path(TEMPLATES_PACKAGE_PATH) / FileName.PACKAGE_SAMPLE_MODULE, dst=Path('.') / PROJECT_NAME_PATH_PLACEHOLDER / FileName.PACKAGE_SAMPLE_MODULE, is_sample=True),
+    FileGenEntry(src=Path(TEMPLATES_PACKAGE_TESTS_PATH) / FileName.PYINIT, dst=Path('.') / DirName.TESTS / FileName.PYINIT, is_sample=True),
+    FileGenEntry(src=Path(TEMPLATES_PACKAGE_TESTS_PATH) / FileName.PACKAGE_SAMPLE_TEST, dst=Path('.') / DirName.TESTS / FileName.PACKAGE_SAMPLE_TEST, is_sample=True),
+    FileGenEntry(src=Path(DirName.TEMPLATES) / FileName.MAKEFILE, dst=Path('.') / FileName.MAKEFILE, is_sample=False),
+    FileGenEntry(src=Path(DirName.TEMPLATES) / FileName.LICENSE, dst=Path('.') / FileName.LICENSE, is_sample=False),
+    FileGenEntry(src=Path(DirName.TEMPLATES) / FileName.SETUP_CFG, dst=Path('.') / FileName.SETUP_CFG, is_sample=False),
+    FileGenEntry(src=Path(TEMPLATES_PACKAGE_PATH) / FileName.SETUP_PY, dst=Path('.') / FileName.SETUP_PY, is_sample=False),
+    FileGenEntry(src=Path(DirName.TEMPLATES) / FileName.CLOUD_CREDENTIALS, dst=Path('.') / FileName.CLOUD_CREDENTIALS, is_sample=False),
+    FileGenEntry(src=Path(TEMPLATES_PACKAGE_PATH) / FileName.REQUIREMENTS, dst=Path('.') / FileName.REQUIREMENTS, is_sample=False),
+    FileGenEntry(src=Path(DirName.TEMPLATES) / FileName.REQUIREMENTS_DEV, dst=Path('.') / FileName.REQUIREMENTS_DEV, is_sample=False),
 ]
 
 REPO_DIRS_TO_GEN = [
@@ -208,6 +216,7 @@ REPOASSIST_FILES = [
     FileName.WIZARD,
     FileName.FORMATTER,
     FileName.CHANGELOG,
+    FileName.AUTHORS,
     FileName.PREPARE,
     FileName.CLEAN,
 ]

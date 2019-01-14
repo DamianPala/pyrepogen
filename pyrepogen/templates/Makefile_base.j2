@@ -29,6 +29,7 @@ release:
 	@$(PYTHON) -m repoassist release $(RELEASE_ARGS)
 	
 install:
+	@$(PYTHON) -m pip install -r requirements.txt
 	@$(PYTHON) setup.py install
 	
 test:
