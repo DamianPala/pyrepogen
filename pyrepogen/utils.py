@@ -191,3 +191,19 @@ def get_latest_file(path):
                 return max(files_list, key=lambda x: x.mtime).path
 
     return None
+
+
+def get_latest_tarball(path):
+    if path:
+        path = Path(path)
+        if path.exists() and path.is_dir():
+            FileTime = namedtuple('FileTime', ['path', 'mtime'])
+            files_list = [FileTime(item, Path(item).stat().st_mtime) for item in path.iterdir() \
+                          if item.is_file() \
+                          and (item.suffixes.__len__() >= 2) \
+                          and (item.suffixes[-2] == settings.TARBALL_SUFFIX)]
+
+            if files_list:
+                return max(files_list, key=lambda x: x.mtime).path
+
+    return None

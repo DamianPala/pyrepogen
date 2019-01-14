@@ -12,6 +12,7 @@ from . import (__version__, MIN_PYTHON)
 
 
 SUGGESTED_INITIAL_RELEASE_TAG = '0.1.0'
+EXAMPLE_RELEASE_TAG = '1.17.3rc2'
 
 
 class ProjectType(Enum):
@@ -55,6 +56,7 @@ AUTOMATIC_RELEASE_COMMIT_MSG = 'Automatic update of release data files.'
 LICENSE = 'MIT'
 RELEASE_PACKAGE_SUFFIX = '_release'
 JINJA2_TEMPLATE_EXT = '.j2'
+TARBALL_SUFFIX = '.tar'
 
 ENTRY_POINT_PLACEHOLDER = '<project_name>'
 MODULE_ENTRY_POINT = f'{ENTRY_POINT_PLACEHOLDER} = {ENTRY_POINT_PLACEHOLDER}:main'

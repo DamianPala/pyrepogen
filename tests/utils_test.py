@@ -316,5 +316,26 @@ def test_get_latest_file_SHOULD_return_proper_latest_file():
     if Path(cwd).exists():
         shutil.rmtree(Path(cwd), ignore_errors=False, onerror=_error_remove_readonly)
 
+
+@pytest.mark.skipif(SKIP_ALL_MARKED, reason="Skipped on request")
+def test_get_latest_tarball_SHOULD_return_proper_latest_tarball():
+    cwd = TESTS_SETUPS_PATH / 'test_get_latest_tarball_SHOULD_return_proper_latest_tarball'
+    if Path(cwd).exists():
+        shutil.rmtree(Path(cwd), ignore_errors=False, onerror=_error_remove_readonly)
+    Path(cwd).mkdir(parents=True, exist_ok=True)
+    
+    Path(Path(cwd) / 'test1.tar.gz').touch()
+    time.sleep(1)
+    Path(Path(cwd) / 'test2.tar.gz').touch()
+    time.sleep(1)
+    Path(Path(cwd) / 'test3.tar.gz').touch()
+    time.sleep(1)
+    Path(Path(cwd) / 'test4.zip').touch()
+
+    assert utils.get_latest_tarball(cwd) == Path(cwd) / 'test3.tar.gz'
+    
+    if Path(cwd).exists():
+        shutil.rmtree(Path(cwd), ignore_errors=False, onerror=_error_remove_readonly)
+
         
         

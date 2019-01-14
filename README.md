@@ -22,3 +22,7 @@ When regenerate on the same commit as tag - dist will be overwritten and without
 When you change project name in tree always change it in setup.cfg
  
 Repo inside parent repo without submodule is not allowed
+
+Commit hash is stored into .egg-info/pbr.json as git_version
+
+Describe mechanism regarding dev release tag only in dist not in git that is set when release on different commit than last release tag commit

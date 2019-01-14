@@ -14,6 +14,7 @@ import semver
 import pbr
 
 
+
 _logger = logger.get_logger(__name__)
 
 
@@ -102,5 +103,47 @@ if __name__ == '__main__':
     file_entry = FileGenEntry(src='source', dst='destination', is_sample=True)
     print(file_entry)
     print(file_entry.is_sample)
+    
+    
+    from pbr import version as pbr_version
+    
+    
+    ver1 = pbr_version.SemanticVersion('0.1.2rc1')
+    ver1_1 = pbr_version.SemanticVersion('0.1.2')
+    ver2 = pbr_version.SemanticVersion('0.1.2rc2')
+    
+    print(ver1)
+    print(ver2)
+    print(ver1 == ver1_1)
+    print(ver1 >= ver1_1)
+    print(ver1 < ver2)
+    
+    ver3 = pbr_version.SemanticVersion('0.1.2')
+    print(ver3.release_string())
+    print(ver3.version_tuple())
+    ver4 = pbr_version.SemanticVersion.from_pip_string('0.1.5a4')
+    print('release_string', ver4.release_string())
+    print('brief_string', ver4.brief_string())
+    print(ver4.version_tuple())
+    print(ver4.rpm_string())
+    print(ver4.debian_string())
+    
+    
+#     from setuptools._vendor.packaging import version as st_version
+    from packaging import version as st_version
+    
+#     ver11 = st_version.parse('0.1.2-alpha.7')
+    ver11 = st_version.parse('0.1.2rc1')
+    ver11_1 = st_version.parse('0.1.2')
+    ver12 = st_version.parse('0.1.2rc2')
+    print(ver11)
+    print(ver12)
+    print(ver11 == ver11_1)
+    print(ver11 >= ver11_1)
+    print(ver11 < ver12)
+    print(st_version.Version('0.0.0'))
+    
+    
+    
     
     

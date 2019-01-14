@@ -4,10 +4,10 @@
 
 import os
 import re
-import semver
 import datetime
 from pathlib import Path
 from pbr import git
+from packaging import version as pkg_version
 from pprint import pprint
 from enum import Enum
 
@@ -31,7 +31,7 @@ class ReleaseAction(Enum):
 
 
 def make_install(options=None, cwd='.'):
-    _logger.info("Performing installation...")
+    _logger.info('Performing installation...')
     
     if not options or (options and options.force != 'force'):
         _check_repo_tree(cwd)
@@ -39,19 +39,19 @@ def make_install(options=None, cwd='.'):
     
     ret = pygittools.get_latest_tag(cwd)
     if ret['returncode'] != 0:
-        raise exceptions.ReleaseMetadataError("Retrieving release tag error: {}".format(ret['msg']), _logger)
+        raise exceptions.ReleaseMetadataError(f"Retrieving release tag error: {ret['msg']}", _logger)
     else:
         release_tag = ret['msg']
 
     final_release_tag = _get_final_release_tag(release_tag, cwd)
     
-    _run_setup_cmd('install', release_tag=final_release_tag, cwd=cwd)
+    _run_setup_cmd(['install'], release_tag=final_release_tag, cwd=cwd)
     
-    _logger.info("Installation completed.")
+    _logger.info('Installation completed.')
     
 
 def make_release(action=ReleaseAction.REGENERATE, prompt=True, push=True, release_data=None, options=None, cwd='.'):
-    _logger.info("Preparing Source Distribution...")
+    _logger.info('Preparing Source Distribution...')
     
     if not options or (options and options.force != 'force'):
         _check_repo_tree(cwd)
@@ -59,7 +59,7 @@ def make_release(action=ReleaseAction.REGENERATE, prompt=True, push=True, releas
     
     release_files_paths = []
     config = utils.get_repo_config_from_setup_cfg(Path(cwd) / settings.FileName.SETUP_CFG)
-    
+
     if prompt:
         action = _release_checkout(config)
         if action == ReleaseAction.MAKE_RELEASE:
@@ -86,22 +86,22 @@ def make_release(action=ReleaseAction.REGENERATE, prompt=True, push=True, releas
     elif action == ReleaseAction.REGENERATE:
         ret = pygittools.get_latest_tag(cwd)
         if ret['returncode'] != 0:
-            raise exceptions.ReleaseMetadataError("Retrieving release tag error: {}"
-                                                  "Repository must be tagged before regenerate.".format(
-                                                      ret['msg']), _logger)
+            raise exceptions.ReleaseMetadataError(f"Retrieving release tag error: {ret['msg']}"
+                                                  f'Repository must be tagged before regenerate.', _logger)
         else:
             release_tag = ret['msg']
 
     final_release_tag = _get_final_release_tag(release_tag, cwd, action)
-    _run_setup_cmd('sdist', release_tag=final_release_tag, cwd=cwd)
+    _run_setup_cmd(['sdist', 'bdist_wheel'], release_tag=final_release_tag, cwd=cwd)
     
-    package_path = utils.get_latest_file(Path(cwd) / settings.DirName.DISTRIBUTION)
+    package_path = utils.get_latest_tarball(Path(cwd) / settings.DirName.DISTRIBUTION)
     
-    if final_release_tag not in package_path.name:
-        raise exceptions.RuntimeError("Source Distribution preparing error! "
-                                      "Sdidt package name not valid. Please try again.", _logger) 
+    if final_release_tag and final_release_tag not in package_path.name:
+        raise exceptions.RuntimeError('Source Distribution preparing error! '
+                                      'Sdidt package name not valid. Please try again.', _logger) 
     
-    _logger.info("Source Distribution {} prepared properly.".format(Path(package_path).resolve().relative_to(Path(cwd).resolve())))
+    _logger.info(f'Source Distribution {Path(package_path).resolve().relative_to(Path(cwd).resolve())} '
+                 f'prepared properly.')
     
     return package_path
 
@@ -109,11 +109,14 @@ def make_release(action=ReleaseAction.REGENERATE, prompt=True, push=True, releas
 def _run_setup_cmd(cmd, release_tag=None, cwd='.'):
     setup_path = Path(cwd).resolve() / settings.FileName.SETUP_PY
     if not setup_path.exists():
-        raise exceptions.FileNotFoundError("{} file not found that is necessary to the distribution process!".format(
-            setup_path.relative_to(Path(cwd).resolve())), _logger)
+        raise exceptions.FileNotFoundError(f'{setup_path.relative_to(Path(cwd).resolve())} '
+                                           f'file not found that is necessary to the distribution process!', _logger)
 
-    os.environ["PBR_VERSION"] = release_tag
-    result = utils.execute_cmd([settings.Tools.PYTHON, setup_path.__str__(), cmd], cwd)
+    if release_tag:
+        os.environ['PBR_VERSION'] = release_tag
+    else:
+        _logger.info('Release tag will be set by pbr automatically.')
+    result = utils.execute_cmd([settings.Tools.PYTHON, setup_path.__str__()] + cmd, cwd)
     for line in result.splitlines():
         _logger.info(line)
         
@@ -122,20 +125,20 @@ def _get_final_release_tag(release_tag, cwd, action=None):
     if not action or (action == ReleaseAction.REGENERATE):
         ret = pygittools.get_tag_commit_hash(release_tag, cwd)
         if ret['returncode'] != 0:
-            raise exceptions.ReleaseMetadataError("Retrieving tag commit hash error: {}".format(ret['msg']), _logger)
+            raise exceptions.ReleaseMetadataError(f"Retrieving tag commit hash error: {ret['msg']}", _logger)
         else:
             tag_commit_hash = ret['msg']
         
         ret = pygittools.get_latest_commit_hash(cwd)
         if ret['returncode'] != 0:
-            raise exceptions.ReleaseMetadataError("Retrieving latest commit hash error: {}".format(ret['msg']), _logger)
+            raise exceptions.ReleaseMetadataError(f"Retrieving latest commit hash error: {ret['msg']}", _logger)
         else:
             latest_commit_hash = ret['msg']
             
         if tag_commit_hash == latest_commit_hash:
             return release_tag
         else:
-            return '{}-{}'.format(release_tag, ret['msg'])
+            return None
     elif action == ReleaseAction.MAKE_RELEASE:
         return release_tag
         
@@ -321,44 +324,65 @@ def _prompt_release_tag(cwd=''):
     latest_release_tag_ret = pygittools.get_latest_tag(cwd)
     
     if latest_release_tag_ret['returncode'] != 0:
-        _logger.tip("Repo has not yet been tagged. Proposed initial release tag: {}".format(settings.SUGGESTED_INITIAL_RELEASE_TAG))
+        _logger.tip(f'Repo has not been tagged yet. '
+                    f'Proposed initial release tag: {settings.SUGGESTED_INITIAL_RELEASE_TAG}')
         is_tagged = False
     else:
-        _logger.info("Last release tag: {}".format(latest_release_tag_ret['msg']))
+        latest_release_tag = latest_release_tag_ret['msg']
+        _logger.info(f"Last release tag: {latest_release_tag}")
         is_tagged = True
     
     is_release_tag_valid = False
     comparing_release_tags = True
     while not is_release_tag_valid:
-        new_release_tag = input("Enter new release tag - <Major Version>.<Minor Version>.<Patch version> e.g. 1.17.3-alpha.2: ")
-        try:
-            semver.parse(new_release_tag)
+        new_release_tag = input(f'Enter new release tag - <Major Version>.<Minor Version>.<Patch version> '
+                                f'e.g. {settings.EXAMPLE_RELEASE_TAG}: ')
+        if _is_release_tag_valid(new_release_tag):
             if is_tagged:
-                try:
-                    latest_release_tag_obj = semver.VersionInfo.parse(latest_release_tag_ret['msg'])
-                except ValueError:
-                    _logger.error("Latest release tag not valid!")
-                    if wizard.is_checkpoint_ok(__name__, "Continue without comparing_release_tags the new relese tag with the latest?"):
+                if not _is_release_tag_valid(latest_release_tag):
+                    _logger.error('Latest release tag not valid!')
+                    if wizard.is_checkpoint_ok(__name__, 
+                                               'Continue without comparing the '
+                                               'new relese tag with the latest?'):
                         comparing_release_tags = False
                     else:
-                        raise exceptions.ReleaseTagError("Latest release tag not valid! Please remove it to continue.", _logger)
+                        raise exceptions.ReleaseTagError('Latest release tag not valid! '
+                                                         'Please remove it to continue.', _logger)
                         
-                new_release_tag_obj = semver.VersionInfo.parse(new_release_tag)
-                
                 if comparing_release_tags:
-                    if new_release_tag_obj > latest_release_tag_obj:
+                    if _is_higher_tag(latest_release_tag, new_release_tag):
                         is_release_tag_valid = True
                     else:
-                        _logger.error("Entered release tag less than the previous release tag! Correct and enter a new one.")
+                        _logger.error('Entered release tag less than the previous release tag! '
+                                      'Correct and enter a new one.')
                 else:
                     return new_release_tag
             else:
                 return new_release_tag
-                
-        except ValueError:
-            _logger.error("Entered release tag not valid! Correct and enter new one.")
+        else:
+            _logger.error('Entered release tag not valid! Correct and enter new one.')
     
     return new_release_tag
+
+
+def _is_release_tag_valid(release_tag):
+    try:
+        normalized_version = pkg_version.Version(release_tag)
+        if str(normalized_version) == release_tag:
+            return True
+        else:
+            _logger.error(f'Entered release tag not valid! Proposed release tag: {normalized_version}. '
+                          f'Correct and enter new one.')
+            return False
+    except pkg_version.InvalidVersion:
+        return False
+    
+    
+def _is_higher_tag(latest_tag, new_tag):
+    latest_tag_obj = pkg_version.Version(latest_tag)
+    new_tag_obj = pkg_version.Version(new_tag)
+    
+    return new_tag_obj > latest_tag_obj
 
 
 def _prompt_release_msg():
