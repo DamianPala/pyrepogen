@@ -8,7 +8,6 @@ import datetime
 from pathlib import Path
 from pbr import git
 from packaging import version as pkg_version
-from pprint import pprint
 from enum import Enum
 
 from . import settings
@@ -100,8 +99,7 @@ def make_release(action=ReleaseAction.REGENERATE, prompt=True, push=True, releas
         raise exceptions.RuntimeError('Source Distribution preparing error! '
                                       'Sdidt package name not valid. Please try again.', _logger) 
     
-    _logger.info(f'Source Distribution {Path(package_path).resolve().relative_to(Path(cwd).resolve())} '
-                 f'prepared properly.')
+    _logger.info(f'Source Distribution {utils.get_rel_path(package_path, cwd)} prepared properly.')
     
     return package_path
 
@@ -109,7 +107,7 @@ def make_release(action=ReleaseAction.REGENERATE, prompt=True, push=True, releas
 def _run_setup_cmd(cmd, release_tag=None, cwd='.'):
     setup_path = Path(cwd).resolve() / settings.FileName.SETUP_PY
     if not setup_path.exists():
-        raise exceptions.FileNotFoundError(f'{setup_path.relative_to(Path(cwd).resolve())} '
+        raise exceptions.FileNotFoundError(f'{utils.get_rel_path(setup_path, cwd)} '
                                            f'file not found that is necessary to the distribution process!', _logger)
 
     if release_tag:
@@ -147,46 +145,45 @@ def _check_if_changes_to_commit(cwd):
     ret = pygittools.are_uncommited_changes(cwd)
     if ret['returncode'] == 0:
         if ret['msg']:
-            raise exceptions.UncommitedChangesError("There are changes to commit!", _logger)
+            raise exceptions.UncommitedChangesError('There are changes to commit!', _logger)
     else:
-        raise exceptions.UncommitedChangesError("Error checking if there are any changes to commit!", _logger)
+        raise exceptions.UncommitedChangesError('Error checking if there are any changes to commit!', _logger)
     
     
 def _check_repo_tree(cwd):
     if not pygittools.is_work_tree(cwd):
-        raise exceptions.WorkTreeNotFoundError("Git Work Tree not found! Please check "
-                                               "if the git repository is initialized.", _logger)
+        raise exceptions.WorkTreeNotFoundError('Git Work Tree not found! Please check '
+                                               'if the git repository is initialized.', _logger)
 
     if not pygittools.is_any_commit(cwd):
-        raise exceptions.NoCommitFoundError("There are no commits in repository. "
-                                            "Please commit before release.", _logger)
+        raise exceptions.NoCommitFoundError('There are no commits in repository. '
+                                            'Please commit before release.', _logger)
     
     if not utils.get_git_repo_tree(cwd):
-        raise exceptions.EmptyRepositoryError("No files in repo tree!", _logger)
+        raise exceptions.EmptyRepositoryError('No files in repo tree!', _logger)
     
 
 def _release_checkout(config):
     action = wizard.choose_one(__name__, 
-                               "Make Release or Regenerate a release package using the actual release metadata",
+                               'Make Release or Regenerate a release package using the actual release metadata',
                                choices=[ReleaseAction.MAKE_RELEASE.value, ReleaseAction.REGENERATE.value])
     action = ReleaseAction.MAKE_RELEASE if action == ReleaseAction.MAKE_RELEASE.value else ReleaseAction.REGENERATE
     
     if action == ReleaseAction.MAKE_RELEASE:
-        if not wizard.is_checkpoint_ok(__name__, "Are you on the relevant branch?"):
-            raise exceptions.ReleaseCheckoutError("Checkout to the proper branch!", _logger)
-        if not wizard.is_checkpoint_ok(__name__, "Are there any uncommited changes or files not "
-                                       "added into the repo tree?", valid_value='n'):
-            raise exceptions.ReleaseCheckoutError("Commit your changes!", _logger)
-        if not wizard.is_checkpoint_ok(__name__, "Is the {} file prepared correctly?".format(settings.FileName.README)):
-            raise exceptions.ReleaseCheckoutError("Complete {} file!".format(settings.FileName.README), _logger)
+        if not wizard.is_checkpoint_ok(__name__, 'Are you on the relevant branch?'):
+            raise exceptions.ReleaseCheckoutError('Checkout to the proper branch!', _logger)
+        if not wizard.is_checkpoint_ok(__name__, 'Are there any uncommited changes or files not '
+                                       'added into the repo tree?', valid_value='n'):
+            raise exceptions.ReleaseCheckoutError('Commit your changes!', _logger)
+        if not wizard.is_checkpoint_ok(__name__, f'Is the {settings.FileName.README} file prepared correctly?'):
+            raise exceptions.ReleaseCheckoutError(f'Complete {settings.FileName.README} file!', _logger)
         if not wizard.is_checkpoint_ok(__name__, 
-                                       "Is there something that should be added to {} file?".format(
-                                           settings.FileName.TODO), 
+                                       f'Is there something that should be added to {settings.FileName.TODO} file?', 
                                        valid_value='n'):
-            raise exceptions.ReleaseCheckoutError("Complete {} file!".format(settings.FileName.TODO), _logger)
+            raise exceptions.ReleaseCheckoutError(f'Complete {settings.FileName.TODO} file!', _logger)
         if config.changelog_type == settings.ChangelogType.PREPARED.value:
-            if not wizard.is_checkpoint_ok(__name__, "Is the {} file up to date?".format(settings.FileName.CHANGELOG)):
-                raise exceptions.ReleaseCheckoutError("Complete {} file!".format(settings.FileName.CHANGELOG), _logger)
+            if not wizard.is_checkpoint_ok(__name__, f'Is the {settings.FileName.CHANGELOG} file up to date?'):
+                raise exceptions.ReleaseCheckoutError(f'Complete {settings.FileName.CHANGELOG} file!', _logger)
         
     return action
 
@@ -204,23 +201,24 @@ def _update_project_version(config, release_tag, cwd='.'):
 
 
 def _update_version(file_version_path, release_tag, cwd='.'):
-    new_version_string = "__version__ = '{}'".format(release_tag)
+    new_version_string = f"__version__ = '{release_tag}'"
     try:
         with open(file_version_path, 'r+t') as file:
             content = file.read()
             if not re.search(_VERSION_REGEX, content):
-                raise exceptions.VersionNotFoundError("__version__ variable not found in the {} "
-                                                      "file. Please correct the file.".format(
-                                                          file_version_path.relative_to(Path(cwd).resolve())), _logger)
+                raise exceptions.VersionNotFoundError(f'__version__ variable not found in the '
+                                                      f'{utils.get_rel_path(file_version_path, cwd)} file. '
+                                                      f'Please correct the file.', _logger)
             else:
                 updated_content = re.sub(_VERSION_REGEX, new_version_string, content, 1)
                 file.seek(0)
                 file.truncate()
                 file.write(updated_content)
     except FileNotFoundError:
-        raise exceptions.FileNotFoundError("File {} with a __version__ variable not foud. File with the __version__ "
-                                           "variable is searched using the project_name entry in {}".format(
-            file_version_path.relative_to(Path(cwd).resolve()), settings.FileName.SETUP_CFG), _logger)
+        raise exceptions.FileNotFoundError(f'File {utils.get_rel_path(file_version_path, cwd)} with a __version__ '
+                                           f'variable not foud. File with the __version__ '
+                                           f'variable is searched using the project_name entry in '
+                                           f'{settings.FileName.SETUP_CFG}', _logger)
         
 
 def _update_changelog(config, new_release_tag, new_release_msg, cwd='.'):
@@ -234,24 +232,26 @@ def _update_changelog(config, new_release_tag, new_release_msg, cwd='.'):
 
 
 def _update_generated_changelog(config, new_release_tag, new_release_msg, cwd='.'):
-    _logger.info("Updating {} file...".format(settings.FileName.CHANGELOG))
+    _logger.info(f'Updating {settings.FileName.CHANGELOG} file...')
     
     changelog_path = Path(cwd).resolve() / settings.FileName.CHANGELOG
-    ret = pygittools.get_changelog(report_format="### Version: %(tag) | Released: %(taggerdate:short) \r\n%(contents)", cwd=cwd)
+    ret = pygittools.get_changelog(
+        report_format='### Version: %(tag) | Released: %(taggerdate:short) \r\n%(contents)', cwd=cwd)
     if ret['returncode'] != 0:
-        raise exceptions.ChangelogGenerateError("Changelog generation error: {}".format(ret['msg']), _logger)
+        raise exceptions.ChangelogGenerateError(f"Changelog generation error: {ret['msg']}", _logger)
     else:
         changelog_content = ret['msg']
     
     if changelog_path.exists():
         changelog_path.unlink()
-    prepare.write_file_from_template(Path(settings.DirName.TEMPLATES) / settings.FileName.CHANGELOG_GENERATED, changelog_path, config.__dict__, cwd, verbose=False)
+    prepare.write_file_from_template(Path(settings.DirName.TEMPLATES) / settings.FileName.CHANGELOG_GENERATED, 
+                                     changelog_path, config.__dict__, cwd, verbose=False)
     with open(changelog_path, 'a') as file:
         file.write('\n')
         file.write(_get_changelog_entry(new_release_tag, new_release_msg))
         file.write(changelog_content)
     
-    _logger.info("{} file updated".format(settings.FileName.CHANGELOG))    
+    _logger.info(f'{settings.FileName.CHANGELOG} file updated')    
     
     return changelog_path
 
@@ -259,50 +259,50 @@ def _update_generated_changelog(config, new_release_tag, new_release_msg, cwd='.
 def _get_changelog_entry(release_tag, release_msg):
     tagger_date = datetime.date.today().strftime('%Y-%m-%d')
     
-    return "### Version: {} | Released: {} \n{}\n\n".format(release_tag, tagger_date, release_msg)
+    return f'### Version: {release_tag} | Released: {tagger_date} \n{release_msg}\n\n'
 
 
 def _commit_and_push_release_update(new_release_tag, new_release_msg, files_to_add=None, push=True, cwd='.'):
     if push:
-        _logger.info("Commit updated release files, set tag and push...")
+        _logger.info('Commit updated release files, set tag and push...')
     else:
-        _logger.info("Commit updated release files, set tag...")
+        _logger.info('Commit updated release files, set tag...')
     
     paths = []
     for file_path in files_to_add:
         ret = pygittools.add(file_path, cwd)
         if ret['returncode'] != 0:
-            raise exceptions.CommitAndPushReleaseUpdateError("{} git add error: {}".format(file_path.name, ret['msg']), _logger)
+            raise exceptions.CommitAndPushReleaseUpdateError(f"{file_path.name} git add error: {ret['msg']}", _logger)
         paths.append(file_path)
     
     ret = pygittools.commit(settings.AUTOMATIC_RELEASE_COMMIT_MSG, cwd)
     if ret['returncode'] != 0:
-        raise exceptions.CommitAndPushReleaseUpdateError("git commit error: {}".format(ret['msg']), _logger)
+        raise exceptions.CommitAndPushReleaseUpdateError(f"git commit error: {ret['msg']}", _logger)
     release_tag_ret = pygittools.set_tag(cwd, new_release_tag, new_release_msg)
     if release_tag_ret['returncode'] != 0:
         _clean_failed_release(new_release_tag, cwd)
-        raise exceptions.ReleaseTagSetError("Error while setting release tag: {}".format(release_tag_ret['msg']), _logger)
+        raise exceptions.ReleaseTagSetError(f"Error while setting release tag: {release_tag_ret['msg']}", _logger)
     
     if push and pygittools.is_origin_set(cwd):
         ret = pygittools.push_with_tags(cwd)
         if ret['returncode'] != 0:
             _clean_failed_release(new_release_tag, cwd)
-            raise exceptions.CommitAndPushReleaseUpdateError("git push error: {}".format(ret['msg']), _logger)
+            raise exceptions.CommitAndPushReleaseUpdateError(f"git push error: {ret['msg']}", _logger)
     
-        _logger.info("New release data commited with tag set up and pushed properly.")
+        _logger.info('New release data commited with tag set up and pushed properly.')
     else:
-        _logger.info("New release data commited with tag set up properly.")
+        _logger.info('New release data commited with tag set up properly.')
     
     return paths
 
 
 def _clean_failed_release(new_release_tag, cwd):
-    _logger.warning("Revert release process.")
+    _logger.warning('Revert release process.')
     
     ret = pygittools.revert(1, cwd)
     if ret['returncode'] != 0:
-        raise exceptions.CriticalError("Critical Error occured when reverting an automatic last commit. "
-                                       "Please check git log, repo tree and cleanup the mess.", _logger)
+        raise exceptions.CriticalError('Critical Error occured when reverting an automatic last commit. '
+                                       'Please check git log, repo tree and cleanup the mess.', _logger)
     
     latest_tag_remove_error = False
     ret = pygittools.list_tags(cwd)
@@ -316,8 +316,8 @@ def _clean_failed_release(new_release_tag, cwd):
                 latest_tag_remove_error = True
         
     if latest_tag_remove_error:
-        raise exceptions.CriticalError("Critical Error occured when deleting an automatic latest tag. "
-                                       "Please check git log, repo tree and cleanup the mess.", _logger)
+        raise exceptions.CriticalError('Critical Error occured when deleting an automatic latest tag. '
+                                       'Please check git log, repo tree and cleanup the mess.', _logger)
 
 
 def _prompt_release_tag(cwd=''):
@@ -329,7 +329,7 @@ def _prompt_release_tag(cwd=''):
         is_tagged = False
     else:
         latest_release_tag = latest_release_tag_ret['msg']
-        _logger.info(f"Last release tag: {latest_release_tag}")
+        _logger.info(f'Last release tag: {latest_release_tag}')
         is_tagged = True
     
     is_release_tag_valid = False
@@ -398,7 +398,7 @@ def _prompt_release_msg():
     message = '\n'.join(message)
     
     if not message:
-        raise exceptions.ValueError("Tag msg cannot be empty", _logger)
+        raise exceptions.ValueError('Tag msg cannot be empty', _logger)
     
     return message
 
@@ -417,7 +417,8 @@ def _generate_prepared_file(config, filename, template_name, cwd='.'):
     file_path = Path(cwd).resolve() / filename
     if not file_path.exists(): 
         _logger.info(f'Generating {filename} file...')
-        prepare.write_file_from_template(Path(settings.DirName.TEMPLATES) / template_name, file_path, config.__dict__, cwd, verbose=False)
+        prepare.write_file_from_template(Path(settings.DirName.TEMPLATES) / template_name, 
+                                         file_path, config.__dict__, cwd, verbose=False)
         _logger.info(f'{filename} file generated')    
     
     return file_path
@@ -425,7 +426,7 @@ def _generate_prepared_file(config, filename, template_name, cwd='.'):
     
 def _generate_file_pbr(filename, gen_handler, cwd='.'):
     is_error = False
-    _logger.info("Generating {} file...".format(filename))
+    _logger.info(f'Generating {filename} file...')
     
     file_path = Path(cwd) / filename
     git_dir = Path(cwd) / settings.DirName.GIT
@@ -445,8 +446,8 @@ def _generate_file_pbr(filename, gen_handler, cwd='.'):
         is_error = True
         
     if is_error:
-        raise exceptions.FileGenerationError("{} file generation error!".format(filename), _logger)
+        raise exceptions.FileGenerationError(f'{filename} file generation error!', _logger)
     
-    _logger.info("The {} file generated".format(filename))
+    _logger.info(f'The {filename} file generated')
     
     return file_path.resolve()
