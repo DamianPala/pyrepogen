@@ -121,7 +121,6 @@ def _remove_junk_fields(config_dict):
     fields_to_remove = [field for field in config_dict if field not in settings.Config.get_fields()]
 
     for field in fields_to_remove:
-        _logger.warning(f'Detected unknown field: {field} in {settings.FileName.SETUP_CFG} file.')
         config_dict.pop(field)
 
 
@@ -207,3 +206,7 @@ def get_latest_tarball(path):
                 return max(files_list, key=lambda x: x.mtime).path
 
     return None
+
+
+def get_rel_path(path, cwd):
+    return Path(path).resolve().relative_to(Path(cwd).resolve())

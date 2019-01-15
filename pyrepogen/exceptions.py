@@ -79,3 +79,6 @@ class WorkTreeNotFoundError(PyRepoGenError):
 
 class NoCommitFoundError(PyRepoGenError):
     pass
+
+class GitAddError(PyRepoGenError):
+    pass

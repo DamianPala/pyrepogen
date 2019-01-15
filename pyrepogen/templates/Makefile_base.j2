@@ -1,5 +1,6 @@
 PYTHON     := python
 TEST_PATH  := {{tests_path}}
+VENV_DIR   := venv
 
 
 ifeq (release,$(firstword $(MAKECMDGOALS)))
@@ -45,6 +46,10 @@ coverage_report:
 	
 tox:
 	@tox
+	
+venv:
+	@echo "Prepare virtual environment in ${VENV_DIR} directory."
+	@virtualenv venv
 
 format:
 	@$(PYTHON) -m repoassist format $(FORMAT_ARGS)
@@ -98,6 +103,9 @@ help:
 	@echo "make tox"
 	@echo "	Run tox"
 	
+	@echo "make venv"
+	@echo "	Prepare virtual environment in ${VENV_DIR} directory."
+	
 	@echo "make format"
 	@echo "	Run autopep8 formatter for file specified as argument in merge mode"
 	@echo "	Usage: make format <path to file to be formatted>"
@@ -120,4 +128,5 @@ help:
 	@echo "	Clean build and distribution"
 	
 
-.PHONY: default requirements prepare release install test coverage coverage_report tox format lint doc install_reqs update_reqs {% block cloud_targets_phony %}{% endblock %} clean help
+.PHONY: default requirements prepare release install test coverage coverage_report tox venv \
+	format lint doc install_reqs update_reqs {% block cloud_targets_phony %}{% endblock %} clean help

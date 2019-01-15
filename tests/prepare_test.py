@@ -6,7 +6,11 @@ import stat
 from pathlib import Path
 from pprint import pprint
 
-from pyrepogen import prepare, settings, utils, PARDIR
+from pyrepogen import prepare
+from pyrepogen import settings
+from pyrepogen import utils
+from pyrepogen import PARDIR
+from pyrepogen import pygittools
 
 
 TESTS_SETUPS_PATH = Path(inspect.getframeinfo(inspect.currentframe()).filename).parent / 'tests_setups/prepare_test'
@@ -150,6 +154,38 @@ def test_generate_package_repo_SHOULD_generate_repo_tree_properly():
 
     assert paths == expected_paths
     
+    
+@pytest.mark.skipif(SKIP_ALL_MARKED, reason="Skipped on request")
+def test_generate_package_repo_SHOULD_add_genereated_files_to_repo_tree_when_choosen():
+    cwd = TESTS_SETUPS_PATH / 'test_generate_package_repo_SHOULD_add_genereated_files_to_repo_tree_when_choosen'
+    if Path(cwd).exists():
+        shutil.rmtree(Path(cwd), ignore_errors=False, onerror=_error_remove_readonly)
+    Path(cwd).mkdir(parents=True, exist_ok=True)
+    
+    config = settings.Config(**_DEFAULT_CONFIG)
+    config.project_type = settings.ProjectType.PACKAGE.value
+    config.is_sample_layout = True
+    config.is_git = True
+    
+    args = Args
+    args.force = False
+    args.cloud = True
+    
+    paths = prepare.generate_repo(config, cwd, options=args)
+    paths = {path.relative_to(cwd).as_posix() for path in paths \
+             if path.is_file() and settings.FileName.CLOUD_CREDENTIALS not in path.__str__()}
+    pprint(paths)
+    
+    pygittools.commit("Initial Commit", cwd)
+    repo_paths = utils.get_git_repo_tree(cwd)
+    repo_paths = {path.relative_to(cwd).as_posix() for path in repo_paths}
+    pprint(repo_paths)
+    
+    assert paths == repo_paths
+    
+    if Path(cwd).exists():
+        shutil.rmtree(Path(cwd), ignore_errors=False, onerror=_error_remove_readonly)
+
     
 @pytest.mark.skipif(SKIP_ALL_MARKED, reason="Skipped on request")
 def test_generate_package_repo_SHOULD_generate_repo_tree_properly_WHEN_no_sample():

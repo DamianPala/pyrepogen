@@ -207,3 +207,7 @@ def get_latest_tarball(path):
                 return max(files_list, key=lambda x: x.mtime).path
 
     return None
+
+
+def get_rel_path(path, cwd):
+    return Path(path).resolve().relative_to(Path(cwd).resolve())

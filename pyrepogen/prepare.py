@@ -11,13 +11,14 @@ from . import PARDIR
 from . import exceptions
 from . import pygittools
 from . import logger
+from . import utils
 
 
 _logger = logger.get_logger(__name__)
 
 
 def generate_repo(config, cwd='.', options=None):
-    _logger.info("Generate repository files...")
+    _logger.info('Generate repository files...')
 
     paths = []
     
@@ -25,20 +26,32 @@ def generate_repo(config, cwd='.', options=None):
     paths.extend(_generate_repo_dirs(config, cwd))
     if config.project_type == settings.ProjectType.PACKAGE.value:
         if options.sample_layout:
-            config.entry_point = settings.PACKAGE_ENTRY_POINT.replace(settings.ENTRY_POINT_PLACEHOLDER, config.project_name)
+            config.entry_point = settings.PACKAGE_ENTRY_POINT.replace(settings.ENTRY_POINT_PLACEHOLDER,
+                                                                      config.project_name)
         paths.extend(_generate_repo_files(settings.PACKAGE_REPO_FILES_TO_GEN, config, cwd, options))
     elif config.project_type == settings.ProjectType.MODULE.value:
         if options.sample_layout:
-            config.entry_point = settings.MODULE_ENTRY_POINT.replace(settings.ENTRY_POINT_PLACEHOLDER, config.project_name)
+            config.entry_point = settings.MODULE_ENTRY_POINT.replace(settings.ENTRY_POINT_PLACEHOLDER, 
+                                                                     config.project_name)
         paths.extend(_generate_repo_files(settings.MODULE_REPO_FILES_TO_GEN, config, cwd, options))
     else:
-        raise exceptions.RuntimeError("Unknown project type.", _logger)
+        raise exceptions.RuntimeError('Unknown project type.', _logger)
     paths.extend(_generate_repoasist(config, cwd, options))
     
     if config.is_git:
         _init_git_repo(config, cwd)
+        
+        for path in paths:
+            ret = pygittools.add(path, cwd)
+            if ret['returncode'] != 0:
+                if 'following paths are ignored' not in ret['msg']:
+                    raise exceptions.GitAddError(f'Error occured while adding file '
+                                                 f"{utils.get_rel_path(path, cwd)} into repository tree: {ret['msg']}", 
+                                                 _logger)
+            else:
+                _logger.info('Generated files added into repository tree.')
 
-    _logger.info("Repository files generated.")
+    _logger.info('Repository files generated.')
 
     return paths
 
@@ -46,12 +59,12 @@ def generate_repo(config, cwd='.', options=None):
 def _init_git_repo(config, cwd):
     ret = pygittools.init(cwd)
     if ret['returncode'] != 0:
-        raise exceptions.RuntimeError("Git repository initializing error: {}".format(ret['msg']), _logger)
+        raise exceptions.RuntimeError(f"Git repository initializing error: {ret['msg']}", _logger)
     
     if config.git_origin:
         ret = pygittools.add_origin(config.git_origin, cwd)
         if ret['returncode'] != 0:
-            raise exceptions.RuntimeError("Git repository origin set up error: {}".format(ret['msg']), _logger)
+            raise exceptions.RuntimeError(f"Git repository origin set up error: {ret['msg']}", _logger)
     
 
 def _generate_repo_dirs(config, cwd):
@@ -69,17 +82,20 @@ def _generate_repo_dirs(config, cwd):
 def _generate_directory(dirname, cwd):
     try:
         Path(Path(cwd) / dirname).mkdir()
-        _logger.info("{} directory generated.".format(dirname))
+        _logger.info(f'{dirname} directory generated.')
         return [Path(cwd) / dirname]
     except FileExistsError:
-        _logger.warning("{} directory exists, not overwritten.".format(dirname))
+        _logger.warning(f'{dirname} directory exists, not overwritten.')
         return []
 
 
 def generate_repo_config(cwd='.', options=None):
-    _logger.info("Creating the predefined repository config file {} in your current working directory...".format(settings.FileName.REPO_CONFIG))
-    path = _copy_template_file(settings.FileName.REPO_CONFIG, Path(cwd) / settings.FileName.REPO_CONFIG, cwd, options, verbose=False)
-    _logger.info("Predefined repository config file created. Please fill it with relevant data and try to generate repository again!")
+    _logger.info(f'Creating the predefined repository config file '
+                 f'{settings.FileName.REPO_CONFIG} in your current working directory...')
+    path = _copy_template_file(settings.FileName.REPO_CONFIG, 
+                               Path(cwd) / settings.FileName.REPO_CONFIG, cwd, options, verbose=False)
+    _logger.info('Predefined repository config file created. Please fill it with relevant data '
+                 'and try to generate repository again!')
     
     return path
     
@@ -113,6 +129,9 @@ def _generate_repo_files(files_list, config, cwd, options=None):
 
 
 def _generate_repoasist(config, cwd, options=None):
+    def get_path_to_templates(cwd):
+        return Path(cwd) / settings.DirName.REPOASSIST / settings.DirName.TEMPLATES
+    
     paths = []
 
     for filename in settings.REPOASSIST_FILES:
@@ -126,14 +145,14 @@ def _generate_repoasist(config, cwd, options=None):
                                                   cwd, options))
         elif filename == settings.FileName.CHANGELOG:
             paths.extend(_copy_template_file(settings.FileName.CHANGELOG_GENERATED,
-                                             Path(cwd) / settings.DirName.REPOASSIST / settings.DirName.TEMPLATES / settings.FileName.CHANGELOG_GENERATED,
+                                             get_path_to_templates(cwd) / settings.FileName.CHANGELOG_GENERATED,
                                              cwd, options))
             paths.extend(_copy_template_file(settings.FileName.CHANGELOG_PREPARED,
-                                             Path(cwd) / settings.DirName.REPOASSIST / settings.DirName.TEMPLATES / settings.FileName.CHANGELOG_PREPARED,
+                                             get_path_to_templates(cwd) / settings.FileName.CHANGELOG_PREPARED,
                                              cwd, options))
         elif filename == settings.FileName.AUTHORS:
             paths.extend(_copy_template_file(settings.FileName.AUTHORS_PREPARED,
-                                             Path(cwd) / settings.DirName.REPOASSIST / settings.DirName.TEMPLATES / settings.FileName.AUTHORS_PREPARED,
+                                             get_path_to_templates(cwd) / settings.FileName.AUTHORS_PREPARED,
                                              cwd, options))
         else:
             paths.extend(_copy_file(filename, Path(cwd) / settings.DirName.REPOASSIST / filename, cwd, options))
@@ -150,11 +169,11 @@ def _generate_empty_file(path, cwd, options=None):
             with open(Path(path), 'x'):
                 pass
 
-        _logger.info("{} file generated.".format(path.relative_to(Path(cwd).resolve())))
-
+        _logger.info(f'{utils.get_rel_path(path, cwd)} file generated.')
+        
         return [path]
     except FileExistsError:
-        _logger.warning("{} file exists, not overwritten.".format(path.relative_to(Path(cwd).resolve())))
+        _logger.warning(f'{utils.get_rel_path(path, cwd)} file exists, not overwritten.')
 
         return []
 
@@ -173,12 +192,12 @@ def _copy_file_from(src, dst, cwd, options=None, verbose=True):
         shutil.copy(src, dst)
         
         if verbose:
-            _logger.info("{} file generated.".format(Path(dst).relative_to(Path(cwd).resolve())))
+            _logger.info(f'{utils.get_rel_path(dst, cwd)} file generated.')
 
         return [dst]
     else:
         if verbose:
-            _logger.warning("{} file exists, not overwritten.".format(Path(dst).relative_to(Path(cwd).resolve())))
+            _logger.warning(f'{utils.get_rel_path(dst, cwd)} file exists, not overwritten.')
 
         return []
 
@@ -196,11 +215,11 @@ def write_file_from_template(src, dst, keywords, cwd, options=None, verbose=True
         template.stream(keywords, options=options).dump(str(dst))
 
         if verbose:
-            _logger.info("{} file generated.".format(Path(dst).relative_to(Path(cwd).resolve())))
+            _logger.info(f'{utils.get_rel_path(dst, cwd)} file generated.')
 
         return [dst]
     else:
         if verbose:
-            _logger.warning("{} file exists, not overwritten.".format(Path(dst).relative_to(Path(cwd).resolve())))
+            _logger.warning(f'{utils.get_rel_path(dst, cwd)} file exists, not overwritten.')
 
         return []

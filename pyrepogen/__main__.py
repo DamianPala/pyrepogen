@@ -74,18 +74,18 @@ def main():
                 config_dict['is_git'] = wizard.choose_bool(__name__, 'Initialize GIT repository?')
                 if config_dict['is_git']:
                     config_dict['git_origin'] = wizard.get_data(__name__, 'Enter GIT origin url')
-                config_dict['project_name'] = wizard.get_data(__name__, 'Enter project name')
-                config_dict['author'] = wizard.get_data(__name__, 'Enter author')
-                config_dict['author_email'] = wizard.get_data(__name__, 'Enter author email')
+                config_dict['project_name'] = wizard.get_data_and_valid(__name__, 'Enter project name', [''])
+                config_dict['author'] = wizard.get_data_and_valid(__name__, 'Enter author', [''])
+                config_dict['author_email'] = wizard.get_data_and_valid(__name__, 'Enter author email', [''])
                 config_dict['maintainer'] = wizard.get_data(__name__, 'Enter maintainer')
                 config_dict['maintainer_email'] = wizard.get_data(__name__, 'Enter maintainer email')
-                config_dict['short_description'] = wizard.get_data(__name__, 'Enter short project description')
+                config_dict['short_description'] = wizard.get_data_and_valid(__name__, 'Enter short project description', [''])
                 config_dict['home_page'] = wizard.get_data(__name__, 'Enter home page')
                 config_dict['changelog_type'] = wizard.choose_one(__name__, 'Select a changelog type', 
                                                                   settings.ChangelogType)
                 config_dict['authors_type'] = wizard.choose_one(__name__, 
-                                                                f'Select an {settings.FileName.AUTHORS} file type', 
-                                                                settings.ChangelogType) 
+                                                                f'Select an {settings.FileName.AUTHORS} file type',
+                                                                settings.ChangelogType)
                 
                 config = settings.Config(**config_dict)
                 
