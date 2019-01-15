@@ -87,7 +87,7 @@ class FileName():
     PACKAGE_SAMPLE_MODULE = 'modulo.py'
     PACKAGE_SAMPLE_TEST = 'modulo_test.py'
     SAMPLE_MODULE = 'module.py'
-    REPOASSIST_MAIN = 'repoassist_main.py'
+    REPOASSIST_CLI = 'repoassist_cli.py'
     COLREQS = 'colreqs.py'
     SETTINGS = 'settings.py'
     LOGGER = 'logger.py'
@@ -205,8 +205,9 @@ REPO_DIRS_TO_GEN = [
 ]
 
 REPOASSIST_FILES = [
+    FileName.MAIN,
     FileName.PYINIT,
-    FileName.REPOASSIST_MAIN,
+    FileName.REPOASSIST_CLI,
     FileName.COLREQS,
     FileName.SETTINGS,
     FileName.LOGGER,

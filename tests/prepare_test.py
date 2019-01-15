@@ -119,6 +119,7 @@ def test_generate_package_repo_SHOULD_generate_repo_tree_properly():
         'repoassist/templates',
         'repoassist/__init__.py',
         'repoassist/__main__.py',
+        'repoassist/cli.py',
         'repoassist/colreqs.py',
         'repoassist/settings.py',
         'repoassist/logger.py',
@@ -213,6 +214,7 @@ def test_generate_package_repo_SHOULD_generate_repo_tree_properly_WHEN_no_sample
         'repoassist/templates',
         'repoassist/__init__.py',
         'repoassist/__main__.py',
+        'repoassist/cli.py',
         'repoassist/colreqs.py',
         'repoassist/settings.py',
         'repoassist/logger.py',
@@ -277,6 +279,7 @@ def test_generate_module_repo_SHOULD_generate_repo_tree_properly():
         'repoassist/templates',
         'repoassist/__init__.py',
         'repoassist/__main__.py',
+        'repoassist/cli.py',
         'repoassist/colreqs.py',
         'repoassist/settings.py',
         'repoassist/logger.py',
@@ -339,6 +342,7 @@ def test_generate_module_repo_SHOULD_generate_repo_tree_properly_WHEN_no_sample(
         'repoassist/templates',
         'repoassist/__init__.py',
         'repoassist/__main__.py',
+        'repoassist/cli.py',
         'repoassist/colreqs.py',
         'repoassist/settings.py',
         'repoassist/logger.py',
@@ -375,6 +379,7 @@ def test_generate_module_repo_SHOULD_generate_repo_tree_properly_WHEN_no_sample(
     assert paths == expected_paths
 
 
+# TODO: finish this test!!!
 @pytest.mark.skipif(SKIP_ALL_MARKED, reason="Skipped on request")
 def test_generate_module_repo_SHOULD_force_properly():
     cwd = TESTS_SETUPS_PATH / 'test_generate_module_repo_SHOULD_force_properly'
@@ -400,10 +405,20 @@ def test_generate_module_repo_SHOULD_force_properly():
             pass
         
     for filename in settings.REPOASSIST_FILES:
-        if filename == settings.FileName.REPOASSIST_MAIN:
-            filename = settings.FileName.MAIN
-        with open(Path(cwd) / settings.DirName.REPOASSIST / filename, 'w'):
+        if filename == settings.FileName.REPOASSIST_CLI:
+            filepath = Path(cwd) / settings.DirName.REPOASSIST / settings.FileName.CLI
+        elif  filename == settings.FileName.AUTHORS:
+            filepath = Path(cwd) / settings.DirName.REPOASSIST / settings.DirName.TEMPLATES / settings.FileName.AUTHORS_PREPARED
+        elif  filename == settings.FileName.CHANGELOG:
+            filepath = Path(cwd) / settings.DirName.REPOASSIST / settings.DirName.TEMPLATES / settings.FileName.CHANGELOG_GENERATED
+        else:
+            filepath = Path(cwd) / settings.DirName.REPOASSIST / filename
+        with open(filepath, 'w'):
             pass
+        
+    filepath = Path(cwd) / settings.DirName.REPOASSIST / settings.DirName.TEMPLATES / settings.FileName.CHANGELOG_PREPARED
+    with open(filepath, 'w'):
+        pass
         
     files_paths_to_overwrite = [
         Path(cwd) / settings.FileName.GITIGNORE,
@@ -416,6 +431,7 @@ def test_generate_module_repo_SHOULD_force_properly():
         Path(cwd) / settings.DirName.TESTS / settings.FileName.PYINIT,
         Path(cwd) / settings.DirName.REPOASSIST / settings.FileName.PYINIT,
         Path(cwd) / settings.DirName.REPOASSIST / settings.FileName.MAIN,
+        Path(cwd) / settings.DirName.REPOASSIST / settings.FileName.CLI,
         Path(cwd) / settings.DirName.REPOASSIST / settings.FileName.COLREQS,
         Path(cwd) / settings.DirName.REPOASSIST / settings.FileName.SETTINGS,
         Path(cwd) / settings.DirName.REPOASSIST / settings.FileName.LOGGER,

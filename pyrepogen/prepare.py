@@ -135,9 +135,9 @@ def _generate_repoasist(config, cwd, options=None):
     paths = []
 
     for filename in settings.REPOASSIST_FILES:
-        if filename == settings.FileName.REPOASSIST_MAIN:
+        if filename == settings.FileName.REPOASSIST_CLI:
             paths.extend(_copy_file(filename,
-                                    Path(cwd) / settings.DirName.REPOASSIST / settings.FileName.MAIN,
+                                    Path(cwd) / settings.DirName.REPOASSIST / settings.FileName.CLI,
                                     cwd, options))
         elif filename == settings.FileName.PYINIT:
             paths.extend(write_file_from_template(Path(settings.DirName.TEMPLATES) / settings.FileName.PYINIT,
