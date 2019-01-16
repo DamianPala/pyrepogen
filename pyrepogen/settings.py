@@ -15,6 +15,12 @@ SUGGESTED_INITIAL_RELEASE_TAG = '0.1.0'
 EXAMPLE_RELEASE_TAG = '1.17.3rc2'
 
 
+class Options:
+    force = False
+    cloud = False
+    sample_layout = False
+
+
 class ProjectType(Enum):
     PACKAGE = 'package'
     MODULE = 'module'

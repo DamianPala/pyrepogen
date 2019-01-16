@@ -131,6 +131,11 @@ def _generate_repo_files(files_list, config, cwd, options=None):
 def _generate_repoasist(config, cwd, options=None):
     paths = []
     
+    if options is None:
+        options = settings.Options()
+        
+    options.force = True
+    
     for file in settings.REPOASSIST_FILES:
         src = Path(PARDIR) / file.src
         dst = Path(cwd) / file.dst
