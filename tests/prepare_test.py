@@ -25,7 +25,7 @@ _DEFAULT_CONFIG = {
     'short_description': 'This is a sample project',
     'changelog_type': settings.ChangelogType.GENERATED.value,
     'authors_type': settings.AuthorsType.GENERATED.value,
-    'pipreqs_ignore': [settings.DirName.REPOASSIST, settings.TESTS_PATH]
+    'pipreqs_ignore': [settings.DirName.REPOASSIST, settings.DirName.TESTS]
 }
 
 
