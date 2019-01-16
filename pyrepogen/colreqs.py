@@ -73,7 +73,7 @@ def write_requirements_dev(cwd='.'):
         _logger.warning(f'{settings.FileName.REQUIREMENTS_DEV} file already exists, not overwritten.')
     else:
         prepare.write_file_from_template(Path(settings.DirName.TEMPLATES) / file_path.name, 
-                                         file_path, None, cwd, verbose=False)
+                                         file_path, {}, cwd, verbose=False)
         _logger.info(f'{file_path.name} file prepared.')
     
     return file_path

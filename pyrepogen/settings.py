@@ -204,24 +204,37 @@ REPO_DIRS_TO_GEN = [
     str(Path(DirName.REPOASSIST) / DirName.TEMPLATES)
 ]
 
+
+RepoassistFileGenEntry = namedtuple('RepoassistFileGeneratorEntry', 'src dst is_templ')
+
 REPOASSIST_FILES = [
-    FileName.MAIN,
-    FileName.PYINIT,
-    FileName.REPOASSIST_CLI,
-    FileName.COLREQS,
-    FileName.SETTINGS,
-    FileName.LOGGER,
-    FileName.RELEASE,
-    FileName.EXCEPTIONS,
-    FileName.UTILS,
-    FileName.PYGITTOOLS,
-    FileName.CLOUD,
-    FileName.WIZARD,
-    FileName.FORMATTER,
-    FileName.CHANGELOG,
-    FileName.AUTHORS,
-    FileName.PREPARE,
-    FileName.CLEAN,
+    RepoassistFileGenEntry(src=Path(FileName.MAIN), dst=Path('.') / DirName.REPOASSIST / FileName.MAIN, is_templ=False),
+    RepoassistFileGenEntry(src=Path(DirName.TEMPLATES) / FileName.PYINIT, dst=Path('.') / DirName.REPOASSIST / FileName.PYINIT, is_templ=True),
+    RepoassistFileGenEntry(src=Path(FileName.COLREQS), dst=Path('.') / DirName.REPOASSIST / FileName.COLREQS, is_templ=False),
+    RepoassistFileGenEntry(src=Path(FileName.SETTINGS), dst=Path('.') / DirName.REPOASSIST / FileName.SETTINGS, is_templ=False),
+    RepoassistFileGenEntry(src=Path(FileName.LOGGER), dst=Path('.') / DirName.REPOASSIST / FileName.LOGGER, is_templ=False),
+    RepoassistFileGenEntry(src=Path(FileName.RELEASE), dst=Path('.') / DirName.REPOASSIST / FileName.RELEASE, is_templ=False),
+    RepoassistFileGenEntry(src=Path(FileName.EXCEPTIONS), dst=Path('.') / DirName.REPOASSIST / FileName.EXCEPTIONS, is_templ=False),
+    RepoassistFileGenEntry(src=Path(FileName.UTILS), dst=Path('.') / DirName.REPOASSIST / FileName.UTILS, is_templ=False),
+    RepoassistFileGenEntry(src=Path(FileName.PYGITTOOLS), dst=Path('.') / DirName.REPOASSIST / FileName.PYGITTOOLS, is_templ=False),
+    RepoassistFileGenEntry(src=Path(FileName.CLOUD), dst=Path('.') / DirName.REPOASSIST / FileName.CLOUD, is_templ=False),
+    RepoassistFileGenEntry(src=Path(FileName.WIZARD), dst=Path('.') / DirName.REPOASSIST / FileName.WIZARD, is_templ=False),
+    RepoassistFileGenEntry(src=Path(FileName.FORMATTER), dst=Path('.') / DirName.REPOASSIST / FileName.FORMATTER, is_templ=False),
+    RepoassistFileGenEntry(src=Path(FileName.PREPARE), dst=Path('.') / DirName.REPOASSIST / FileName.PREPARE, is_templ=False),
+    RepoassistFileGenEntry(src=Path(FileName.CLEAN), dst=Path('.') / DirName.REPOASSIST / FileName.CLEAN, is_templ=False),
+    RepoassistFileGenEntry(src=Path(FileName.REPOASSIST_CLI), dst=Path('.') / DirName.REPOASSIST / FileName.CLI, is_templ=False),
+    RepoassistFileGenEntry(src=Path(DirName.TEMPLATES) / f'{FileName.CHANGELOG_GENERATED}{JINJA2_TEMPLATE_EXT}', 
+                           dst=Path('.') / DirName.REPOASSIST  / DirName.TEMPLATES / f'{FileName.CHANGELOG_GENERATED}{JINJA2_TEMPLATE_EXT}', 
+                           is_templ=False),
+    RepoassistFileGenEntry(src=Path(DirName.TEMPLATES) / f'{FileName.CHANGELOG_PREPARED}{JINJA2_TEMPLATE_EXT}', 
+                           dst=Path('.') / DirName.REPOASSIST  / DirName.TEMPLATES / f'{FileName.CHANGELOG_PREPARED}{JINJA2_TEMPLATE_EXT}', 
+                           is_templ=False),
+    RepoassistFileGenEntry(src=Path(DirName.TEMPLATES) / f'{FileName.AUTHORS_PREPARED}{JINJA2_TEMPLATE_EXT}', 
+                           dst=Path('.') / DirName.REPOASSIST  / DirName.TEMPLATES / f'{FileName.AUTHORS_PREPARED}{JINJA2_TEMPLATE_EXT}', 
+                           is_templ=False),
+    RepoassistFileGenEntry(src=Path(DirName.TEMPLATES) / f'{FileName.REQUIREMENTS_DEV}{JINJA2_TEMPLATE_EXT}', 
+                           dst=Path('.') / DirName.REPOASSIST  / DirName.TEMPLATES / f'{FileName.REQUIREMENTS_DEV}{JINJA2_TEMPLATE_EXT}', 
+                           is_templ=False),
 ]
 
 GEN_REPO_CONFIG_MANDATORY_FIELDS = [

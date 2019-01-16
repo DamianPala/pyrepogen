@@ -25,7 +25,7 @@ _DEFAULT_CONFIG = {
     'short_description': 'This is a sample project',
     'changelog_type': settings.ChangelogType.GENERATED.value,
     'authors_type': settings.AuthorsType.GENERATED.value,
-    'pipreqs_ignore': [settings.DirName.REPOASSIST]
+    'pipreqs_ignore': [settings.DirName.REPOASSIST, settings.TESTS_PATH]
 }
 
 
@@ -132,9 +132,10 @@ def test_generate_package_repo_SHOULD_generate_repo_tree_properly():
         'repoassist/exceptions.py',
         'repoassist/prepare.py',
         'repoassist/clean.py',
-        'repoassist/templates/CHANGELOG_generated.md',
-        'repoassist/templates/CHANGELOG_prepared.md',
-        'repoassist/templates/AUTHORS_prepared.md',
+        'repoassist/templates/CHANGELOG_generated.md.j2',
+        'repoassist/templates/CHANGELOG_prepared.md.j2',
+        'repoassist/templates/AUTHORS_prepared.md.j2',
+        'repoassist/templates/requirements-dev.txt.j2',
         'cloud_credentials.txt',
     }
     
@@ -227,9 +228,10 @@ def test_generate_package_repo_SHOULD_generate_repo_tree_properly_WHEN_no_sample
         'repoassist/exceptions.py',
         'repoassist/prepare.py',
         'repoassist/clean.py',
-        'repoassist/templates/CHANGELOG_generated.md',
-        'repoassist/templates/CHANGELOG_prepared.md',
-        'repoassist/templates/AUTHORS_prepared.md',
+        'repoassist/templates/CHANGELOG_generated.md.j2',
+        'repoassist/templates/CHANGELOG_prepared.md.j2',
+        'repoassist/templates/AUTHORS_prepared.md.j2',
+        'repoassist/templates/requirements-dev.txt.j2',
         'cloud_credentials.txt',
     }
     
@@ -292,9 +294,10 @@ def test_generate_module_repo_SHOULD_generate_repo_tree_properly():
         'repoassist/exceptions.py',
         'repoassist/prepare.py',
         'repoassist/clean.py',
-        'repoassist/templates/CHANGELOG_generated.md',
-        'repoassist/templates/CHANGELOG_prepared.md',
-        'repoassist/templates/AUTHORS_prepared.md',
+        'repoassist/templates/CHANGELOG_generated.md.j2',
+        'repoassist/templates/CHANGELOG_prepared.md.j2',
+        'repoassist/templates/AUTHORS_prepared.md.j2',
+        'repoassist/templates/requirements-dev.txt.j2',
         'cloud_credentials.txt',
     }
     
@@ -355,9 +358,10 @@ def test_generate_module_repo_SHOULD_generate_repo_tree_properly_WHEN_no_sample(
         'repoassist/exceptions.py',
         'repoassist/prepare.py',
         'repoassist/clean.py',
-        'repoassist/templates/CHANGELOG_generated.md',
-        'repoassist/templates/CHANGELOG_prepared.md',
-        'repoassist/templates/AUTHORS_prepared.md',
+        'repoassist/templates/CHANGELOG_generated.md.j2',
+        'repoassist/templates/CHANGELOG_prepared.md.j2',
+        'repoassist/templates/AUTHORS_prepared.md.j2',
+        'repoassist/templates/requirements-dev.txt.j2',
         'cloud_credentials.txt',
     }
     
@@ -379,73 +383,12 @@ def test_generate_module_repo_SHOULD_generate_repo_tree_properly_WHEN_no_sample(
     assert paths == expected_paths
 
 
-# TODO: finish this test!!!
 @pytest.mark.skipif(SKIP_ALL_MARKED, reason="Skipped on request")
 def test_generate_module_repo_SHOULD_force_properly():
     cwd = TESTS_SETUPS_PATH / 'test_generate_module_repo_SHOULD_force_properly'
-#     if Path(cwd).exists():
-#         shutil.rmtree(Path(cwd))
+    if Path(cwd).exists():
+        shutil.rmtree(Path(cwd), ignore_errors=False, onerror=_error_remove_readonly)
     Path(cwd).mkdir(parents=True, exist_ok=True)
-
-    for dirname in settings.REPO_DIRS_TO_GEN:
-        Path(Path(cwd) / dirname).mkdir(exist_ok=True)
-    
-    for file in settings.MODULE_REPO_FILES_TO_GEN:
-        filename = file.src.name
-        if filename == settings.FileName.PYINIT:
-            path = cwd / settings.DirName.TESTS
-        elif filename == settings.FileName.SAMPLE_MODULE:
-            path = cwd / settings.DirName.TESTS
-            filename = path = cwd / settings.DirName.TESTS / '{}_test.py'.format(_DEFAULT_CONFIG['project_name'])
-        elif filename == settings.FileName.MODULE_SAMPLE:
-            filename = path = cwd / '{}.py'.format(_DEFAULT_CONFIG['project_name'])
-        else:
-            path = cwd
-        with open(Path(path) / filename, 'w'):
-            pass
-        
-    for filename in settings.REPOASSIST_FILES:
-        if filename == settings.FileName.REPOASSIST_CLI:
-            filepath = Path(cwd) / settings.DirName.REPOASSIST / settings.FileName.CLI
-        elif  filename == settings.FileName.AUTHORS:
-            filepath = Path(cwd) / settings.DirName.REPOASSIST / settings.DirName.TEMPLATES / settings.FileName.AUTHORS_PREPARED
-        elif  filename == settings.FileName.CHANGELOG:
-            filepath = Path(cwd) / settings.DirName.REPOASSIST / settings.DirName.TEMPLATES / settings.FileName.CHANGELOG_GENERATED
-        else:
-            filepath = Path(cwd) / settings.DirName.REPOASSIST / filename
-        with open(filepath, 'w'):
-            pass
-        
-    filepath = Path(cwd) / settings.DirName.REPOASSIST / settings.DirName.TEMPLATES / settings.FileName.CHANGELOG_PREPARED
-    with open(filepath, 'w'):
-        pass
-        
-    files_paths_to_overwrite = [
-        Path(cwd) / settings.FileName.GITIGNORE,
-        Path(cwd) / settings.FileName.LICENSE,
-        Path(cwd) / settings.FileName.MAKEFILE,
-        Path(cwd) / settings.FileName.REQUIREMENTS_DEV,
-        Path(cwd) / settings.FileName.TOX,
-        Path(cwd) / '{}.py'.format(_DEFAULT_CONFIG['project_name']),
-        Path(cwd) / settings.DirName.TESTS / '{}_test.py'.format(_DEFAULT_CONFIG['project_name']),
-        Path(cwd) / settings.DirName.TESTS / settings.FileName.PYINIT,
-        Path(cwd) / settings.DirName.REPOASSIST / settings.FileName.PYINIT,
-        Path(cwd) / settings.DirName.REPOASSIST / settings.FileName.MAIN,
-        Path(cwd) / settings.DirName.REPOASSIST / settings.FileName.CLI,
-        Path(cwd) / settings.DirName.REPOASSIST / settings.FileName.COLREQS,
-        Path(cwd) / settings.DirName.REPOASSIST / settings.FileName.SETTINGS,
-        Path(cwd) / settings.DirName.REPOASSIST / settings.FileName.LOGGER,
-        Path(cwd) / settings.DirName.REPOASSIST / settings.FileName.RELEASE,
-        Path(cwd) / settings.DirName.REPOASSIST / settings.FileName.EXCEPTIONS,
-        Path(cwd) / settings.DirName.REPOASSIST / settings.FileName.UTILS,
-        Path(cwd) / settings.DirName.REPOASSIST / settings.FileName.PYGITTOOLS,
-        Path(cwd) / settings.DirName.REPOASSIST / settings.FileName.CLOUD,
-        Path(cwd) / settings.DirName.REPOASSIST / settings.FileName.WIZARD,
-        Path(cwd) / settings.DirName.REPOASSIST / settings.FileName.FORMATTER,
-        Path(cwd) / settings.DirName.REPOASSIST / settings.DirName.TEMPLATES / settings.FileName.CHANGELOG_GENERATED,
-        Path(cwd) / settings.DirName.REPOASSIST / settings.DirName.TEMPLATES / settings.FileName.CHANGELOG_PREPARED,
-        Path(cwd) / settings.DirName.REPOASSIST / settings.DirName.TEMPLATES / settings.FileName.AUTHORS_PREPARED,
-    ]
     
     config = settings.Config(**_DEFAULT_CONFIG)
     config.project_type = settings.ProjectType.MODULE.value
@@ -455,14 +398,40 @@ def test_generate_module_repo_SHOULD_force_properly():
     args.force = True
     args.cloud = True
     args.sample_layout = True
+
+    for dirname in settings.REPO_DIRS_TO_GEN:
+        Path(Path(cwd) / dirname).mkdir(exist_ok=True)
     
+    test_content = '<#test_content#>'
+    
+    files_paths_to_overwrite = []
+    for file in settings.MODULE_REPO_FILES_TO_GEN:
+        if settings.PROJECT_NAME_PATH_PLACEHOLDER in str(file.dst):
+            dst = Path(str(file.dst).replace(settings.PROJECT_NAME_PATH_PLACEHOLDER, config.project_name))
+        else:
+            dst = file.dst
+        with open(Path(cwd) / dst, 'w') as testfile:
+            testfile.write(test_content)
+        
+        files_paths_to_overwrite.append(Path(cwd) / dst)
+        
+    for file in settings.REPOASSIST_FILES:
+        with open(Path(cwd) / file.dst, 'w') as testfile:
+            testfile.write(test_content)
+        
+        files_paths_to_overwrite.append(Path(cwd) / file.dst)
+
     prepare.generate_repo(config, cwd, options=args)
-     
+    
+    pprint(files_paths_to_overwrite)
     for path in files_paths_to_overwrite:
         with open(path, 'r') as file:
             content = file.readlines()
-            if content.__len__() == 0:
+            if content == test_content:
                 assert False, "{} file not overwritten!".format(path)
+                
+    if Path(cwd).exists():
+        shutil.rmtree(Path(cwd), ignore_errors=False, onerror=_error_remove_readonly)
                 
 
 @pytest.mark.skipif(SKIP_ALL_MARKED, reason="Skipped on request")

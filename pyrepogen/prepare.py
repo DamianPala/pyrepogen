@@ -129,33 +129,17 @@ def _generate_repo_files(files_list, config, cwd, options=None):
 
 
 def _generate_repoasist(config, cwd, options=None):
-    def get_path_to_templates(cwd):
-        return Path(cwd) / settings.DirName.REPOASSIST / settings.DirName.TEMPLATES
-    
     paths = []
-
-    for filename in settings.REPOASSIST_FILES:
-        if filename == settings.FileName.REPOASSIST_CLI:
-            paths.extend(_copy_file(filename,
-                                    Path(cwd) / settings.DirName.REPOASSIST / settings.FileName.CLI,
-                                    cwd, options))
-        elif filename == settings.FileName.PYINIT:
-            paths.extend(write_file_from_template(Path(settings.DirName.TEMPLATES) / settings.FileName.PYINIT,
-                                                  Path(cwd) / settings.DirName.REPOASSIST / filename, config.__dict__,
-                                                  cwd, options))
-        elif filename == settings.FileName.CHANGELOG:
-            paths.extend(_copy_template_file(settings.FileName.CHANGELOG_GENERATED,
-                                             get_path_to_templates(cwd) / settings.FileName.CHANGELOG_GENERATED,
-                                             cwd, options))
-            paths.extend(_copy_template_file(settings.FileName.CHANGELOG_PREPARED,
-                                             get_path_to_templates(cwd) / settings.FileName.CHANGELOG_PREPARED,
-                                             cwd, options))
-        elif filename == settings.FileName.AUTHORS:
-            paths.extend(_copy_template_file(settings.FileName.AUTHORS_PREPARED,
-                                             get_path_to_templates(cwd) / settings.FileName.AUTHORS_PREPARED,
-                                             cwd, options))
+    
+    for file in settings.REPOASSIST_FILES:
+        src = Path(PARDIR) / file.src
+        dst = Path(cwd) / file.dst
+        is_templ = file.is_templ
+        
+        if is_templ:
+            paths.extend(write_file_from_template(src, dst, config.__dict__, cwd, options=options))
         else:
-            paths.extend(_copy_file(filename, Path(cwd) / settings.DirName.REPOASSIST / filename, cwd, options))
+            paths.extend(_copy_file_from(src, dst, cwd, options=options))
             
     return paths
 

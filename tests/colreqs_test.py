@@ -8,7 +8,9 @@ from pathlib import Path
 
 from pyrepogen import logger
 _logger = logger.create_logger(name=None)
-from pyrepogen import colreqs, settings
+from pyrepogen import colreqs
+from pyrepogen import settings
+from pyrepogen import PARDIR
 
 
 TESTS_SETUPS_PATH = Path(inspect.getframeinfo(inspect.currentframe()).filename).parent / 'tests_setups/colreqs_test'
@@ -120,6 +122,22 @@ def test_write_requirements_SHOULD_print_proper_message_when_update(caplog):
      
     assert "requirements.txt file updated" in caplog.text
     assert ret_path == reqs_path
+    
+
+def test_write_requirements_dev_SHOULD_write_requirements_properly():
+    cwd = TESTS_SETUPS_PATH / 'test_write_requirements_dev_SHOULD_write_requirements_properly'
+    Path(cwd).mkdir(parents=True, exist_ok=True)
+     
+    ret_path = colreqs.write_requirements_dev(cwd)
+    with open(ret_path) as file:
+        gen_reqs = file.read()
+
+    with open(Path(PARDIR) / settings.DirName.TEMPLATES / f'{settings.FileName.REQUIREMENTS_DEV}{settings.JINJA2_TEMPLATE_EXT}') as file:
+        template_reqs = file.read()
+    
+    shutil.rmtree(Path(cwd), ignore_errors=False, onerror=_error_remove_readonly)
+    
+    assert gen_reqs == template_reqs
     
     
 def test_write_requirements_dev_SHOULD_not_overwriting_reqs_if_exists(caplog):
