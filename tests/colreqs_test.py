@@ -88,7 +88,55 @@ def test_collect_reqs_latest_SHOULD_exclude_repoassist_reqs_properly():
     print(reqs)
     
     assert reqs == ['pytest']
-
+    
+    
+def test_write_requirements_SHOULD_write_requirements_properly_WHEN_default_requirements_is_in_reqs():
+    cwd = TESTS_SETUPS_PATH / 'test_write_requirements_SHOULD_write_requirements_properly_WHEN_default_requirements_is_in_reqs'
+    Path(cwd).mkdir(parents=True, exist_ok=True)
+    
+    reqs_path = Path(cwd) / settings.FileName.REQUIREMENTS
+    if (reqs_path).exists():
+        reqs_path.unlink()
+    
+    reqs = {'flask', 'pytest>=3.7.2', 'Jinja2==2.7.3'} | set(settings.DEFAULT_REQUIREMENTS)
+    reqs_path = colreqs.write_requirements(reqs, cwd)
+    
+    with open(reqs_path) as file:
+        reqs_from_file = file.readlines()
+    
+    reqs_from_file = {x.strip() for x in reqs_from_file}
+    print(reqs_from_file)
+    
+    shutil.rmtree(Path(cwd), ignore_errors=False, onerror=_error_remove_readonly)
+    
+    expected_reqs = reqs
+    
+    assert reqs_from_file == expected_reqs
+    
+    
+def test_write_requirements_SHOULD_write_requirements_properly_WHEN_default_requirements_is_not_in_reqs():
+    cwd = TESTS_SETUPS_PATH / 'test_write_requirements_SHOULD_write_requirements_properly_WHEN_default_requirements_is_not_in_reqs'
+    Path(cwd).mkdir(parents=True, exist_ok=True)
+    
+    reqs_path = Path(cwd) / settings.FileName.REQUIREMENTS
+    if (reqs_path).exists():
+        reqs_path.unlink()
+    
+    reqs = {'flask', 'pytest>=3.7.2', 'Jinja2==2.7.3'}
+    reqs_path = colreqs.write_requirements(reqs, cwd)
+    
+    with open(reqs_path) as file:
+        reqs_from_file = file.readlines()
+    
+    reqs_from_file = {x.strip() for x in reqs_from_file}
+    print(reqs_from_file)
+    
+    shutil.rmtree(Path(cwd), ignore_errors=False, onerror=_error_remove_readonly)
+    
+    expected_reqs = reqs | set(settings.DEFAULT_REQUIREMENTS)
+    
+    assert reqs_from_file == expected_reqs
+    
 
 def test_write_requirements_SHOULD_print_proper_message_when_prepare(caplog):
     cwd = TESTS_SETUPS_PATH / 'test_write_requirements_SHOULD_print_proper_message_when_prepare'

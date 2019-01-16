@@ -58,6 +58,15 @@ def write_requirements(reqs, cwd='.'):
         for reg in reqs:
             file.write(f'{reg}\n')
             
+        for def_req in settings.DEFAULT_REQUIREMENTS:
+            write_def_req = True
+            for req in reqs:
+                if def_req in str(req):
+                    write_def_req = False
+                    
+            if write_def_req:
+                file.write(f'{def_req}\n')
+            
         if file_exists:
             _logger.info(f'{settings.FileName.REQUIREMENTS} file updated.')
         else:

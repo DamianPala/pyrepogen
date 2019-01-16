@@ -258,3 +258,5 @@ DIRS_TO_CLEAN = [
     {'name': 'venv*', 'flag': '.'},
     {'name': 'htmlcov', 'flag': '.'},
 ]
+
+DEFAULT_REQUIREMENTS = ['setuptools']
