@@ -51,7 +51,7 @@ def generate_repo(config, cwd='.', options=None):
             else:
                 _logger.info('Generated files added into repository tree.')
 
-    _logger.info('Repository files generated.')
+    _logger.info(f'Repository files generated in directory: {cwd}')
 
     return paths
 

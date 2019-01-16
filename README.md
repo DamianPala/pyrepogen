@@ -28,3 +28,7 @@ Commit hash is stored into .egg-info/pbr.json as git_version
 Describe mechanism regarding dev release tag only in dist not in git that is set when release on different commit than last release tag commit
 
 If generate repo in the same directory as is without force, repoassist is overwritten by default
+
+Repoassist update target
+
+path as argument in pyrepogen must be entered with double quotes
