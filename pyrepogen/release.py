@@ -278,20 +278,25 @@ def _commit_and_push_release_update(new_release_tag, new_release_msg, files_to_a
     ret = pygittools.commit(settings.AUTOMATIC_RELEASE_COMMIT_MSG, cwd)
     if ret['returncode'] != 0:
         raise exceptions.CommitAndPushReleaseUpdateError(f"git commit error: {ret['msg']}", _logger)
+    _logger.info('New commit with updated release files created.')
+    
     release_tag_ret = pygittools.set_tag(cwd, new_release_tag, new_release_msg)
     if release_tag_ret['returncode'] != 0:
         _clean_failed_release(new_release_tag, cwd)
         raise exceptions.ReleaseTagSetError(f"Error while setting release tag: {release_tag_ret['msg']}", _logger)
+    _logger.info('New tag established.')
     
     if push and pygittools.is_origin_set(cwd):
         ret = pygittools.push_with_tags(cwd)
         if ret['returncode'] != 0:
-            _clean_failed_release(new_release_tag, cwd)
-            raise exceptions.CommitAndPushReleaseUpdateError(f"git push error: {ret['msg']}", _logger)
-    
-        _logger.info('New release data commited with tag set up and pushed properly.')
+            _logger.error(f"git push error: {ret['msg']}")
+            _logger.info('!!!IMPORTANT!!! Please check your origin or credentials and push changes WITH TAGS manually! '
+                         'Releasing process is continued.')
+            _logger.info('New release data commited with tag set properly.')
+        else:
+            _logger.info('New release data commited with tag set and pushed properly.')
     else:
-        _logger.info('New release data commited with tag set up properly.')
+        _logger.info('New release data commited with tag set properly.')
     
     return paths
 
