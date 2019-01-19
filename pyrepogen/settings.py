@@ -13,6 +13,7 @@ from . import (__version__, MIN_PYTHON)
 
 SUGGESTED_INITIAL_RELEASE_TAG = '0.1.0'
 EXAMPLE_RELEASE_TAG = '1.17.3rc2'
+TIP_MSG_MARK = '# [TIP]: '
 
 
 class Options:

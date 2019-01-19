@@ -2,8 +2,11 @@
 # -*- coding: utf-8 -*-
 
 
+import os
 import subprocess
 import configparser
+import platform
+import tempfile
 from pathlib import Path
 from collections import namedtuple
 
@@ -18,26 +21,26 @@ _logger = logger.get_logger(__name__)
 
 def execute_cmd(args, cwd='.'):
     try:
-        process = subprocess.run(args,
+        p = subprocess.run(args,
                                  check=True,
                                  cwd=str(cwd),
                                  stdout=subprocess.PIPE,
                                  stderr=subprocess.STDOUT,
                                  encoding='utf-8')
-        return process.stdout
+        return p.stdout
     except subprocess.CalledProcessError as e:
         raise exceptions.ExecuteCmdError(e.returncode, msg=e.output, logger=_logger)
 
 
 def execute_cmd_and_split_lines_to_list(args, cwd='.'):
     try:
-        process = subprocess.run(args,
+        p = subprocess.run(args,
                                  check=True,
                                  cwd=str(cwd),
                                  stdout=subprocess.PIPE,
                                  stderr=subprocess.STDOUT,
                                  encoding='utf-8')
-        return process.stdout.split('\n')
+        return p.stdout.split('\n')
     except subprocess.CalledProcessError as e:
         raise exceptions.ExecuteCmdError(e.returncode, msg=e.output, logger=_logger)
 
@@ -210,3 +213,46 @@ def get_latest_tarball(path):
 
 def get_rel_path(path, cwd):
     return Path(path).resolve().relative_to(Path(cwd).resolve())
+
+
+def input_with_editor(msg=None):
+    platform_name = platform.system()
+    if platform_name == 'Windows':
+        cmd = 'start'
+        options = ['/WAIT']
+    elif platform_name == 'Linux':
+        cmd = 'xdg-open'
+        options = []
+    elif platform_name == 'Darwin':
+        cmd = 'open' 
+        options = []
+    else:
+        cmd = 'open'
+        options = []
+        
+    fd, filepath = tempfile.mkstemp(suffix='.txt', text=True)
+    filepath = Path(filepath)
+    
+    if msg:
+        with open(fd, 'wt') as file:
+            file.write(msg)
+    else:
+        os.close(fd)
+    
+    cmd_list = [cmd] + options + [filepath.name]
+        
+    try:
+        subprocess.run(cmd_list, 
+                       cwd=filepath.parent, 
+                       shell=True, 
+                       check=True, 
+                       stdout=subprocess.PIPE,
+                       stderr=subprocess.STDOUT, 
+                       encoding='utf-8')
+        text = open(filepath).read()
+    except subprocess.CalledProcessError as e:
+        raise exceptions.RuntimeError(f'Editor open error occured: {e.output}', _logger)
+    finally:
+        filepath.unlink()
+        
+    return text

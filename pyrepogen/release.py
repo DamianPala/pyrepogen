@@ -262,7 +262,7 @@ def _get_changelog_entry(release_tag, release_msg):
     return f'### Version: {release_tag} | Released: {tagger_date} \n{release_msg}\n\n'
 
 
-def _commit_and_push_release_update(new_release_tag, new_release_msg, files_to_add=None, push=True, cwd='.'):
+def _commit_and_push_release_update(new_release_tag, new_release_msg, files_to_add=None, push=True, cwd='.', debug=None):
     if push:
         _logger.info('Commit updated release files, set tag and push...')
     else:
@@ -281,7 +281,7 @@ def _commit_and_push_release_update(new_release_tag, new_release_msg, files_to_a
     _logger.info('New commit with updated release files created.')
     
     release_tag_ret = pygittools.set_tag(cwd, new_release_tag, new_release_msg)
-    if release_tag_ret['returncode'] != 0:
+    if release_tag_ret['returncode'] != 0 or debug:
         _clean_failed_release(new_release_tag, cwd)
         raise exceptions.ReleaseTagSetError(f"Error while setting release tag: {release_tag_ret['msg']}", _logger)
     _logger.info('New tag established.')
@@ -391,6 +391,34 @@ def _is_higher_tag(latest_tag, new_tag):
 
 
 def _prompt_release_msg():
+    tip_msg = f"""{settings.TIP_MSG_MARK}Below are commit messages generated from the last tag.
+{settings.TIP_MSG_MARK}If the last tag not exists, messages are from the first commit.
+{settings.TIP_MSG_MARK}Use these messages to prepare a relevant release message.
+{settings.TIP_MSG_MARK}All lines with the '{settings.TIP_MSG_MARK}' will be automatically removed.
+{settings.TIP_MSG_MARK}You can leave these lines or remove them manually.
+
+"""
+
+    ret = pygittools.get_commit_msgs_from_last_tag()
+    if ret['returncode'] == 0:
+        current_log = ret['msg']
+        info_msg = tip_msg + current_log
+    else:
+        info_msg = tip_msg
+     
+    try:
+        message = utils.input_with_editor(info_msg)
+    except exceptions.RuntimeError as e:
+        _logger.error(e)
+        _logger.info('Input your release message in command line instead.')
+        message = _prompt_release_msg_cli()
+        
+    message = '\n'.join([line for line in message.splitlines() if not line.startswith(settings.TIP_MSG_MARK)])
+     
+    return message.strip()
+
+
+def _prompt_release_msg_cli():
     _logger.info("Enter release message. Type '~' and press Enter key to comfirm. Markdown syntax allowed.")
     message = []
     while True:
