@@ -20,21 +20,21 @@ def main():
     parser = argparse.ArgumentParser(formatter_class=argparse.RawDescriptionHelpFormatter,
                                      description='Python Repo Generator')
     parser.add_argument('repo_path', nargs='?', action='store', default=None, 
-                        help='Repo name or path to the directory when repository will be '
+                        help='Repo name or path to the directory when the repository will be '
                         'generated. If directory does not exist then will be created. '
                         'Always enter with double quotes.')
     parser.add_argument('-c', '--config', dest='config', action='store', 
-                        default=None, help='Path to repository config file.')
+                        default=None, help='Path to the repository config file.')
     parser.add_argument('-q', '--quiet', dest='quiet', action='store_true', 
-                        default=False, help='Disable output')
+                        default=False, help='Disable output.')
     parser.add_argument('-d', '--debug', dest='debug', action='store_true', 
-                        default=False, help='Enable debug output')
+                        default=False, help='Enable debug output.')
     parser.add_argument('-f', '--force', dest='force', action='store_true', 
                         default=False, help='Override existing files.')
     parser.add_argument('-v', '--version', dest='version', action='store_true', 
                         default=False, help='Show version.')
     parser.add_argument('--demo', dest='demo', action='store_true', 
-                        default=False, help='Generate a demo repository in your current working directory')
+                        default=False, help='Generate a demo repository in your current working directory.')
     args = parser.parse_args()
     
     logger.set_level(_logger, args)
