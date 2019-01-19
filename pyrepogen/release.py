@@ -280,10 +280,21 @@ def _commit_and_push_release_update(new_release_tag, new_release_msg, files_to_a
         raise exceptions.CommitAndPushReleaseUpdateError(f"git commit error: {ret['msg']}", _logger)
     _logger.info('New commit with updated release files created.')
     
-    release_tag_ret = pygittools.set_tag(cwd, new_release_tag, new_release_msg)
-    if release_tag_ret['returncode'] != 0 or debug:
+    ret = pygittools.set_tag(cwd, new_release_tag, new_release_msg)
+    if ret['returncode'] != 0 or debug:
         _clean_failed_release(new_release_tag, cwd)
-        raise exceptions.ReleaseTagSetError(f"Error while setting release tag: {release_tag_ret['msg']}", _logger)
+        raise exceptions.ReleaseTagSetError(f"Error while setting release tag: {ret['msg']}", _logger)
+    
+    ret = pygittools.get_latest_tag(cwd)
+    if ret['returncode'] != 0:
+        _clean_failed_release(new_release_tag, cwd)
+        raise exceptions.ReleaseTagSetError(f"Error while check if the new release tag set properly: {ret['msg']}", _logger)
+    else:
+        new_latest_tag = ret['msg']
+        if new_latest_tag != new_release_tag:
+            _clean_failed_release(new_release_tag, cwd)
+            raise exceptions.ReleaseTagSetError('New release tag was set incorrectly.', _logger)
+    
     _logger.info('New tag established.')
     
     if push and pygittools.is_origin_set(cwd):

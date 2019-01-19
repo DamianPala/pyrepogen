@@ -161,7 +161,21 @@ class Config():
     @staticmethod
     def get_default_fields():
         return dir(Config)
-    
+
+
+DEMO_PROJECT_NAME = 'demo_project'
+DEMO_CONFIG = Config(
+    project_type=ProjectType.PACKAGE.value,
+    project_name=DEMO_PROJECT_NAME,
+    author='You',
+    author_email='you@mail.com',
+    short_description='This is demo project for demo purposes.',
+    changelog_type=ChangelogType.GENERATED,
+    authors_type=AuthorsType.GENERATED,
+    is_cloud=True,
+    is_sample_layout=True
+)
+
 
 FileGenEntry = namedtuple('FileGeneratorEntry', 'src dst is_sample')
 

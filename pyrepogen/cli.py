@@ -2,8 +2,9 @@
 # -*- coding: utf-8 -*-
 
 
-import argparse
 import sys
+import shutil
+import argparse
 from pathlib import Path
 from . import logger
 from . import wizard
@@ -31,7 +32,9 @@ def main():
     parser.add_argument('-f', '--force', dest='force', action='store_true', 
                         default=False, help='Override existing files.')
     parser.add_argument('-v', '--version', dest='version', action='store_true', 
-                        default=False, help='Show package version.')
+                        default=False, help='Show version.')
+    parser.add_argument('--demo', dest='demo', action='store_true', 
+                        default=False, help='Generate a demo repository in your current working directory')
     args = parser.parse_args()
     
     logger.set_level(_logger, args)
@@ -64,37 +67,44 @@ def main():
                     config = utils.read_repo_config_file(config_path)
                     
             else:
-                _logger.info('Start Python Repository Generator Wizard!')
-                config_dict = {}
+                if args.demo:
+                    config = settings.DEMO_CONFIG
+                    repo_path = Path(cwd) / settings.DEMO_PROJECT_NAME
+                    if repo_path.exists():
+                        shutil.rmtree(repo_path, ignore_errors=True)
+                    repo_path.mkdir(parents=True)
+                else:
+                    _logger.info('Start Python Repository Generator Wizard!')
+                    config_dict = {}
+                    
+                    config_dict['project_type'] = wizard.choose_one(__name__,
+                                                                    'Python package or standalone module layout?',
+                                                                    settings.ProjectType)
+                    config_dict['is_cloud'] = wizard.choose_bool(__name__, 'Create a cloud server feature?')
+                    config_dict['is_sample_layout'] = wizard.choose_bool(__name__, 'Generate sample python files?')
+                    config_dict['is_git'] = wizard.choose_bool(__name__, 'Initialize GIT repository?')
+                    if config_dict['is_git']:
+                        config_dict['git_origin'] = wizard.get_data(__name__, 'Enter GIT origin url')
+                    config_dict['project_name'] = wizard.get_data_and_valid(__name__, 'Enter project name', [''])
+                    config_dict['author'] = wizard.get_data_and_valid(__name__, 'Enter author', [''])
+                    config_dict['author_email'] = wizard.get_data_and_valid(__name__, 'Enter author email', [''])
+                    config_dict['maintainer'] = wizard.get_data(__name__, 'Enter maintainer')
+                    config_dict['maintainer_email'] = wizard.get_data(__name__, 'Enter maintainer email')
+                    config_dict['short_description'] = wizard.get_data_and_valid(__name__, 
+                                                                                 'Enter short project description', [''])
+                    config_dict['home_page'] = wizard.get_data(__name__, 'Enter home page')
+                    config_dict['changelog_type'] = wizard.choose_one(__name__, 'Select a changelog type', 
+                                                                      settings.ChangelogType)
+                    config_dict['authors_type'] = wizard.choose_one(__name__, 
+                                                                    f'Select an {settings.FileName.AUTHORS} file type',
+                                                                    settings.ChangelogType)
                 
-                config_dict['project_type'] = wizard.choose_one(__name__,
-                                                                'Python package or standalone module layout?',
-                                                                settings.ProjectType)
-                config_dict['is_cloud'] = wizard.choose_bool(__name__, 'Create a cloud server feature?')
-                config_dict['is_sample_layout'] = wizard.choose_bool(__name__, 'Generate sample python files?')
-                config_dict['is_git'] = wizard.choose_bool(__name__, 'Initialize GIT repository?')
-                if config_dict['is_git']:
-                    config_dict['git_origin'] = wizard.get_data(__name__, 'Enter GIT origin url')
-                config_dict['project_name'] = wizard.get_data_and_valid(__name__, 'Enter project name', [''])
-                config_dict['author'] = wizard.get_data_and_valid(__name__, 'Enter author', [''])
-                config_dict['author_email'] = wizard.get_data_and_valid(__name__, 'Enter author email', [''])
-                config_dict['maintainer'] = wizard.get_data(__name__, 'Enter maintainer')
-                config_dict['maintainer_email'] = wizard.get_data(__name__, 'Enter maintainer email')
-                config_dict['short_description'] = wizard.get_data_and_valid(__name__, 
-                                                                             'Enter short project description', [''])
-                config_dict['home_page'] = wizard.get_data(__name__, 'Enter home page')
-                config_dict['changelog_type'] = wizard.choose_one(__name__, 'Select a changelog type', 
-                                                                  settings.ChangelogType)
-                config_dict['authors_type'] = wizard.choose_one(__name__, 
-                                                                f'Select an {settings.FileName.AUTHORS} file type',
-                                                                settings.ChangelogType)
+                    config = settings.Config(**config_dict)
                 
-                config = settings.Config(**config_dict)
-                
-                prompt_dir = wizard.get_data(__name__, 
-                                             'Enter path to the directory where a repository '
-                                             'will be generated (relative or absolute)')
-                repo_path = utils.get_dir_from_arg(prompt_dir)
+                    prompt_dir = wizard.get_data(__name__, 
+                                                 'Enter path to the directory where a repository '
+                                                 'will be generated (relative or absolute)')
+                    repo_path = utils.get_dir_from_arg(prompt_dir)
 
             args.cloud = config.is_cloud
             args.sample_layout = config.is_sample_layout

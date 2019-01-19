@@ -603,9 +603,9 @@ def test_clean_filed_release():
     files_to_add.append(release._update_authors(config, cwd))
     
     try:
-        release._commit_and_push_release_update(new_release_tag, new_release_msg, files_to_add=files_to_add, cwd=cwd)
+        release._commit_and_push_release_update(new_release_tag, new_release_msg, files_to_add=files_to_add, cwd=cwd, debug=True)
         assert False, "Expected error not occured!"
-    except exceptions.CommitAndPushReleaseUpdateError:
+    except exceptions.ReleaseTagSetError:
         assert last_commit_hash == pygittools.get_latest_commit_hash(cwd)
         assert last_tag == pygittools.get_latest_tag(cwd)
         
