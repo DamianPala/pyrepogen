@@ -1,16 +1,19 @@
 # Pyrepogen
-Pyrepogen is a python repository generator for fast and simple preparing the python project repository in standardized way. Pyrepogen provides many options to customize repository generation.
+Pyrepogen is a python repository generator for fast and simple preparing the python project repository in standardized way. Pyrepogen provides many options to customize the repository generation.
 
-Furthermore Pyrepogen generate **Repoassist** that provides some extra features useful during your code development and maintain.
+One of the most important feature of Pyrepogen is to generate **Repoassist** in the generated repository. Repoassist provides some extra features which are useful during your code development and maintaining.
 
 ## Requirements
 
 - Python >= 3.7
 - Git >= 2.20.0
+- GNU Make
+
+> Required software must be available from command line - added into the system PATH.
 
 ## Installation
 
-To install pyrepogen you can use pypi: **THIS WAY IS CURRENTLY UNAVAILABLE!**
+To install Pyrepogen you can use pypi: **THIS WAY IS CURRENTLY UNAVAILABLE!**
 
 ```
 pip install pyrepogen
@@ -18,14 +21,19 @@ pip install pyrepogen
 
 Or install from sources:
 
-1. Clone or download pyrepogen repository
+1. Clone or download Pyrepogen repository
+
 2. Enter to `pyrepogen` directory
+
 3. Type `pip install -r requirements.txt`
+
 4. Type `python setup.py install`
+
+   >  Portable usage from sources without installation is also available.
 
 ## Usage
 
-There are two ways to generate a repository: wizard and a configuration file.
+There are two ways to generate a repository: **wizard** and a **configuration file**.
 
 Pyrepogen also provides simple demo repository generation. Just type:
 
@@ -39,47 +47,52 @@ Then a repository will be generated in the `demo_project` directory at your curr
 
 To run wizard, type `pyrepogen` in your command line terminal and follow the wizard.
 
+In the case of using from sources, just type `make run` in the root of pyrepogen and follow the wizard.
+
 ### Config file
 
-In the case when you want to generate many repositories, using a predefined configuration file is the best solution.  Just prepare a configuration file using following template and save it on your hard drive:
+In the case when you want to generate many repositories, using a predefined configuration file is the best solution.  Just prepare a configuration file named `gen_repo.cfg` using following template and save it on your hard drive. You can also copy from sources and complete the `gen_repo.cfg` file instead of creating it by hand.
+
+#### Config file template
 
 ```
 # Required parameters:
-# Possible values: package or script
+# project-type values: package or module
 project-type = 
-repo-name = 
 project-name = 
 author = 
 author-email = 
 short-description = 
-# Possible values: generated or prepared
+# changelog-type, authors-type values: generated or prepared
 changelog-type = 
-# Possible values: generated or prepared
 authors-type = 
 
 # Optional parameters:
 maintainer = 
 maintainer-email = 
 home-page = 
-# Possible values: true or false
+# is-cloud, is-sample-layout, is-git values: true or false
 is-cloud = 
-# Possible values: true or false 
 is-sample-layout = 
-# Possible values: true or false 
 is-git = 
-# Possible values: true or false
 git-origin = 
 ```
 
-The next step is to run pyrepogen with specified configuration file:
+The next step is to run Pyrepogen with path where a repository will be generated:
+
+```
+pyrepogen <path to repo you want to create>
+```
+
+> Always specify paths with double quotes when you type space - " " in it!
+
+When your config file is not in your current working directory or it has a different name, you can specify it using `-c` option:
 
 ```
 pyrepogen <path to repo you want to create> -c <path to config file>
 ```
 
-> Always specify paths with double quotes!
-
-#### Config parameters
+#### Config file parameters
 
 Following table describes some of the most interesting and exotic configuration file parameters.
 
@@ -104,7 +117,9 @@ Following table describes some of the most interesting and exotic configuration 
 | &#x2011;v/&#x2011;&#x2011;version | Show version. |
 | --demo | Generate a demo repository in your current working directory. |
 
-## Repoassist
+
+
+# Repoassist
 
 
 

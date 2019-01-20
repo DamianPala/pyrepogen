@@ -50,15 +50,15 @@ def get_git_repo_tree(cwd='.'):
 
 
 def read_repo_config_file(path):
-    return _prepare_config(path, [settings.REPO_CONFIG_SECTION_NAME])
+    return _prepare_config(path, [settings.REPO_CONFIG_SECTION_NAME], is_repo_config_file=True)
 
 
 def get_repo_config_from_setup_cfg(path):
     return _prepare_config(path, [settings.METADATA_CONFIG_SECTION_NAME, settings.GENERATOR_CONFIG_SECTION_NAME])
 
 
-def _prepare_config(path, sections):
-    raw_config = _read_config_file(path)
+def _prepare_config(path, sections, is_repo_config_file=False):
+    raw_config = _read_config_file(path, is_repo_config_file)
     config_dict = {}
 
     for section in sections:
@@ -76,17 +76,26 @@ def _prepare_config(path, sections):
     return config
 
 
-def _read_config_file(path):
+def _read_config_file(path, is_repo_config_file=False):
     def is_list_option(option):
         if option and '"' not in option[0]:
             return True if '\n' in option[0] else False
 
     config_dict = {}
     filepath = Path(path)
-
-    config = configparser.ConfigParser()
-    if not config.read(filepath, 'utf-8'):
+    
+    if not filepath.exists():
         raise exceptions.FileNotFoundError(f'{filepath.name} file not found!', _logger)
+    
+    if is_repo_config_file:
+        with open(filepath, 'r', encoding='utf-8') as file:
+            config_string = f'[{settings.REPO_CONFIG_SECTION_NAME}]\n' + file.read()
+
+        config = configparser.RawConfigParser()
+        config.read_string(config_string)
+    else:
+        config = configparser.ConfigParser()
+        config.read(filepath, 'utf-8')
 
     for section in config.sections():
         config_dict[section] = {}

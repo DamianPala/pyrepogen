@@ -2,22 +2,39 @@
 # -*- coding: utf-8 -*-
 
 
+import sys
 import argparse
 
 from {{project_name}} import modulo
 
 
 def main():
-    print("Hello from Package!")
+    print('This is Sample Package!')
+    print('Math is Great!')
 
     parser = argparse.ArgumentParser(description='Get modulo of two integers.')
-    parser.add_argument('divident', type=int, help='a divident of modulo operation')
-    parser.add_argument('divisor', type=int, help='a divisor of modulo operation')
+    parser.add_argument('divident', nargs='?', type=int, help='a divident of modulo operation')
+    parser.add_argument('divisor', nargs='?', type=int, help='a divisor of modulo operation')
 
     args = parser.parse_args()
 
+    if args.divident and not args.divisor:
+        parser.error('Divisor argument is required.')
+
+    if not args.divident and not args.divisor:
+        print('Calculate the modulo.')
+
+        try:
+            args.divident = int(input('Enter divident: ').strip())
+        except ValueError:
+            sys.exit(f'{__name__}: error: Divident must be a number')
+        try:
+            args.divisor = int(input('Enter divisor: ').strip())
+        except ValueError:
+            sys.exit(f'{__name__}: error: Divisor must be a number')
+
     modulus = modulo.get_reminder(args.divident, args.divisor)
 
-    print("{} modulo {} = {}".format(args.divident, args.divisor, modulus))
+    print(f'{args.divident} modulo {args.divisor} = {modulus}')
 
     return 0

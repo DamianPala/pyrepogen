@@ -21,6 +21,9 @@ requirements:
 	@echo "    2. Installed Pip"
 	@echo "    2. Installed Meld Merge and added into the PATH envorinment variable"
 
+run:
+	@$(PYTHON) -m pyrepogen
+
 prepare:
 	@$(PYTHON) -m pip install -r requirements-dev.txt
 	@$(PYTHON) -m pip install -r requirements.txt
@@ -85,6 +88,9 @@ help:
 	
 	@echo "make requirements"
 	@echo "	List necessary repository requirements."
+
+	@echo "make run"
+	@echo "	Run Pyrepogen"
 	
 	@echo "make prepare"
 	@echo "	Prepare a development environment based on the requirements.txt and requirements-dev.txt, use only once"
@@ -138,4 +144,5 @@ help:
 	@echo "	Clean build and distribution"
 	
 
-.PHONY: default requirements prepare release install test coverage coverage_report tox format lint doc install_reqs update_reqs upload list_cloud download_package clean help
+.PHONY: default requirements run prepare release install test coverage coverage_report tox format lint doc \
+	install_reqs update_reqs upload list_cloud download_package clean help
