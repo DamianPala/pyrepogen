@@ -2,8 +2,11 @@
 # -*- coding: utf-8 -*-
 
 
+import os
 import subprocess
 import configparser
+import platform
+import tempfile
 from pathlib import Path
 from collections import namedtuple
 
@@ -18,26 +21,26 @@ _logger = logger.get_logger(__name__)
 
 def execute_cmd(args, cwd='.'):
     try:
-        process = subprocess.run(args,
+        p = subprocess.run(args,
                                  check=True,
                                  cwd=str(cwd),
                                  stdout=subprocess.PIPE,
                                  stderr=subprocess.STDOUT,
                                  encoding='utf-8')
-        return process.stdout
+        return p.stdout
     except subprocess.CalledProcessError as e:
         raise exceptions.ExecuteCmdError(e.returncode, msg=e.output, logger=_logger)
 
 
 def execute_cmd_and_split_lines_to_list(args, cwd='.'):
     try:
-        process = subprocess.run(args,
+        p = subprocess.run(args,
                                  check=True,
                                  cwd=str(cwd),
                                  stdout=subprocess.PIPE,
                                  stderr=subprocess.STDOUT,
                                  encoding='utf-8')
-        return process.stdout.split('\n')
+        return p.stdout.split('\n')
     except subprocess.CalledProcessError as e:
         raise exceptions.ExecuteCmdError(e.returncode, msg=e.output, logger=_logger)
 
@@ -47,15 +50,15 @@ def get_git_repo_tree(cwd='.'):
 
 
 def read_repo_config_file(path):
-    return _prepare_config(path, [settings.REPO_CONFIG_SECTION_NAME])
+    return _prepare_config(path, [settings.REPO_CONFIG_SECTION_NAME], is_repo_config_file=True)
 
 
 def get_repo_config_from_setup_cfg(path):
     return _prepare_config(path, [settings.METADATA_CONFIG_SECTION_NAME, settings.GENERATOR_CONFIG_SECTION_NAME])
 
 
-def _prepare_config(path, sections):
-    raw_config = _read_config_file(path)
+def _prepare_config(path, sections, is_repo_config_file=False):
+    raw_config = _read_config_file(path, is_repo_config_file)
     config_dict = {}
 
     for section in sections:
@@ -73,17 +76,26 @@ def _prepare_config(path, sections):
     return config
 
 
-def _read_config_file(path):
+def _read_config_file(path, is_repo_config_file=False):
     def is_list_option(option):
         if option and '"' not in option[0]:
             return True if '\n' in option[0] else False
 
     config_dict = {}
     filepath = Path(path)
-
-    config = configparser.ConfigParser()
-    if not config.read(filepath, 'utf-8'):
+    
+    if not filepath.exists():
         raise exceptions.FileNotFoundError(f'{filepath.name} file not found!', _logger)
+    
+    if is_repo_config_file:
+        with open(filepath, 'r', encoding='utf-8') as file:
+            config_string = f'[{settings.REPO_CONFIG_SECTION_NAME}]\n' + file.read()
+
+        config = configparser.RawConfigParser()
+        config.read_string(config_string)
+    else:
+        config = configparser.ConfigParser()
+        config.read(filepath, 'utf-8')
 
     for section in config.sections():
         config_dict[section] = {}
@@ -121,7 +133,6 @@ def _remove_junk_fields(config_dict):
     fields_to_remove = [field for field in config_dict if field not in settings.Config.get_fields()]
 
     for field in fields_to_remove:
-        _logger.warning(f'Detected unknown field: {field} in {settings.FileName.SETUP_CFG} file.')
         config_dict.pop(field)
 
 
@@ -211,3 +222,46 @@ def get_latest_tarball(path):
 
 def get_rel_path(path, cwd):
     return Path(path).resolve().relative_to(Path(cwd).resolve())
+
+
+def input_with_editor(msg=None):
+    platform_name = platform.system()
+    if platform_name == 'Windows':
+        cmd = 'start'
+        options = ['/WAIT']
+    elif platform_name == 'Linux':
+        cmd = 'xdg-open'
+        options = []
+    elif platform_name == 'Darwin':
+        cmd = 'open' 
+        options = []
+    else:
+        cmd = 'open'
+        options = []
+        
+    fd, filepath = tempfile.mkstemp(suffix='.txt', text=True)
+    filepath = Path(filepath)
+    
+    if msg:
+        with open(fd, 'wt') as file:
+            file.write(msg)
+    else:
+        os.close(fd)
+    
+    cmd_list = [cmd] + options + [filepath.name]
+        
+    try:
+        subprocess.run(cmd_list, 
+                       cwd=filepath.parent, 
+                       shell=True, 
+                       check=True, 
+                       stdout=subprocess.PIPE,
+                       stderr=subprocess.STDOUT, 
+                       encoding='utf-8')
+        text = open(filepath).read()
+    except subprocess.CalledProcessError as e:
+        raise exceptions.RuntimeError(f'Editor open error occured: {e.output}', _logger)
+    finally:
+        filepath.unlink()
+        
+    return text

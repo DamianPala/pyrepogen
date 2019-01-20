@@ -20,6 +20,7 @@ class Options:
     force = False
     cloud = False
     sample_layout = False
+    project_type = None
 
 
 class ProjectType(Enum):

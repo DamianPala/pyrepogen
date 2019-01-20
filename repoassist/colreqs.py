@@ -58,6 +58,15 @@ def write_requirements(reqs, cwd='.'):
         for reg in reqs:
             file.write(f'{reg}\n')
             
+        for def_req in settings.DEFAULT_REQUIREMENTS:
+            write_def_req = True
+            for req in reqs:
+                if def_req in str(req):
+                    write_def_req = False
+                    
+            if write_def_req:
+                file.write(f'{def_req}\n')
+            
         if file_exists:
             _logger.info(f'{settings.FileName.REQUIREMENTS} file updated.')
         else:
@@ -73,7 +82,7 @@ def write_requirements_dev(cwd='.'):
         _logger.warning(f'{settings.FileName.REQUIREMENTS_DEV} file already exists, not overwritten.')
     else:
         prepare.write_file_from_template(Path(settings.DirName.TEMPLATES) / file_path.name, 
-                                         file_path, None, cwd, verbose=False)
+                                         file_path, {}, cwd, verbose=False)
         _logger.info(f'{file_path.name} file prepared.')
     
     return file_path

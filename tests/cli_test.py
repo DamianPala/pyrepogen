@@ -129,7 +129,7 @@ def test_cli_SHOULD_raise_error_WHEN_specified_config_not_exists():
     try:
         cli.main()
         assert False, 'Expected error not occured'
-    except SystemExit as e:
-        assert 'generation error' in e.__str__()
-
+    except SystemExit:
+        assert True
+        
     teardown_test(cwd)

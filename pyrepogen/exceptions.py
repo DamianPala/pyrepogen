@@ -82,3 +82,6 @@ class NoCommitFoundError(PyRepoGenError):
 
 class GitAddError(PyRepoGenError):
     pass
+
+class RepoassistNotFoundError(PyRepoGenError):
+    pass

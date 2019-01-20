@@ -2,11 +2,40 @@
 # -*- coding: utf-8 -*-
 
 
+import signal
+import sys
 from enum import EnumMeta
+
+from . import logger
+
+
+_logger = logger.get_logger(__name__)
+
+
+def keyboard_interrupt_handler(_signal, _frame):
+    sys.exit('Interrupted by user')
+
+signal.signal(signal.SIGINT, keyboard_interrupt_handler)
 
 
 def get_data(name, msg):
     return input(f'{name}: [WIZARD]: {msg}: ')
+
+
+def get_data_and_valid(name, msg, invalid_values):
+    is_correct_value = False
+
+    while not is_correct_value:
+        data = input(f'{name}: [WIZARD]: {msg}: ')
+        if data not in invalid_values:
+            is_correct_value = True
+        else:
+            if data == '':
+                _logger.error('Empty value is not allowed! Try again.')
+            else:
+                _logger.error(f'Value: {data} is not allowed! Try again.')
+                
+    return data
     
     
 def choose_one(name, msg, choices):

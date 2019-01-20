@@ -13,6 +13,14 @@ from . import (__version__, MIN_PYTHON)
 
 SUGGESTED_INITIAL_RELEASE_TAG = '0.1.0'
 EXAMPLE_RELEASE_TAG = '1.17.3rc2'
+TIP_MSG_MARK = '# [TIP]: '
+
+
+class Options:
+    force = False
+    cloud = False
+    sample_layout = False
+    project_type = None
 
 
 class ProjectType(Enum):
@@ -87,7 +95,7 @@ class FileName():
     PACKAGE_SAMPLE_MODULE = 'modulo.py'
     PACKAGE_SAMPLE_TEST = 'modulo_test.py'
     SAMPLE_MODULE = 'module.py'
-    REPOASSIST_CLI = 'repoassist_main.py'
+    REPOASSIST_CLI = 'repoassist_cli.py'
     COLREQS = 'colreqs.py'
     SETTINGS = 'settings.py'
     LOGGER = 'logger.py'
@@ -154,7 +162,21 @@ class Config():
     @staticmethod
     def get_default_fields():
         return dir(Config)
-    
+
+
+DEMO_PROJECT_NAME = 'demo_project'
+DEMO_CONFIG = Config(
+    project_type=ProjectType.PACKAGE.value,
+    project_name=DEMO_PROJECT_NAME,
+    author='You',
+    author_email='you@mail.com',
+    short_description='This is demo project for demo purposes.',
+    changelog_type=ChangelogType.GENERATED,
+    authors_type=AuthorsType.GENERATED,
+    is_cloud=True,
+    is_sample_layout=True
+)
+
 
 FileGenEntry = namedtuple('FileGeneratorEntry', 'src dst is_sample')
 
@@ -204,23 +226,37 @@ REPO_DIRS_TO_GEN = [
     str(Path(DirName.REPOASSIST) / DirName.TEMPLATES)
 ]
 
+
+RepoassistFileGenEntry = namedtuple('RepoassistFileGeneratorEntry', 'src dst is_templ')
+
 REPOASSIST_FILES = [
-    FileName.PYINIT,
-    FileName.REPOASSIST_CLI,
-    FileName.COLREQS,
-    FileName.SETTINGS,
-    FileName.LOGGER,
-    FileName.RELEASE,
-    FileName.EXCEPTIONS,
-    FileName.UTILS,
-    FileName.PYGITTOOLS,
-    FileName.CLOUD,
-    FileName.WIZARD,
-    FileName.FORMATTER,
-    FileName.CHANGELOG,
-    FileName.AUTHORS,
-    FileName.PREPARE,
-    FileName.CLEAN,
+    RepoassistFileGenEntry(src=Path(FileName.MAIN), dst=Path('.') / DirName.REPOASSIST / FileName.MAIN, is_templ=False),
+    RepoassistFileGenEntry(src=Path(DirName.TEMPLATES) / FileName.PYINIT, dst=Path('.') / DirName.REPOASSIST / FileName.PYINIT, is_templ=True),
+    RepoassistFileGenEntry(src=Path(FileName.COLREQS), dst=Path('.') / DirName.REPOASSIST / FileName.COLREQS, is_templ=False),
+    RepoassistFileGenEntry(src=Path(FileName.SETTINGS), dst=Path('.') / DirName.REPOASSIST / FileName.SETTINGS, is_templ=False),
+    RepoassistFileGenEntry(src=Path(FileName.LOGGER), dst=Path('.') / DirName.REPOASSIST / FileName.LOGGER, is_templ=False),
+    RepoassistFileGenEntry(src=Path(FileName.RELEASE), dst=Path('.') / DirName.REPOASSIST / FileName.RELEASE, is_templ=False),
+    RepoassistFileGenEntry(src=Path(FileName.EXCEPTIONS), dst=Path('.') / DirName.REPOASSIST / FileName.EXCEPTIONS, is_templ=False),
+    RepoassistFileGenEntry(src=Path(FileName.UTILS), dst=Path('.') / DirName.REPOASSIST / FileName.UTILS, is_templ=False),
+    RepoassistFileGenEntry(src=Path(FileName.PYGITTOOLS), dst=Path('.') / DirName.REPOASSIST / FileName.PYGITTOOLS, is_templ=False),
+    RepoassistFileGenEntry(src=Path(FileName.CLOUD), dst=Path('.') / DirName.REPOASSIST / FileName.CLOUD, is_templ=False),
+    RepoassistFileGenEntry(src=Path(FileName.WIZARD), dst=Path('.') / DirName.REPOASSIST / FileName.WIZARD, is_templ=False),
+    RepoassistFileGenEntry(src=Path(FileName.FORMATTER), dst=Path('.') / DirName.REPOASSIST / FileName.FORMATTER, is_templ=False),
+    RepoassistFileGenEntry(src=Path(FileName.PREPARE), dst=Path('.') / DirName.REPOASSIST / FileName.PREPARE, is_templ=False),
+    RepoassistFileGenEntry(src=Path(FileName.CLEAN), dst=Path('.') / DirName.REPOASSIST / FileName.CLEAN, is_templ=False),
+    RepoassistFileGenEntry(src=Path(FileName.REPOASSIST_CLI), dst=Path('.') / DirName.REPOASSIST / FileName.CLI, is_templ=False),
+    RepoassistFileGenEntry(src=Path(DirName.TEMPLATES) / f'{FileName.CHANGELOG_GENERATED}{JINJA2_TEMPLATE_EXT}', 
+                           dst=Path('.') / DirName.REPOASSIST  / DirName.TEMPLATES / f'{FileName.CHANGELOG_GENERATED}{JINJA2_TEMPLATE_EXT}', 
+                           is_templ=False),
+    RepoassistFileGenEntry(src=Path(DirName.TEMPLATES) / f'{FileName.CHANGELOG_PREPARED}{JINJA2_TEMPLATE_EXT}', 
+                           dst=Path('.') / DirName.REPOASSIST  / DirName.TEMPLATES / f'{FileName.CHANGELOG_PREPARED}{JINJA2_TEMPLATE_EXT}', 
+                           is_templ=False),
+    RepoassistFileGenEntry(src=Path(DirName.TEMPLATES) / f'{FileName.AUTHORS_PREPARED}{JINJA2_TEMPLATE_EXT}', 
+                           dst=Path('.') / DirName.REPOASSIST  / DirName.TEMPLATES / f'{FileName.AUTHORS_PREPARED}{JINJA2_TEMPLATE_EXT}', 
+                           is_templ=False),
+    RepoassistFileGenEntry(src=Path(DirName.TEMPLATES) / f'{FileName.REQUIREMENTS_DEV}{JINJA2_TEMPLATE_EXT}', 
+                           dst=Path('.') / DirName.REPOASSIST  / DirName.TEMPLATES / f'{FileName.REQUIREMENTS_DEV}{JINJA2_TEMPLATE_EXT}', 
+                           is_templ=False),
 ]
 
 GEN_REPO_CONFIG_MANDATORY_FIELDS = [
@@ -244,3 +280,5 @@ DIRS_TO_CLEAN = [
     {'name': 'venv*', 'flag': '.'},
     {'name': 'htmlcov', 'flag': '.'},
 ]
+
+DEFAULT_REQUIREMENTS = ['setuptools']
