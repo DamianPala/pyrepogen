@@ -2,12 +2,20 @@
 # -*- coding: utf-8 -*-
 
 
+import signal
+import sys
 from enum import EnumMeta
 
 from . import logger
 
 
 _logger = logger.get_logger(__name__)
+
+
+def keyboard_interrupt_handler(_signal, _frame):
+    sys.exit('Interrupted by user')
+
+signal.signal(signal.SIGINT, keyboard_interrupt_handler)
 
 
 def get_data(name, msg):

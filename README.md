@@ -13,13 +13,17 @@ One of the most important feature of Pyrepogen is to generate **Repoassist** in 
 
 ## Installation
 
-To install Pyrepogen you can use pypi: **THIS WAY IS CURRENTLY UNAVAILABLE!**
+#### **[TEMPORARY UNAVAILABLE]** Install from PyPi
+
+To install Pyrepogen you can use pypi: 
 
 ```
 pip install pyrepogen
 ```
 
-Or install from sources:
+#### Install from sources
+
+To install from sources do:
 
 1. Clone or download Pyrepogen repository
 
@@ -31,17 +35,19 @@ Or install from sources:
 
    >  Portable usage from sources without installation is also available.
 
-## Usage
+## Example
 
-There are two ways to generate a repository: **wizard** and a **configuration file**.
-
-Pyrepogen also provides simple demo repository generation. Just type:
+The fastest way to show how Pyrepogen works is to use demo. Just type:
 
 ```
 pyrepogen --demo
 ```
 
 Then a repository will be generated in the `demo_project` directory at your current working directory.
+
+## Usage
+
+There are two ways to generate a repository: **wizard** and a **configuration file**.
 
 ### Wizard
 
@@ -51,7 +57,13 @@ In the case of using from sources, just type `make run` in the root of pyrepogen
 
 ### Config file
 
-In the case when you want to generate many repositories, using a predefined configuration file is the best solution.  Just prepare a configuration file named `gen_repo.cfg` using following template and save it on your hard drive. You can also copy from sources and complete the `gen_repo.cfg` file instead of creating it by hand.
+In the case when you want to generate many repositories, using a predefined configuration file is the best solution.  
+
+Configuration file could be created in many ways:
+
+1. Using following config file template and saved as `gen_repo.cfg` file
+2. Automatically generated in current working directory when you run Pyrepogen with only `repo_path` parameter.
+3. By copying from sources the `gen_repo.cfg` file.
 
 #### Config file template
 

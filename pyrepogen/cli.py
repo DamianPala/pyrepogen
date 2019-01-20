@@ -25,6 +25,8 @@ def main():
                         'Always enter with double quotes.')
     parser.add_argument('-c', '--config', dest='config', action='store', 
                         default=None, help='Path to the repository config file.')
+    parser.add_argument('-u', '--update', dest='update', action='store', 
+                        default=None, help='Path to the repository where Repoassist will be updated.')
     parser.add_argument('-q', '--quiet', dest='quiet', action='store_true', 
                         default=False, help='Disable output.')
     parser.add_argument('-d', '--debug', dest='debug', action='store_true', 
