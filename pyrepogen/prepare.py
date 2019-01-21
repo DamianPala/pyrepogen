@@ -42,11 +42,12 @@ def generate_repo(config, cwd='.', options=None):
         _init_git_repo(config, cwd)
         
         for path in paths:
-            ret = pygittools.add(path, cwd)
-            if ret['returncode'] != 0:
-                if 'following paths are ignored' not in ret['msg']:
+            try:
+                pygittools.add(path, cwd)
+            except pygittools.PygittoolsError as e:
+                if 'following paths are ignored' not in e.__str__():
                     raise exceptions.GitAddError(f'Error occured while adding file '
-                                                 f"{utils.get_rel_path(path, cwd)} into repository tree: {ret['msg']}", 
+                                                 f'{utils.get_rel_path(path, cwd)} into repository tree: {e}', 
                                                  _logger)
             else:
                 _logger.info('Generated files added into repository tree.')
@@ -57,14 +58,16 @@ def generate_repo(config, cwd='.', options=None):
 
 
 def _init_git_repo(config, cwd):
-    ret = pygittools.init(cwd)
-    if ret['returncode'] != 0:
-        raise exceptions.RuntimeError(f"Git repository initializing error: {ret['msg']}", _logger)
+    try:
+        pygittools.init(cwd)
+    except pygittools.PygittoolsError as e:
+        raise exceptions.RuntimeError(f'Git repository initializing error: {e}', _logger)
     
     if config.git_origin:
-        ret = pygittools.add_origin(config.git_origin, cwd)
-        if ret['returncode'] != 0:
-            raise exceptions.RuntimeError(f"Git repository origin set up error: {ret['msg']}", _logger)
+        try:
+            pygittools.add_origin(config.git_origin, cwd)
+        except pygittools.PygittoolsError as e:
+            raise exceptions.RuntimeError(f'Git repository origin set up error: {e}', _logger)
     
 
 def _generate_repo_dirs(config, cwd):

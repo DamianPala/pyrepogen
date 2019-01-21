@@ -2,8 +2,9 @@
 # -*- coding: utf-8 -*-
 
 
-import argparse
 import sys
+import shutil
+import argparse
 from pathlib import Path
 
 from . import logger
@@ -37,6 +38,7 @@ def main():
     subparsers.add_parser('download_package', help='Download package from the cloud server.')
     subparsers.add_parser('clean', help='Clean repository from dummy files.')
     subparsers.add_parser('coverage_report', help='Show the html coverage report in the default system browser.')
+    subparsers.add_parser('update', help='Update Repoassist to version from installed Pyrepogen.')
     format_parser = subparsers.add_parser('format', help='Format a python source file using autopep8.')
     format_parser.add_argument('path', action='store', default=None, help='Path to the python source file.')
 
@@ -71,6 +73,11 @@ def main():
                 formatter.format_file(args.path, cwd=cwd)
             elif command == 'coverage_report':
                 formatter.coverage_report(cwd)
+            elif command == 'update':
+                if not shutil.which('pyrepogen'):
+                    raise exceptions.RuntimeError('Pyrepogen not found. '
+                                                  'Please check if it is installed properly', _logger)
+                print(utils.execute_cmd(('pyrepogen', '-u', '.'), cwd).strip())
             elif command == 'clean':
                 clean.clean(cwd)
             else:

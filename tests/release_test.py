@@ -125,7 +125,10 @@ def test_make_release_SHOULD_release_module_properly():
     
     pygittools.init(cwd)
     for path in paths:
-        pygittools.add(path, cwd)
+        try:
+            pygittools.add(path, cwd)
+        except pygittools.PygittoolsError:
+            pass
     pygittools.commit("Initial Commit", cwd)
     pygittools.set_tag(cwd, '0.1.0', "First Release")
     
@@ -148,13 +151,13 @@ def test_make_release_SHOULD_release_module_properly():
          
     shutil.rmtree(unpack_dir)
 
-    last_release_tag = pygittools.get_latest_tag(cwd)['msg']
-    last_release_msg = pygittools.get_latest_tag_msg(cwd)['msg']
+    last_release_tag = pygittools.get_latest_tag(cwd)
+    last_release_msg = pygittools.get_latest_tag_msg(cwd)
     
     assert unpack_paths == expected_paths
     assert release_data.tag == last_release_tag
     assert release_data.msg == last_release_msg
-    assert not pygittools.are_uncommited_changes(cwd)['msg']
+    assert not pygittools.are_uncommited_changes(cwd)
 
     if Path(cwd).exists():
         shutil.rmtree(Path(cwd), ignore_errors=False, onerror=_error_remove_readonly)
@@ -204,7 +207,10 @@ def test_make_release_SHOULD_release_package_properly():
     
     pygittools.init(cwd)
     for path in paths:
-        pygittools.add(path, cwd)
+        try:
+            pygittools.add(path, cwd)
+        except pygittools.PygittoolsError:
+            pass
     pygittools.commit("Initial Commit", cwd)
     pygittools.set_tag(cwd, '0.1.0', "First Release")
     
@@ -227,13 +233,13 @@ def test_make_release_SHOULD_release_package_properly():
          
     shutil.rmtree(unpack_dir)
 
-    last_release_tag = pygittools.get_latest_tag(cwd)['msg']
-    last_release_msg = pygittools.get_latest_tag_msg(cwd)['msg']
+    last_release_tag = pygittools.get_latest_tag(cwd)
+    last_release_msg = pygittools.get_latest_tag_msg(cwd)
     
     assert unpack_paths == expected_paths
     assert release_data.tag == last_release_tag
     assert release_data.msg == last_release_msg
-    assert not pygittools.are_uncommited_changes(cwd)['msg']
+    assert not pygittools.are_uncommited_changes(cwd)
 
     if Path(cwd).exists():
         shutil.rmtree(Path(cwd), ignore_errors=False, onerror=_error_remove_readonly)
@@ -262,7 +268,10 @@ def test_make_release_SHOULD_regenerate_package_properly_on_the_same_commit():
     
     pygittools.init(cwd)
     for path in paths:
-        pygittools.add(path, cwd)
+        try:
+            pygittools.add(path, cwd)
+        except pygittools.PygittoolsError:
+            pass
     pygittools.commit("Initial Commit", cwd)
     pygittools.set_tag(cwd, '0.1.0', "First Release")
     
@@ -272,7 +281,7 @@ def test_make_release_SHOULD_regenerate_package_properly_on_the_same_commit():
                                         release_data=release_data,
                                         cwd=cwd)
     
-    assert not pygittools.are_uncommited_changes(cwd)['msg']
+    assert not pygittools.are_uncommited_changes(cwd)
     
     archive_name_regenerated = release.make_release(action=release.ReleaseAction.REGENERATE,
                                         prompt=False, 
@@ -320,7 +329,7 @@ def test_make_release_SHOULD_regenerate_package_properly_on_the_different_commit
                                         release_data=release_data,
                                         cwd=cwd)
     
-    assert not pygittools.are_uncommited_changes(cwd)['msg']
+    assert not pygittools.are_uncommited_changes(cwd)
     
     file_to_modify = Path(cwd) / settings.FileName.README
     with open(file_to_modify, 'w') as file:
@@ -329,7 +338,7 @@ def test_make_release_SHOULD_regenerate_package_properly_on_the_different_commit
     pygittools.add(file_to_modify, cwd)
     pygittools.commit("Next Commit", cwd)
         
-    assert not pygittools.are_uncommited_changes(cwd)['msg']
+    assert not pygittools.are_uncommited_changes(cwd)
     
     time.sleep(1)
     
@@ -339,7 +348,7 @@ def test_make_release_SHOULD_regenerate_package_properly_on_the_different_commit
                                         release_data=None,
                                         cwd=cwd)
     
-    assert pygittools.get_latest_commit_hash(cwd)['msg'] in archive_name_regenerated.__str__()
+    assert pygittools.get_latest_commit_hash(cwd) in archive_name_regenerated.__str__()
     
     if Path(cwd).exists():
         shutil.rmtree(Path(cwd), ignore_errors=False, onerror=_error_remove_readonly)

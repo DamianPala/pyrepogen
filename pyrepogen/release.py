@@ -36,11 +36,10 @@ def make_install(options=None, cwd='.'):
         _check_repo_tree(cwd)
         _check_if_changes_to_commit(cwd)
     
-    ret = pygittools.get_latest_tag(cwd)
-    if ret['returncode'] != 0:
-        raise exceptions.ReleaseMetadataError(f"Retrieving release tag error: {ret['msg']}", _logger)
-    else:
-        release_tag = ret['msg']
+    try:
+        release_tag = pygittools.get_latest_tag(cwd)
+    except pygittools.PygittoolsError as e:
+        raise exceptions.ReleaseMetadataError(f"Retrieving release tag error: {e}", _logger)
 
     final_release_tag = _get_final_release_tag(release_tag, cwd)
     
@@ -83,12 +82,11 @@ def make_release(action=ReleaseAction.REGENERATE, prompt=True, push=True, releas
         release_tag = new_release_tag
         
     elif action == ReleaseAction.REGENERATE:
-        ret = pygittools.get_latest_tag(cwd)
-        if ret['returncode'] != 0:
-            raise exceptions.ReleaseMetadataError(f"Retrieving release tag error: {ret['msg']}"
+        try:
+            release_tag = pygittools.get_latest_tag(cwd)
+        except pygittools.PygittoolsError as e:
+            raise exceptions.ReleaseMetadataError(f"Retrieving release tag error: {e}"
                                                   f'Repository must be tagged before regenerate.', _logger)
-        else:
-            release_tag = ret['msg']
 
     final_release_tag = _get_final_release_tag(release_tag, cwd, action)
     _run_setup_cmd(['sdist', 'bdist_wheel'], release_tag=final_release_tag, cwd=cwd)
@@ -121,17 +119,15 @@ def _run_setup_cmd(cmd, release_tag=None, cwd='.'):
     
 def _get_final_release_tag(release_tag, cwd, action=None):
     if not action or (action == ReleaseAction.REGENERATE):
-        ret = pygittools.get_tag_commit_hash(release_tag, cwd)
-        if ret['returncode'] != 0:
-            raise exceptions.ReleaseMetadataError(f"Retrieving tag commit hash error: {ret['msg']}", _logger)
-        else:
-            tag_commit_hash = ret['msg']
+        try:
+            tag_commit_hash = pygittools.get_tag_commit_hash(release_tag, cwd)
+        except pygittools.PygittoolsError as e:
+            raise exceptions.ReleaseMetadataError(f'Retrieving tag commit hash error: {e}', _logger)
         
-        ret = pygittools.get_latest_commit_hash(cwd)
-        if ret['returncode'] != 0:
-            raise exceptions.ReleaseMetadataError(f"Retrieving latest commit hash error: {ret['msg']}", _logger)
-        else:
-            latest_commit_hash = ret['msg']
+        try:
+            latest_commit_hash = pygittools.get_latest_commit_hash(cwd)
+        except pygittools.PygittoolsError as e:
+            raise exceptions.ReleaseMetadataError(f'Retrieving latest commit hash error: {e}', _logger)
             
         if tag_commit_hash == latest_commit_hash:
             return release_tag
@@ -142,11 +138,10 @@ def _get_final_release_tag(release_tag, cwd, action=None):
         
 
 def _check_if_changes_to_commit(cwd):
-    ret = pygittools.are_uncommited_changes(cwd)
-    if ret['returncode'] == 0:
-        if ret['msg']:
+    try:
+        if pygittools.are_uncommited_changes(cwd):
             raise exceptions.UncommitedChangesError('There are changes to commit!', _logger)
-    else:
+    except pygittools.PygittoolsError:
         raise exceptions.UncommitedChangesError('Error checking if there are any changes to commit!', _logger)
     
     
@@ -235,12 +230,11 @@ def _update_generated_changelog(config, new_release_tag, new_release_msg, cwd='.
     _logger.info(f'Updating {settings.FileName.CHANGELOG} file...')
     
     changelog_path = Path(cwd).resolve() / settings.FileName.CHANGELOG
-    ret = pygittools.get_changelog(
-        report_format='### Version: %(tag) | Released: %(taggerdate:short) \r\n%(contents)', cwd=cwd)
-    if ret['returncode'] != 0:
-        raise exceptions.ChangelogGenerateError(f"Changelog generation error: {ret['msg']}", _logger)
-    else:
-        changelog_content = ret['msg']
+    try:
+        changelog_content = pygittools.get_changelog(
+            report_format='### Version: %(tag) | Released: %(taggerdate:short) \r\n%(contents)', cwd=cwd)
+    except pygittools.PygittoolsError as e:
+        raise exceptions.ChangelogGenerateError(f'Changelog generation error: {e}', _logger)
     
     if changelog_path.exists():
         changelog_path.unlink()
@@ -270,37 +264,42 @@ def _commit_and_push_release_update(new_release_tag, new_release_msg, files_to_a
     
     paths = []
     for file_path in files_to_add:
-        ret = pygittools.add(file_path, cwd)
-        if ret['returncode'] != 0:
-            raise exceptions.CommitAndPushReleaseUpdateError(f"{file_path.name} git add error: {ret['msg']}", _logger)
+        try:
+            pygittools.add(file_path, cwd)
+        except pygittools.PygittoolsError as e:
+            raise exceptions.CommitAndPushReleaseUpdateError(f'{file_path.name} git add error: {e}', _logger)
         paths.append(file_path)
     
-    ret = pygittools.commit(settings.AUTOMATIC_RELEASE_COMMIT_MSG, cwd)
-    if ret['returncode'] != 0:
-        raise exceptions.CommitAndPushReleaseUpdateError(f"git commit error: {ret['msg']}", _logger)
+    try:
+        pygittools.commit(settings.AUTOMATIC_RELEASE_COMMIT_MSG, cwd)
+    except pygittools.PygittoolsError as e:
+        raise exceptions.CommitAndPushReleaseUpdateError(f"git commit error: {e}", _logger)
     _logger.info('New commit with updated release files created.')
     
-    ret = pygittools.set_tag(cwd, new_release_tag, new_release_msg)
-    if ret['returncode'] != 0 or debug:
+    try:
+        pygittools.set_tag(cwd, new_release_tag, new_release_msg)
+        if debug:
+            raise pygittools.PygittoolsError('Error for debug', returncode=1)
+    except pygittools.PygittoolsError as e:
         _clean_failed_release(new_release_tag, cwd)
-        raise exceptions.ReleaseTagSetError(f"Error while setting release tag: {ret['msg']}", _logger)
+        raise exceptions.ReleaseTagSetError(f"Error while setting release tag: {e}", _logger)
     
-    ret = pygittools.get_latest_tag(cwd)
-    if ret['returncode'] != 0:
-        _clean_failed_release(new_release_tag, cwd)
-        raise exceptions.ReleaseTagSetError(f"Error while check if the new release tag set properly: {ret['msg']}", _logger)
-    else:
-        new_latest_tag = ret['msg']
+    try:
+        new_latest_tag = pygittools.get_latest_tag(cwd)
         if new_latest_tag != new_release_tag:
             _clean_failed_release(new_release_tag, cwd)
             raise exceptions.ReleaseTagSetError('New release tag was set incorrectly.', _logger)
+    except pygittools.PygittoolsError as e:
+        _clean_failed_release(new_release_tag, cwd)
+        raise exceptions.ReleaseTagSetError(f"Error while check if the new release tag set properly: {e}", _logger)
     
     _logger.info('New tag established.')
     
     if push and pygittools.is_origin_set(cwd):
-        ret = pygittools.push_with_tags(cwd)
-        if ret['returncode'] != 0:
-            _logger.error(f"git push error: {ret['msg']}")
+        try:
+            pygittools.push_with_tags(cwd)
+        except pygittools.PygittoolsError as e:
+            _logger.error(f"git push error: {e}")
             _logger.info('!!!IMPORTANT!!! Please check your origin or credentials and push changes WITH TAGS manually! '
                          'Releasing process is continued.')
             _logger.info('New release data commited with tag set properly.')
@@ -315,21 +314,22 @@ def _commit_and_push_release_update(new_release_tag, new_release_msg, files_to_a
 def _clean_failed_release(new_release_tag, cwd):
     _logger.warning('Revert release process.')
     
-    ret = pygittools.revert(1, cwd)
-    if ret['returncode'] != 0:
+    try:
+        pygittools.revert(1, cwd)
+    except pygittools.PygittoolsError:
         raise exceptions.CriticalError('Critical Error occured when reverting an automatic last commit. '
                                        'Please check git log, repo tree and cleanup the mess.', _logger)
     
     latest_tag_remove_error = False
-    ret = pygittools.list_tags(cwd)
-    if ret['returncode'] != 0:
-        latest_tag_remove_error = True
-    else:
-        tags = ret['msg']
+    try:
+        tags = pygittools.list_tags(cwd)
         if new_release_tag in tags:
-            ret = pygittools.delete_tag(new_release_tag, cwd)
-            if ret['returncode'] != 0:
+            try:
+                pygittools.delete_tag(new_release_tag, cwd)
+            except pygittools.PygittoolsError:
                 latest_tag_remove_error = True
+    except pygittools.PygittoolsError:
+        latest_tag_remove_error = True
         
     if latest_tag_remove_error:
         raise exceptions.CriticalError('Critical Error occured when deleting an automatic latest tag. '
@@ -337,16 +337,16 @@ def _clean_failed_release(new_release_tag, cwd):
 
 
 def _prompt_release_tag(cwd=''):
-    latest_release_tag_ret = pygittools.get_latest_tag(cwd)
-    
-    if latest_release_tag_ret['returncode'] != 0:
+    try:
+        latest_release_tag = pygittools.get_latest_tag(cwd)
+        _logger.info(f'Last release tag: {latest_release_tag}')
+        is_tagged = True
+    except pygittools.TagNotFoundError:
         _logger.tip(f'Repo has not been tagged yet. '
                     f'Proposed initial release tag: {settings.SUGGESTED_INITIAL_RELEASE_TAG}')
         is_tagged = False
-    else:
-        latest_release_tag = latest_release_tag_ret['msg']
-        _logger.info(f'Last release tag: {latest_release_tag}')
-        is_tagged = True
+    except pygittools.PygittoolsError:
+        raise exceptions.RuntimeError('Error occured when getting latest release tag.', _logger)
     
     is_release_tag_valid = False
     comparing_release_tags = True
@@ -410,11 +410,10 @@ def _prompt_release_msg():
 
 """
 
-    ret = pygittools.get_commit_msgs_from_last_tag()
-    if ret['returncode'] == 0:
-        current_log = ret['msg']
+    try:
+        current_log = pygittools.get_commit_msgs_from_last_tag()
         info_msg = tip_msg + current_log
-    else:
+    except pygittools.PygittoolsError:
         info_msg = tip_msg
      
     try:

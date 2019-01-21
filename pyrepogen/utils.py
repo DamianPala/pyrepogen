@@ -46,7 +46,7 @@ def execute_cmd_and_split_lines_to_list(args, cwd='.'):
 
 
 def get_git_repo_tree(cwd='.'):
-    return [Path(cwd).resolve() / path for path in pygittools.list_git_repo_tree(str(cwd))['msg']]
+    return [Path(cwd).resolve() / path for path in pygittools.list_git_repo_tree(str(cwd))]
 
 
 def read_repo_config_file(path):

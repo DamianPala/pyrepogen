@@ -26,6 +26,9 @@ prepare:
 	@$(PYTHON) -m pip install -r requirements-dev.txt
 	@$(PYTHON) -m pip install -r requirements.txt
 
+update:
+	@$(PYTHON) -m repoassist update
+
 release:
 	@$(PYTHON) -m repoassist release $(RELEASE_ARGS)
 	
@@ -83,6 +86,9 @@ help:
 	@echo "make prepare"
 	@echo "	Prepare a development environment based on the requirements.txt and requirements-dev.txt, use only once"
 	
+	@echo "make update"
+	@echo "	Update Repoassist to version from installed Pyrepogen."
+	
 	@echo "make release"
 	@echo "	Release the {% if options.project_type == 'module' %}standalone module{% else %}package{% endif %}"
 	@echo "	Usage: make release [force]"
@@ -128,5 +134,5 @@ help:
 	@echo "	Clean build and distribution"
 	
 
-.PHONY: default requirements prepare release install test coverage coverage_report tox venv \
+.PHONY: default requirements prepare update release install test coverage coverage_report tox venv \
 	format lint doc install_reqs update_reqs {% block cloud_targets_phony %}{% endblock %} clean help
