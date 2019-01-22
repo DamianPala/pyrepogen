@@ -130,7 +130,7 @@ def test_make_release_SHOULD_release_module_properly():
         except pygittools.PygittoolsError:
             pass
     pygittools.commit("Initial Commit", cwd)
-    pygittools.set_tag(cwd, '0.1.0', "First Release")
+    pygittools.set_tag('0.1.0', "First Release", cwd)
     
     archive_name = release.make_release(action=release.ReleaseAction.MAKE_RELEASE,
                                         prompt=False, 
@@ -212,7 +212,7 @@ def test_make_release_SHOULD_release_package_properly():
         except pygittools.PygittoolsError:
             pass
     pygittools.commit("Initial Commit", cwd)
-    pygittools.set_tag(cwd, '0.1.0', "First Release")
+    pygittools.set_tag('0.1.0', "First Release", cwd)
     
     archive_name = release.make_release(action=release.ReleaseAction.MAKE_RELEASE,
                                         prompt=False, 
@@ -273,7 +273,7 @@ def test_make_release_SHOULD_regenerate_package_properly_on_the_same_commit():
         except pygittools.PygittoolsError:
             pass
     pygittools.commit("Initial Commit", cwd)
-    pygittools.set_tag(cwd, '0.1.0', "First Release")
+    pygittools.set_tag('0.1.0', "First Release", cwd)
     
     archive_name = release.make_release(action=release.ReleaseAction.MAKE_RELEASE,
                                         prompt=False, 
@@ -321,7 +321,7 @@ def test_make_release_SHOULD_regenerate_package_properly_on_the_different_commit
     for path in paths:
         pygittools.add(path, cwd)
     pygittools.commit("Initial Commit", cwd)
-    pygittools.set_tag(cwd, '0.1.0', "First Release")
+    pygittools.set_tag('0.1.0', "First Release", cwd)
     
     release.make_release(action=release.ReleaseAction.MAKE_RELEASE,
                                         prompt=False, 
@@ -540,7 +540,7 @@ def test_update_changelog():
     for path in paths:
         pygittools.add(path, cwd)
     pygittools.commit("Initial Commit", cwd)
-    pygittools.set_tag(cwd, '0.1.0', "First Release")
+    pygittools.set_tag('0.1.0', "First Release", cwd)
     
     with open(Path(cwd) / 'test.txt', 'w'):
         pass
@@ -586,16 +586,16 @@ def test_clean_filed_release():
     for path in paths:
         pygittools.add(path, cwd)
     pygittools.commit("Initial Commit", cwd)
-    pygittools.set_tag(cwd, '0.1.0', "First Release")
+    pygittools.set_tag('0.1.0', "First Release", cwd)
     
     with open(Path(cwd) / 'test.txt', 'w'):
         pass
     pygittools.add(str(Path(cwd) / 'test.txt'), cwd)
     pygittools.commit("Next Commit", cwd)
-    pygittools.set_tag(cwd, '0.2.0', """- Next Release
+    pygittools.set_tag('0.2.0', """- Next Release
 - another line
 
-- last line.""")
+- last line.""", cwd)
     
     utils.execute_cmd(['git', 'config', '--local', 'remote.origin.url', 'some url'], cwd)
     

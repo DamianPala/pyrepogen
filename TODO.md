@@ -4,5 +4,7 @@ TEST IT: Add option to manually push if push with tags failed
 Add UT: origin not reached - release properly but proper erro should be printed
 Add new files after repoassist update to git repo
 
+Check pytst xdist
+
 # TESTS
 - git init and origin

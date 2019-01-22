@@ -65,7 +65,7 @@ def _init_git_repo(config, cwd):
     
     if config.git_origin:
         try:
-            pygittools.add_origin(config.git_origin, cwd)
+            pygittools.set_origin(config.git_origin, cwd)
         except pygittools.PygittoolsError as e:
             raise exceptions.RuntimeError(f'Git repository origin set up error: {e}', _logger)
     

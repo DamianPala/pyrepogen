@@ -153,10 +153,7 @@ def _check_repo_tree(cwd):
     if not pygittools.is_any_commit(cwd):
         raise exceptions.NoCommitFoundError('There are no commits in repository. '
                                             'Please commit before release.', _logger)
-    
-    if not utils.get_git_repo_tree(cwd):
-        raise exceptions.EmptyRepositoryError('No files in repo tree!', _logger)
-    
+
 
 def _release_checkout(config):
     action = wizard.choose_one(__name__, 
@@ -277,7 +274,7 @@ def _commit_and_push_release_update(new_release_tag, new_release_msg, files_to_a
     _logger.info('New commit with updated release files created.')
     
     try:
-        pygittools.set_tag(cwd, new_release_tag, new_release_msg)
+        pygittools.set_tag(new_release_tag, new_release_msg, cwd)
         if debug:
             raise pygittools.PygittoolsError('Error for debug', returncode=1)
     except pygittools.PygittoolsError as e:
