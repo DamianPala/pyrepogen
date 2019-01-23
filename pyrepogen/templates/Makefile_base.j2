@@ -114,8 +114,8 @@ help:
 	@echo "	Prepare virtual environment in ${VENV_DIR} directory."
 	
 	@echo "make format"
-	@echo "	Run autopep8 formatter for file specified as argument in merge mode"
-	@echo "	Usage: make format <path to file to be formatted>"
+	@echo "	Run autopep8 formatter for file specified as an argument in merge mode"
+	@echo "	Usage: make format <path to a file to be formatted>"
 	
 	@echo "make lint"
 	@echo "	Run linter"
@@ -132,7 +132,7 @@ help:
 	{% block cloud_targets_help %}{% endblock %}
 	
 	@echo "make clean"
-	@echo "	Clean build and distribution"
+	@echo "	Clean build, distribution and python cache files"
 	
 
 .PHONY: default requirements prepare update release install test coverage coverage_report tox venv \

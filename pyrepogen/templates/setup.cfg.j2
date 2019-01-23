@@ -63,10 +63,6 @@ norecursedirs = . .svn _build tmp* lib/third lib *.egg bin distutils build docs 
 python_files = *.py
 addopts = -p no:xdist --tb=long --capture=fd -rxX  --maxfail=10
 # --durations=3    report the top 3 longest tests
-
-# these are important for distributed testing, to speedup their execution we minimize what we sync
-;rsyncdirs = . your_package_name
-rsyncignore = .hg .git
 pep8ignore = E501 E265 E127 E128 E402
 
 [flake8]
