@@ -1,8 +1,10 @@
 
+import sys
 import pytest
 import inspect
 import shutil
 import stat
+import tempfile
 from pathlib import Path
 from pprint import pprint
 
@@ -14,7 +16,7 @@ from pyrepogen import pygittools
 
 
 TESTS_SETUPS_PATH = Path(inspect.getframeinfo(inspect.currentframe()).filename).parent / 'tests_setups/prepare_test'
-SKIP_ALL_MARKED = False
+SKIP_ALL_MARKED = True
 
 
 _DEFAULT_CONFIG = {
@@ -38,6 +40,16 @@ class Args:
 def _error_remove_readonly(_action, name, _exc):
     Path(name).chmod(stat.S_IWRITE)
     Path(name).unlink()
+    
+    
+@pytest.fixture()
+def cwd():
+    workspace_path = Path(tempfile.mkdtemp())
+    yield workspace_path
+    if getattr(sys, 'last_value'):
+        print(f'Test workspace path: {workspace_path}')
+    else:
+        shutil.rmtree(workspace_path, ignore_errors=False, onerror=_error_remove_readonly)
 
 
 @pytest.mark.skipif(SKIP_ALL_MARKED, reason="Skipped on request")
@@ -552,5 +564,105 @@ def test_generate_empty_file_SHOULD_overwrite_file_when_force():
     if Path(cwd).exists():
         shutil.rmtree(Path(cwd), ignore_errors=False, onerror=_error_remove_readonly)
     
+
+def update_repoassist_setup(cwd):
+    config = settings.Config(**_DEFAULT_CONFIG)
+    options = settings.Options()
+    options.force = True
+    options.cloud = config.is_cloud
+    options.sample_layout = config.is_sample_layout
+    options.project_type = config.project_type
+    
+    repoassit_path = cwd / 'repoassist'
+    repoassist_templates_path = cwd / 'repoassist/templates'
+    repoassist_templates_path.mkdir(exist_ok=True, parents=True)
+    
+    return config, options, repoassit_path, repoassist_templates_path
+    
+
+
+@pytest.mark.skipif(SKIP_ALL_MARKED, reason="Skipped on request")
+def test_update_repoassist_SHOULD_add_new_files_if_repoassist_empty(cwd):
+    config, options, repoassit_path, repoassist_templates_path = update_repoassist_setup(cwd)
+    
+    repoassist_paths_expected = prepare._generate_repoasist(config, cwd, options).paths
+    shutil.rmtree(repoassit_path)
+    
+    assert repoassit_path.exists() == False
+    
+    repoassist_templates_path.mkdir(exist_ok=True, parents=True)
+    
+    new_files = prepare.update_repoassist(config, cwd, add_to_tree=False, options=options)
+    
+    repoassist_files = {item for item in repoassit_path.rglob('*') if item.is_file()}
+    
+    assert set(repoassist_files) == set(repoassist_paths_expected)
+    assert set(new_files) == set(repoassist_paths_expected)
+
+
+@pytest.mark.skipif(SKIP_ALL_MARKED, reason="Skipped on request")
+def test_update_repoassist_SHOULD_overwrite_repoassist_files(cwd):
+    config, options, repoassit_path, repoassist_templates_path = update_repoassist_setup(cwd)
+    
+    repoassist_paths_expected = prepare._generate_repoasist(config, cwd, options).paths
+    shutil.rmtree(repoassit_path)
+    
+    assert repoassit_path.exists() == False
+    
+    repoassist_templates_path.mkdir(exist_ok=True, parents=True)
+    for path in repoassist_paths_expected:
+        path.touch()
+        
+    assert (repoassit_path / settings.FileName.MAIN).read_text() == ''
+    
+    new_files = prepare.update_repoassist(config, cwd, add_to_tree=False, options=options)
+    
+    repoassist_files = {item for item in repoassit_path.rglob('*') if item.is_file()}
+    
+    assert (repoassit_path / settings.FileName.MAIN).read_text != ''
+    
+    assert set(repoassist_files) == set(repoassist_paths_expected)
+    assert new_files.__len__() == 0
     
     
+@pytest.mark.skipif(SKIP_ALL_MARKED, reason="Skipped on request")
+def test_update_repoassist_SHOULD_add_new_files_to_repo_tree(cwd):
+    config, options, repoassit_path, _ = update_repoassist_setup(cwd)
+    
+    pygittools.init(cwd)
+    
+    repoassist_paths_expected = prepare._generate_repoasist(config, cwd, options).paths
+    paths_to_git_add = list(repoassist_paths_expected)
+    paths_to_git_add = [path for path in paths_to_git_add
+                        if (settings.FileName.MAIN not in path.__str__() and settings.FileName.CLI not in path.__str__())]
+    
+    (repoassit_path / settings.FileName.MAIN).unlink()
+    (repoassit_path / settings.FileName.CLI).unlink()
+    
+    for path in paths_to_git_add:
+        pygittools.add(path, cwd)
+        
+    pygittools.commit('First Commit', cwd)
+    repo_tree = utils.get_git_repo_tree(cwd)
+    
+    assert set(repo_tree) != set(repoassist_paths_expected)
+        
+    new_files = prepare.update_repoassist(config, cwd, add_to_tree=True, options=options)
+    pprint(new_files)
+    
+    pygittools.commit('Second Commit', cwd)
+    
+    assert repoassit_path / settings.FileName.MAIN in new_files
+    assert repoassit_path / settings.FileName.CLI in new_files
+    assert new_files.__len__() == 2
+    
+    repoassist_files = {item for item in repoassit_path.rglob('*') if item.is_file()}
+     
+    assert set(repoassist_files) == set(repoassist_paths_expected)
+    
+    repo_tree = utils.get_git_repo_tree(cwd)
+    pprint(repo_tree)
+    
+    assert set(repo_tree) == set(repoassist_paths_expected)
+    
+    assert 0

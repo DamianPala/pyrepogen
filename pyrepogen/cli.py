@@ -60,7 +60,7 @@ def parse_args():
     return parser.parse_args()
     
 
-def update(args):
+def update(args, add_to_tree=None):
     _logger.info('Update Repoassist in specified directory.')
     path_to_update = utils.get_dir_from_arg(args.update) / settings.DirName.REPOASSIST
     if not path_to_update.exists():
@@ -79,7 +79,7 @@ def update(args):
     options.sample_layout = config.is_sample_layout
     options.project_type = config.project_type
     
-    prepare.generate_repoasist(config, path_to_update.parent, options=args)
+    prepare.update_repoassist(config, path_to_update.parent, add_to_tree=add_to_tree, options=options)
     
     _logger.info(f'Repoassist has been updaten in directory: {path_to_update.parent}')
     

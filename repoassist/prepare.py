@@ -36,7 +36,7 @@ def generate_repo(config, cwd='.', options=None):
         paths.extend(_generate_repo_files(settings.MODULE_REPO_FILES_TO_GEN, config, cwd, options))
     else:
         raise exceptions.RuntimeError('Unknown project type.', _logger)
-    paths.extend(generate_repoasist(config, cwd, options))
+    paths.extend(_generate_repoasist(config, cwd, options))
     
     if config.is_git:
         _init_git_repo(config, cwd)
@@ -128,7 +128,7 @@ def _generate_repo_files(files_list, config, cwd, options=None):
     return paths
 
 
-def generate_repoasist(config, cwd, options=None):
+def _generate_repoasist(config, cwd, options=None):
     paths = []
     
     if options is None:

@@ -5,6 +5,7 @@
 import shutil
 import jinja2
 from pathlib import Path
+from collections import namedtuple
 
 from . import settings
 from . import PARDIR
@@ -12,6 +13,7 @@ from . import exceptions
 from . import pygittools
 from . import logger
 from . import utils
+from . import wizard
 
 
 _logger = logger.get_logger(__name__)
@@ -36,7 +38,7 @@ def generate_repo(config, cwd='.', options=None):
         paths.extend(_generate_repo_files(settings.MODULE_REPO_FILES_TO_GEN, config, cwd, options))
     else:
         raise exceptions.RuntimeError('Unknown project type.', _logger)
-    paths.extend(generate_repoasist(config, cwd, options))
+    paths.extend(_generate_repoasist(config, cwd, options).paths)
     
     if config.is_git:
         _init_git_repo(config, cwd)
@@ -131,8 +133,27 @@ def _generate_repo_files(files_list, config, cwd, options=None):
     return paths
 
 
-def generate_repoasist(config, cwd, options=None):
+def update_repoassist(config, cwd, add_to_tree=None, options=None):
+    new_files = _generate_repoasist(config, cwd, options=options).new_files
+    
+    if new_files.__len__() > 0 and pygittools.is_work_tree(cwd):
+        if add_to_tree is None:
+            add_to_tree = wizard.choose_bool(__name__, 'There are new files in repoassist. '
+                                             'Add them to the repository tree?')
+    
+        for file in new_files:
+            if add_to_tree:
+                pygittools.add(file, cwd)
+                _logger.info(f'New {utils.get_rel_path(file, cwd)} file added to the repository tree.')
+            else:
+                _logger.info(f'New {utils.get_rel_path(file, cwd)} file added to the repoassist.')
+                
+    return new_files
+
+
+def _generate_repoasist(config, cwd, options=None):
     paths = []
+    new_files = []
     
     if options is None:
         options = settings.Options()
@@ -144,13 +165,16 @@ def generate_repoasist(config, cwd, options=None):
         dst = Path(cwd) / file.dst
         is_templ = file.is_templ
         
+        if not dst.exists():
+            new_files.append(dst)
+        
         if is_templ:
             paths.extend(write_file_from_template(src, dst, config.__dict__, cwd, options=options))
         else:
             paths.extend(_copy_file_from(src, dst, cwd, options=options))
-            
-    return paths
-
+    
+    return namedtuple('GeneratedPaths', ['paths', 'new_files'])(paths, new_files)
+    
 
 def _generate_empty_file(path, cwd, options=None):
     try:

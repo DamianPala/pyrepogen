@@ -123,6 +123,7 @@ Following table describes some of the most interesting and exotic configuration 
 | ------------- | ------------------------------------------------------------ |
 | repo_path   | Repo name or path to the directory when the repository will be generated. If directory does not exist then will be created. Always enter with double quotes. |
 | &#x2011;c/&#x2011;&#x2011;config | Path to the repository config file. |
+| &#x2011;u/&#x2011;&#x2011;update | Path to the repository where Repoassist will be updated. |
 | &#x2011;q/&#x2011;&#x2011;quiet | Disable output. |
 | &#x2011;d/&#x2011;&#x2011;debug   | Enable debug output. |
 | &#x2011;f/&#x2011;&#x2011;force | Override existing files. |
@@ -132,6 +133,64 @@ Following table describes some of the most interesting and exotic configuration 
 
 
 # Repoassist
+
+## Usage
+
+Usage of this **Repoassist** is based on make targets from the command line. As a terminal, **Linux like terminal with the shell** is recommended, e.g. Git Bash or native Cygwin Console. Windows Command Line terminal **is not supported**.
+
+By typing the `make help` you will list all available targets with simple description.
+
+**DESCRIBE MODULE AND PACKAGE repo type**
+
+### Available Targets
+
+#### Make requirements
+
+- Lists necessary environment requirements.
+- Installing [Meld Merge](http://meldmerge.org/) is strongly recommended to convenient source files interactive formatting.
+
+#### Make prepare
+
+- Installs development requirements from `requirements-dev.txt` file.
+- Installs requirements from `requirements.txt` file.
+
+#### Make update
+
+- Updates Repoassist in your repository to version from installed Pyrepogen.
+- If git repository is initialized then new files will be automatically added into the repository tree after receiving a confirmation from wizard.
+- To run this target installed Pyrepogen is required.
+- Before update Repoassist, update Pyrepogen is recommended to the latest version.
+
+#### Make release
+
+- Generates a **source distribution package** and **wheel** based on source files added to repository tree.
+- Packages are generated using Python Build Reasonables (pbr).
+- Wizard to simplifying and standardizing the generation process.
+- There are two ways to generate packages: release and regenerate.
+- Output packages are stored in `dist` directory.
+
+##### Release
+
+- Full package generation process.
+- Release tag and release message are delivered by user.
+
+##### Regenerate
+
+- Regenerate current sources to package without tagging.
+- If the last commit is equal to last tag commit, then generated package will be a final release package with proper release tag.
+- If there are commits after last release tag, then generated package will be a development release package with last release tag with `devN` suffix.
+- Changelog and AUTHORS files are not generated in this release type.
+
+##### Extra features
+
+- System Text Editor is used to prepare release message rather than a command line to improve comfort of releasing process. Furthermore by default in Text Editor window are written commit messages since last release tag, ordered from last to first. You can use them to prepare more reliable release message.
+- Repository check before release regarding work tree, uncommited changes etc.
+- Entered a release tag during the release process are automatically checked with compliance to **Semantic Version**.
+- Entered a release tag less than the previous is instantly cached and refused.
+- Project `__version__` variable is automatically updated using entered release tag.
+- Based on previous release tag new **Changelog** file is generated and incorporated in the new release.
+- Based on authors of commits in the repository actual **AUTHORS** file is generated and incorporated in the new release.
+- After generating Changelog and AUTORHS **new automatic commit** is added to the repository and **pushed to origin** if exists.
 
 
 
@@ -143,16 +202,10 @@ Following table describes some of the most interesting and exotic configuration 
 # Features
 - collect requirements as makefile target
 - autonomus package with e.g. colreqs.py in generated repository as helper to makefile targets
-- ChangeLog and AUTHORS not in repo tree
-- when regenerate release package, changelog and authors are not regenerated
+- 
 
-# Standalone Script Repo
-## Targets
 ### release
-* Generate the ChangeLog file based a git repository
-* Generate the AUTHORS file based a git repository
 * Update the requirements.txt file
-* Prepare the Release Package in `dist` directory containing all files that are in the git repository tree
 
 Describe clean target
 
@@ -170,7 +223,3 @@ Commit hash is stored into .egg-info/pbr.json as git_version
 Describe mechanism regarding dev release tag only in dist not in git that is set when release on different commit than last release tag commit
 
 If generate repo in the same directory as is without force, repoassist is overwritten by default
-
-Repoassist update target
-
-path as argument in pyrepogen must be entered with double quotes
