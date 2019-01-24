@@ -71,9 +71,6 @@ class UncommitedChangesError(PyRepoGenError):
 class CommitAndPushReleaseUpdateError(PyRepoGenError):
     pass
 
-class EmptyRepositoryError(PyRepoGenError):
-    pass
-
 class WorkTreeNotFoundError(PyRepoGenError):
     pass
 

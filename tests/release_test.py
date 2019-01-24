@@ -243,6 +243,89 @@ def test_make_release_SHOULD_release_package_properly():
 
     if Path(cwd).exists():
         shutil.rmtree(Path(cwd), ignore_errors=False, onerror=_error_remove_readonly)
+
+
+@pytest.mark.skipif(SKIP_ALL_MARKED, reason="Skipped on request")
+def test_make_release_SHOULD_release_package_properly_WHEN_origin_not_reached():
+    cwd = TESTS_SETUPS_PATH / 'test_make_release_SHOULD_release_package_properly_WHEN_origin_not_reached'
+    if Path(cwd).exists():
+        shutil.rmtree(Path(cwd), ignore_errors=False, onerror=_error_remove_readonly)
+    Path(cwd).mkdir(parents=True, exist_ok=True)
+    
+    config = settings.Config(**_DEFAULT_CONFIG)
+    config.project_type = settings.ProjectType.PACKAGE.value
+    config.is_sample_layout = True
+    
+    options = Args()
+    options.force = True
+    options.cloud = True
+    
+    release_data = ReleaseData()
+    release_data.tag = '0.2.0'
+    release_data.msg = 'Next Release'
+    
+    paths = prepare.generate_repo(config, cwd, options)
+    expected_paths = {path.relative_to(cwd).as_posix() for path in paths}
+    expected_paths.remove(settings.DirName.DOCS) # TODO: think about doc in feature
+    expected_paths.remove(settings.FileName.CLOUD_CREDENTIALS)
+    expected_paths.remove(settings.FileName.GITIGNORE)
+    expected_paths = expected_paths | {
+        settings.FileName.AUTHORS,
+        settings.FileName.CHANGELOG,
+        'PKG-INFO',
+        '{}'.format(config.project_name),
+        '{}.egg-info'.format(config.project_name),
+        '{}.egg-info/PKG-INFO'.format(config.project_name),
+        '{}.egg-info/SOURCES.txt'.format(config.project_name),
+        '{}.egg-info/dependency_links.txt'.format(config.project_name),
+        '{}.egg-info/not-zip-safe'.format(config.project_name),
+        '{}.egg-info/pbr.json'.format(config.project_name),
+        '{}.egg-info/top_level.txt'.format(config.project_name),
+        '{}.egg-info/requires.txt'.format(config.project_name),
+        '{}.egg-info/entry_points.txt'.format(config.project_name),
+        '.'
+    }
+    pprint(expected_paths)
+    
+    pygittools.init(cwd)
+    pygittools.set_origin('http://origin', cwd)
+    for path in paths:
+        try:
+            pygittools.add(path, cwd)
+        except pygittools.PygittoolsError:
+            pass
+    pygittools.commit("Initial Commit", cwd)
+    pygittools.set_tag('0.1.0', "First Release", cwd)
+    
+    archive_name = release.make_release(action=release.ReleaseAction.MAKE_RELEASE,
+                                        prompt=False,
+                                        push=True,
+                                        release_data=release_data,
+                                        cwd=cwd)
+    unpack_dir = Path(cwd) / Path(archive_name).stem
+    
+    if (unpack_dir.exists()):
+        shutil.rmtree(unpack_dir)
+    Path.mkdir(unpack_dir, parents=True)
+    shutil.unpack_archive(archive_name, extract_dir=unpack_dir, format='gztar')
+     
+    unpack_paths = set()
+    for path in Path(unpack_dir).glob('**/*'):
+        unpack_paths.add(Path(path).relative_to(Path(cwd) / Path(archive_name).stem / Path(Path(archive_name).stem).stem).as_posix())
+    pprint(unpack_paths)
+         
+    shutil.rmtree(unpack_dir)
+
+    last_release_tag = pygittools.get_latest_tag(cwd)
+    last_release_msg = pygittools.get_latest_tag_msg(cwd)
+    
+    assert unpack_paths == expected_paths
+    assert release_data.tag == last_release_tag
+    assert release_data.msg == last_release_msg
+    assert not pygittools.are_uncommited_changes(cwd)
+
+    if Path(cwd).exists():
+        shutil.rmtree(Path(cwd), ignore_errors=False, onerror=_error_remove_readonly)
         
         
 @pytest.mark.skipif(SKIP_ALL_MARKED, reason="Skipped on request")

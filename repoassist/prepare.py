@@ -5,6 +5,7 @@
 import shutil
 import jinja2
 from pathlib import Path
+from collections import namedtuple
 
 from . import settings
 from . import PARDIR
@@ -12,6 +13,7 @@ from . import exceptions
 from . import pygittools
 from . import logger
 from . import utils
+from . import wizard
 
 
 _logger = logger.get_logger(__name__)
@@ -21,8 +23,12 @@ def generate_repo(config, cwd='.', options=None):
     _logger.info('Generate repository files...')
 
     paths = []
-    
+
     Path(cwd).mkdir(parents=True, exist_ok=True)
+    
+    if config.is_git:
+        _init_git_repo(config, cwd)
+        
     paths.extend(_generate_repo_dirs(config, cwd))
     if config.project_type == settings.ProjectType.PACKAGE.value:
         if options.sample_layout:
@@ -36,20 +42,19 @@ def generate_repo(config, cwd='.', options=None):
         paths.extend(_generate_repo_files(settings.MODULE_REPO_FILES_TO_GEN, config, cwd, options))
     else:
         raise exceptions.RuntimeError('Unknown project type.', _logger)
-    paths.extend(_generate_repoasist(config, cwd, options))
+    paths.extend(_generate_repoasist(config, cwd, options).paths)
     
     if config.is_git:
-        _init_git_repo(config, cwd)
-        
         for path in paths:
-            ret = pygittools.add(path, cwd)
-            if ret['returncode'] != 0:
-                if 'following paths are ignored' not in ret['msg']:
+            try:
+                pygittools.add(path, cwd)
+            except pygittools.PygittoolsError as e:
+                if 'following paths are ignored' not in e.__str__():
                     raise exceptions.GitAddError(f'Error occured while adding file '
-                                                 f"{utils.get_rel_path(path, cwd)} into repository tree: {ret['msg']}", 
+                                                 f'{utils.get_rel_path(path, cwd)} into repository tree: {e}', 
                                                  _logger)
-            else:
-                _logger.info('Generated files added into repository tree.')
+
+        _logger.info('Generated files added into repository tree.')
 
     _logger.info(f'Repository files generated in directory: {cwd}')
 
@@ -57,14 +62,16 @@ def generate_repo(config, cwd='.', options=None):
 
 
 def _init_git_repo(config, cwd):
-    ret = pygittools.init(cwd)
-    if ret['returncode'] != 0:
-        raise exceptions.RuntimeError(f"Git repository initializing error: {ret['msg']}", _logger)
-    
     if config.git_origin:
-        ret = pygittools.add_origin(config.git_origin, cwd)
-        if ret['returncode'] != 0:
-            raise exceptions.RuntimeError(f"Git repository origin set up error: {ret['msg']}", _logger)
+        try:
+            pygittools.clone(config.git_origin, cwd.parent)
+        except pygittools.PygittoolsError as e:
+            raise exceptions.RuntimeError(f'Git repository clone error: {e}', _logger)
+    else:
+        try:
+            pygittools.init(cwd)
+        except pygittools.PygittoolsError as e:
+            raise exceptions.RuntimeError(f'Git repository initializing error: {e}', _logger)
     
 
 def _generate_repo_dirs(config, cwd):
@@ -82,11 +89,13 @@ def _generate_repo_dirs(config, cwd):
 def _generate_directory(dirname, cwd):
     try:
         Path(Path(cwd) / dirname).mkdir()
-        _logger.info(f'{dirname} directory generated.')
-        return [Path(cwd) / dirname]
     except FileExistsError:
         _logger.warning(f'{dirname} directory exists, not overwritten.')
         return []
+    else:
+        _logger.info(f'{dirname} directory generated.')
+        return [Path(cwd) / dirname]
+        
 
 
 def generate_repo_config(cwd='.', options=None):
@@ -128,8 +137,27 @@ def _generate_repo_files(files_list, config, cwd, options=None):
     return paths
 
 
+def update_repoassist(config, cwd, add_to_tree=None, options=None):
+    new_files = _generate_repoasist(config, cwd, options=options).new_files
+    
+    if new_files.__len__() > 0 and pygittools.is_work_tree(cwd):
+        if add_to_tree is None:
+            add_to_tree = wizard.choose_bool(__name__, 'There are new files in repoassist. '
+                                             'Add them to the repository tree?')
+    
+        for file in new_files:
+            if add_to_tree:
+                pygittools.add(file, cwd)
+                _logger.info(f'New {utils.get_rel_path(file, cwd)} file added to the repository tree.')
+            else:
+                _logger.info(f'New {utils.get_rel_path(file, cwd)} file added to the repoassist.')
+                
+    return new_files
+
+
 def _generate_repoasist(config, cwd, options=None):
     paths = []
+    new_files = []
     
     if options is None:
         options = settings.Options()
@@ -141,13 +169,16 @@ def _generate_repoasist(config, cwd, options=None):
         dst = Path(cwd) / file.dst
         is_templ = file.is_templ
         
+        if not dst.exists():
+            new_files.append(dst)
+        
         if is_templ:
             paths.extend(write_file_from_template(src, dst, config.__dict__, cwd, options=options))
         else:
             paths.extend(_copy_file_from(src, dst, cwd, options=options))
-            
-    return paths
-
+    
+    return namedtuple('GeneratedPaths', ['paths', 'new_files'])(paths, new_files)
+    
 
 def _generate_empty_file(path, cwd, options=None):
     try:
@@ -157,14 +188,12 @@ def _generate_empty_file(path, cwd, options=None):
         else:
             with open(Path(path), 'x'):
                 pass
-
-        _logger.info(f'{utils.get_rel_path(path, cwd)} file generated.')
-        
-        return [path]
     except FileExistsError:
         _logger.warning(f'{utils.get_rel_path(path, cwd)} file exists, not overwritten.')
-
         return []
+    else:
+        _logger.info(f'{utils.get_rel_path(path, cwd)} file generated.')
+        return [path]
 
 
 def _copy_file(filename, dst, cwd, options=None, verbose=True):
@@ -178,10 +207,14 @@ def _copy_template_file(filename, dst, cwd, options=None, verbose=True):
 
 def _copy_file_from(src, dst, cwd, options=None, verbose=True):
     if (options and options.force) or (not Path(dst).exists()):
+        file_exists = Path(dst).exists()
         shutil.copy(src, dst)
         
         if verbose:
-            _logger.info(f'{utils.get_rel_path(dst, cwd)} file generated.')
+            if file_exists:
+                _logger.info(f'{utils.get_rel_path(dst, cwd)} file updated.')
+            else:
+                _logger.info(f'{utils.get_rel_path(dst, cwd)} file generated.')
 
         return [dst]
     else:
@@ -194,6 +227,7 @@ def _copy_file_from(src, dst, cwd, options=None, verbose=True):
 def write_file_from_template(src, dst, keywords, cwd, options=None, verbose=True):
     src = src.parent / f'{src.name}{settings.JINJA2_TEMPLATE_EXT}'
     if (options and options.force) or (not Path(dst).exists()):
+        file_exists = Path(dst).exists()
         templateLoader = jinja2.FileSystemLoader(searchpath=str(Path(PARDIR) / src.parent))
         templateEnv = jinja2.Environment(loader=templateLoader,
                                          trim_blocks=True,
@@ -204,7 +238,10 @@ def write_file_from_template(src, dst, keywords, cwd, options=None, verbose=True
         template.stream(keywords, options=options).dump(str(dst))
 
         if verbose:
-            _logger.info(f'{utils.get_rel_path(dst, cwd)} file generated.')
+            if file_exists:
+                _logger.info(f'{utils.get_rel_path(dst, cwd)} file updated.')
+            else:
+                _logger.info(f'{utils.get_rel_path(dst, cwd)} file generated.')
 
         return [dst]
     else:

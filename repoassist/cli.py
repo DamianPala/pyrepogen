@@ -77,7 +77,7 @@ def main():
                 if not shutil.which('pyrepogen'):
                     raise exceptions.RuntimeError('Pyrepogen not found. '
                                                   'Please check if it is installed properly', _logger)
-                utils.execute_cmd(('pyrepogen', '-u', '.'), cwd)
+                print(utils.execute_cmd(('pyrepogen', '-u', '.'), cwd).strip())
             elif command == 'clean':
                 clean.clean(cwd)
             else:

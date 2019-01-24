@@ -62,7 +62,7 @@ def make_release(action=ReleaseAction.REGENERATE, prompt=True, push=True, releas
         action = _release_checkout(config)
         if action == ReleaseAction.MAKE_RELEASE:
             new_release_tag = _prompt_release_tag(cwd)
-            new_release_msg = _prompt_release_msg()
+            new_release_msg = _prompt_release_msg(cwd)
     else:
         if action == ReleaseAction.MAKE_RELEASE:
             new_release_tag = release_data.tag
@@ -283,12 +283,13 @@ def _commit_and_push_release_update(new_release_tag, new_release_msg, files_to_a
     
     try:
         new_latest_tag = pygittools.get_latest_tag(cwd)
-        if new_latest_tag != new_release_tag:
-            _clean_failed_release(new_release_tag, cwd)
-            raise exceptions.ReleaseTagSetError('New release tag was set incorrectly.', _logger)
     except pygittools.PygittoolsError as e:
         _clean_failed_release(new_release_tag, cwd)
         raise exceptions.ReleaseTagSetError(f"Error while check if the new release tag set properly: {e}", _logger)
+    else:
+        if new_latest_tag != new_release_tag:
+            _clean_failed_release(new_release_tag, cwd)
+            raise exceptions.ReleaseTagSetError('New release tag was set incorrectly.', _logger)
     
     _logger.info('New tag established.')
     
@@ -297,7 +298,7 @@ def _commit_and_push_release_update(new_release_tag, new_release_msg, files_to_a
             pygittools.push_with_tags(cwd)
         except pygittools.PygittoolsError as e:
             _logger.error(f"git push error: {e}")
-            _logger.info('!!!IMPORTANT!!! Please check your origin or credentials and push changes WITH TAGS manually! '
+            _logger.info('!!!IMPORTANT!!! Please check repository origin or credentials and push changes WITH TAGS manually! '
                          'Releasing process is continued.')
             _logger.info('New release data commited with tag set properly.')
         else:
@@ -320,30 +321,31 @@ def _clean_failed_release(new_release_tag, cwd):
     latest_tag_remove_error = False
     try:
         tags = pygittools.list_tags(cwd)
+    except pygittools.PygittoolsError:
+        latest_tag_remove_error = True
+    else:
         if new_release_tag in tags:
             try:
                 pygittools.delete_tag(new_release_tag, cwd)
             except pygittools.PygittoolsError:
                 latest_tag_remove_error = True
-    except pygittools.PygittoolsError:
-        latest_tag_remove_error = True
         
     if latest_tag_remove_error:
         raise exceptions.CriticalError('Critical Error occured when deleting an automatic latest tag. '
                                        'Please check git log, repo tree and cleanup the mess.', _logger)
 
 
-def _prompt_release_tag(cwd=''):
+def _prompt_release_tag(cwd='.'):
     try:
         latest_release_tag = pygittools.get_latest_tag(cwd)
-        _logger.info(f'Last release tag: {latest_release_tag}')
-        is_tagged = True
-    except pygittools.TagNotFoundError:
+    except pygittools.PygittoolsError:
         _logger.tip(f'Repo has not been tagged yet. '
                     f'Proposed initial release tag: {settings.SUGGESTED_INITIAL_RELEASE_TAG}')
         is_tagged = False
-    except pygittools.PygittoolsError:
-        raise exceptions.RuntimeError('Error occured when getting latest release tag.', _logger)
+    else:
+        _logger.info(f'Last release tag: {latest_release_tag}')
+        is_tagged = True
+        
     
     is_release_tag_valid = False
     comparing_release_tags = True
@@ -381,14 +383,15 @@ def _prompt_release_tag(cwd=''):
 def _is_release_tag_valid(release_tag):
     try:
         normalized_version = pkg_version.Version(release_tag)
+    except pkg_version.InvalidVersion:
+        return False
+    else:
         if str(normalized_version) == release_tag:
             return True
         else:
             _logger.error(f'Entered release tag not valid! Proposed release tag: {normalized_version}. '
                           f'Correct and enter new one.')
             return False
-    except pkg_version.InvalidVersion:
-        return False
     
     
 def _is_higher_tag(latest_tag, new_tag):
@@ -398,7 +401,7 @@ def _is_higher_tag(latest_tag, new_tag):
     return new_tag_obj > latest_tag_obj
 
 
-def _prompt_release_msg():
+def _prompt_release_msg(cwd='.'):
     tip_msg = f"""{settings.TIP_MSG_MARK}Below are commit messages generated from the last tag.
 {settings.TIP_MSG_MARK}If the last tag not exists, messages are from the first commit.
 {settings.TIP_MSG_MARK}Use these messages to prepare a relevant release message.
@@ -408,10 +411,11 @@ def _prompt_release_msg():
 """
 
     try:
-        current_log = pygittools.get_commit_msgs_from_last_tag()
-        info_msg = tip_msg + current_log
+        current_log = pygittools.get_commit_msgs_from_last_tag(cwd)
     except pygittools.PygittoolsError:
         info_msg = tip_msg
+    else:
+        info_msg = tip_msg + current_log
      
     try:
         message = utils.input_with_editor(info_msg)

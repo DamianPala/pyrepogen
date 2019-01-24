@@ -23,7 +23,9 @@ if sys.version_info < MIN_PYTHON:
 try:
     p = subprocess.run(('git', '--version'), shell=True, check=True,
                        stdout=subprocess.PIPE, stderr=subprocess.STDOUT, encoding='utf-8')
-
+except subprocess.CalledProcessError as e:
+    sys.exit(f'Error occured when check git version: {e.output}\n')
+else:
     m = re.search(r'(\d+)\.(\d+)\.(\d+)', p.stdout)
     if m:
         git_version = (int(m.group(1)), int(m.group(2)), int(m.group(3)))
@@ -31,5 +33,3 @@ try:
             sys.exit(f'Git {git_version[0].git_version[1].git_version[2]} or later is required.\n')
     else:
         sys.exit(f'Error occured when check git version: {p.stdout}\n')
-except subprocess.CalledProcessError as e:
-    sys.exit(f'Error occured when check git version: {e.output}\n')

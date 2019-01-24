@@ -3,6 +3,7 @@
 
 
 import os
+import inspect
 import subprocess
 from pathlib import Path
 
@@ -35,10 +36,16 @@ class NotInWorkTreeError(PygittoolsError):
 
 def check_work_tree(func):
     def wrapper(*args, **kwargs):
-        if 'cwd' in kwargs:
-            cwd = kwargs['cwd']
+        sign = inspect.signature(func)
+        arg_names = list(sign.parameters.keys())
+        passed = {k:v for k,v in zip(arg_names[:len(args)], args)}
+        passed.update({k:v for k,v in kwargs.items()})
+        defaults = {key:value.default for key, value in sign.parameters.items() if value.default is not inspect._empty}
+        
+        if 'cwd' in passed:
+            cwd = passed['cwd']
         else:
-            cwd = args[-1]
+            cwd = defaults['cwd']
             
         if not is_work_tree(cwd):
             raise NotInWorkTreeError('Not in work tree', returncode=1)
@@ -49,6 +56,10 @@ def check_work_tree(func):
 
 def init(cwd='.'):
     return _execute_cmd(['git', 'init'], cwd=cwd)
+
+
+def clone(url, cwd='.'):
+    return _execute_cmd(['git', 'clone', str(url)], cwd=cwd)
 
 
 @check_work_tree
@@ -73,6 +84,11 @@ def is_origin_set(cwd='.'):
         return True
     except CmdError:
         return False
+
+
+@check_work_tree
+def set_upstream_to(branch, cwd='.'):
+    return _execute_cmd(['git', 'branch', '-u', f'origin/{branch}'], cwd=cwd)    
 
 
 @check_work_tree

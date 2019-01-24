@@ -117,6 +117,17 @@ Following table describes some of the most interesting and exotic configuration 
 | is&#x2011;git           | true - init Git repository; false - do not use this feature  |
 | git&#x2011;origin       | Specify an origin of your Git repository. Leave empty if you do not want to specify the remote origin. |
 
+### Repository generation flow
+
+1. Create repository directory.
+   - If `git-origin` parameter was set then a repository directory will has the same name as the remote repository.
+2. If `is-git` parameter was set then an empty repository will be initialized.
+3. If `git-origin` parameter was set then a repository from the origin will be cloned.
+4. Generate repository directories.
+5. Generate repository files.
+6. Generate Repoassist.
+7. If `is-git` parameter was set then generated and not ignored files will be added into the repository tree.
+
 ### Available Options
 
 | Option        | Description                                                  |

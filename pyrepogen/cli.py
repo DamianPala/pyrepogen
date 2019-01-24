@@ -141,10 +141,14 @@ def generate(args, cwd):
                                                             settings.ChangelogType)
         
             config = settings.Config(**config_dict)
-        
-            prompt_dir = wizard.get_data(__name__, 
-                                         'Enter path to the directory where a repository '
-                                         'will be generated (relative or absolute)')
+
+            if config_dict['is_git'] and config_dict['git_origin'] != '':
+                prompt_dir = Path(config_dict['git_origin']).stem
+            else:
+                prompt_dir = wizard.get_data(__name__, 
+                                             'Enter path to the directory where a repository '
+                                             'will be generated (relative or absolute)')
+                
             repo_path = utils.get_dir_from_arg(prompt_dir)
 
     args.cloud = config.is_cloud

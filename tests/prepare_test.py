@@ -16,7 +16,7 @@ from pyrepogen import pygittools
 
 
 TESTS_SETUPS_PATH = Path(inspect.getframeinfo(inspect.currentframe()).filename).parent / 'tests_setups/prepare_test'
-SKIP_ALL_MARKED = True
+SKIP_ALL_MARKED = False
 
 
 _DEFAULT_CONFIG = {
@@ -664,5 +664,3 @@ def test_update_repoassist_SHOULD_add_new_files_to_repo_tree(cwd):
     pprint(repo_tree)
     
     assert set(repo_tree) == set(repoassist_paths_expected)
-    
-    assert 0

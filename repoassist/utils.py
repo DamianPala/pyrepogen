@@ -22,31 +22,33 @@ _logger = logger.get_logger(__name__)
 def execute_cmd(args, cwd='.'):
     try:
         p = subprocess.run(args,
-                                 check=True,
-                                 cwd=str(cwd),
-                                 stdout=subprocess.PIPE,
-                                 stderr=subprocess.STDOUT,
-                                 encoding='utf-8')
-        return p.stdout
+                           check=True,
+                           cwd=str(cwd),
+                           stdout=subprocess.PIPE,
+                           stderr=subprocess.STDOUT,
+                           encoding='utf-8')
     except subprocess.CalledProcessError as e:
         raise exceptions.ExecuteCmdError(e.returncode, msg=e.output, logger=_logger)
+    else:
+        return p.stdout
 
 
 def execute_cmd_and_split_lines_to_list(args, cwd='.'):
     try:
         p = subprocess.run(args,
-                                 check=True,
-                                 cwd=str(cwd),
-                                 stdout=subprocess.PIPE,
-                                 stderr=subprocess.STDOUT,
-                                 encoding='utf-8')
-        return p.stdout.split('\n')
+                           check=True,
+                           cwd=str(cwd),
+                           stdout=subprocess.PIPE,
+                           stderr=subprocess.STDOUT,
+                           encoding='utf-8')
     except subprocess.CalledProcessError as e:
         raise exceptions.ExecuteCmdError(e.returncode, msg=e.output, logger=_logger)
+    else:
+        return p.stdout.split('\n')
 
 
 def get_git_repo_tree(cwd='.'):
-    return [Path(cwd).resolve() / path for path in pygittools.list_git_repo_tree(str(cwd))['msg']]
+    return [Path(cwd).resolve() / path for path in pygittools.list_repo_tree(str(cwd))]
 
 
 def read_repo_config_file(path):
@@ -224,7 +226,7 @@ def get_rel_path(path, cwd):
     return Path(path).resolve().relative_to(Path(cwd).resolve())
 
 
-def input_with_editor(msg=None):
+def input_with_editor(msg=''):
     platform_name = platform.system()
     if platform_name == 'Windows':
         cmd = 'start'
@@ -242,11 +244,8 @@ def input_with_editor(msg=None):
     fd, filepath = tempfile.mkstemp(suffix='.txt', text=True)
     filepath = Path(filepath)
     
-    if msg:
-        with open(fd, 'wt') as file:
-            file.write(msg)
-    else:
-        os.close(fd)
+    with open(fd, 'wt', encoding='utf-8') as file:
+        file.write(msg)
     
     cmd_list = [cmd] + options + [filepath.name]
         
@@ -258,10 +257,9 @@ def input_with_editor(msg=None):
                        stdout=subprocess.PIPE,
                        stderr=subprocess.STDOUT, 
                        encoding='utf-8')
-        text = open(filepath).read()
     except subprocess.CalledProcessError as e:
         raise exceptions.RuntimeError(f'Editor open error occured: {e.output}', _logger)
+    else:
+        return filepath.read_text(encoding='utf-8')
     finally:
         filepath.unlink()
-        
-    return text
