@@ -60,7 +60,7 @@ def test_cli_SHOULD_generate_demo_properly():
     sys.argv = [sys.argv[0], '--demo']
     cli.main()
     
-    p = subprocess.run(('make', 'test'), shell=True, cwd=cwd / settings.DEMO_PROJECT_NAME)
+    p = subprocess.run(('make', 'test'), shell=True, cwd=cwd / settings.DEMO_CONFIG.repo_name)
     
     assert p.returncode == 0
     
@@ -92,12 +92,13 @@ def test_cli_SHOULD_generate_repo_properly_from_config_in_cwd():
     cwd = TESTS_SETUPS_PATH / 'test_cli_SHOULD_generate_repo_properly_from_config_in_cwd'
     setup_test(cwd, clean=False)
     
+    repo_name = 'my_repo'
     test_project_dir = 'my_project'
     
     sys.argv = [sys.argv[0], test_project_dir]
     cli.main()
     
-    p = subprocess.run(('make', 'test'), shell=True, cwd=cwd / test_project_dir)
+    p = subprocess.run(('make', 'test'), shell=True, cwd=cwd / test_project_dir / repo_name)
     
     assert p.returncode == 0
     
@@ -112,12 +113,13 @@ def test_cli_SHOULD_generate_repo_properly_from_specified_config():
     cwd = TESTS_SETUPS_PATH / 'test_cli_SHOULD_generate_repo_properly_from_specified_config'
     setup_test(cwd, clean=False)
     
-    test_project_dir = 'my_project'
+    repo_name = 'my_repo'
+    test_project_dir = 'test_repo_dir'
     
     sys.argv = [sys.argv[0], test_project_dir, '-c', 'config/package_repo.cfg']
     cli.main()
     
-    p = subprocess.run(('make', 'test'), shell=True, cwd=cwd / test_project_dir)
+    p = subprocess.run(('make', 'test'), shell=True, cwd=cwd / test_project_dir / repo_name)
     
     assert p.returncode == 0
     

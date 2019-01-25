@@ -32,6 +32,7 @@ def test_read_repo_config_file_SHOULD_read_config_properly():
     Path(cwd).mkdir(parents=True, exist_ok=True)
 
     expected_config = settings.Config(
+        repo_name='sample_repo',
         project_type=settings.ProjectType.MODULE.value,
         project_name='sample_project',
         author='Damian',
@@ -94,29 +95,131 @@ def test_get_repo_config_from_setup_cfg_SHOULD_read_config_properly():
     assert config == expected_config
     
 
+validate_validate_config_testdata = [
+    (    
+        """
+        # Required parameters:
+        repo-name = 
+        # project-type values: package or module
+        project-type = module
+        project-name = sample_project
+        author = Damian
+        author-email = damian@mail.com
+        short-description = This is a sample project.
+        # changelog-type, authors-type values: generated or prepared
+        changelog-type = generated
+        authors-type = generated
+        
+        # Optional parameters:
+        maintainer = Mike
+        maintainer-email = mike@mail.com
+        home-page = page.com
+        # is-cloud, is-sample-layout, is-git values: true or false
+        is-cloud = true
+        is-sample-layout = true
+        is-git = true
+        git-origin = 
+        """, 
+        "The repo-name field is empty in the config"
+    ),
+    (    
+        """
+        # Required parameters:
+        repo-name = sample_repo
+        # project-type values: package or module
+        project-type = module
+        project-name = sample_project
+        author = Damian
+        author-email = damian@mail.com
+        short-description = This is a sample project.
+        # changelog-type, authors-type values: generated or prepared
+        changelog-type = generated
+        authors-type = generated
+        
+        # Optional parameters:
+        maintainer = Mike
+        maintainer-email = mike@mail.com
+        home-page = page.com
+        # is-cloud, is-sample-layout, is-git values: true or false
+        is-cloud = 
+        is-sample-layout = true
+        is-git = true
+        git-origin = 
+        """, 
+        "The is-cloud field is empty in the config"
+    ),
+    (    
+        """
+        # Required parameters:
+        repo-name = sample_repo
+        # project-type values: package or module
+        project-type = module
+        project-name = sample_project
+        author = Damian
+        author-email = damian@mail.com
+        short-description = This is a sample project.
+        # changelog-type, authors-type values: generated or prepared
+        changelog-type = generated
+        authors-type = generated
+        
+        # Optional parameters:
+        maintainer = Mike
+        maintainer-email = mike@mail.com
+        home-page = page.com
+        # is-cloud, is-sample-layout, is-git values: true or false
+        is-cloud = true
+        is-sample-layout = 
+        is-git = true
+        git-origin = 
+        """, 
+        "The is-sample-layout field is empty in the config"
+    ),
+    (    
+        """
+        # Required parameters:
+        repo-name = sample_repo
+        # project-type values: package or module
+        project-type = module
+        project-name = 
+        author = Damian
+        author-email = damian@mail.com
+        short-description = This is a sample project.
+        # changelog-type, authors-type values: generated or prepared
+        changelog-type = generated
+        authors-type = generated
+        
+        # Optional parameters:
+        maintainer = Mike
+        maintainer-email = mike@mail.com
+        home-page = page.com
+        # is-cloud, is-sample-layout, is-git values: true or false
+        is-cloud = true
+        is-sample-layout = true
+        is-git = true
+        git-origin = 
+        """, 
+        "The project-name field is empty in the config"
+    ),    
+]
+
 @pytest.mark.skipif(SKIP_ALL_MARKED, reason="Skipped on request")
-def test_validate_config_SHOULD_raise_error_when_field_is_empty():
-    config = settings.Config(
-        project_type=settings.ProjectType.MODULE.value,
-        project_name='',
-        author='Damian',
-        author_email='damian@mail.com',
-        short_description='This is a sample project.',
-        changelog_type=settings.ChangelogType.GENERATED.value,
-        authors_type=settings.AuthorsType.GENERATED.value,
-        home_page='page.com',
-        maintainer='Mike',
-        maintainer_email='mike@mail.com',
-        keywords=['sample_project'],
-        license=settings.LICENSE,
-    )
+@pytest.mark.parametrize("repo_config, expected", validate_validate_config_testdata)
+def test_validate_repo_config_SHOULD_raise_error_when_field_is_empty_in_gen_config(repo_config, expected):
+    cwd = TESTS_SETUPS_PATH / 'test_validate_repo_config_SHOULD_raise_error_when_field_is_empty_in_gen_config'
+    Path(cwd).mkdir(parents=True, exist_ok=True)
+    
+    (cwd / settings.FileName.REPO_CONFIG).write_text(repo_config)
     
     try:
-        utils._validate_config(config)
+        config = utils.read_repo_config_file(Path(cwd) / settings.FileName.REPO_CONFIG)
+        pprint(config.__dict__)
         assert False, "Error was expected but not occured!"
     except exceptions.ConfigError as e:
-        assert "The project_name field is empty in the config" in str(e)
+        assert expected in str(e)
         
+    if Path(cwd).exists():
+        shutil.rmtree(Path(cwd), ignore_errors=False, onerror=_error_remove_readonly)
+    
 
 validate_repo_config_metadata_testdata = [
     (    
@@ -136,7 +239,7 @@ validate_repo_config_metadata_testdata = [
             is_cloud=True,
             is_sample_layout=True,
         ), 
-        "The project_type field has invalid value"
+        "The project-type field has invalid value"
     ),
     (
         settings.Config(
@@ -155,10 +258,11 @@ validate_repo_config_metadata_testdata = [
             is_cloud=True,
             is_sample_layout=True,
         ),
-        "The changelog_type field has invalid value"
+        "The changelog-type field has invalid value"
     ),
     (
         settings.Config(
+            repo_name='sample_repo',
             project_type=settings.ProjectType.MODULE.value,
             project_name='sample_project',
             author='Damian',
@@ -174,7 +278,7 @@ validate_repo_config_metadata_testdata = [
             is_cloud=True,
             is_sample_layout=True,
         ),
-        "The authors_type field has invalid value"
+        "The authors-type field has invalid value"
     ),
     (    
         settings.Config(
@@ -193,7 +297,7 @@ validate_repo_config_metadata_testdata = [
             is_cloud='raise error',
             is_sample_layout=True,
         ),
-        "The is_cloud field has invalid value"
+        "The is-cloud field has invalid value"
     ),
     (
         settings.Config(
@@ -212,7 +316,7 @@ validate_repo_config_metadata_testdata = [
             is_cloud=True,
             is_sample_layout='raise error',
         ),
-        "The is_sample_layout field has invalid value"
+        "The is-sample-layout field has invalid value"
     ),
 ]
  
@@ -336,6 +440,4 @@ def test_get_latest_tarball_SHOULD_return_proper_latest_tarball():
     
     if Path(cwd).exists():
         shutil.rmtree(Path(cwd), ignore_errors=False, onerror=_error_remove_readonly)
-
-        
         

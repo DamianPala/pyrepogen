@@ -40,8 +40,9 @@ def parse_args():
     parser = argparse.ArgumentParser(formatter_class=argparse.RawDescriptionHelpFormatter,
                                      description='Python Repo Generator')
     parser.add_argument('repo_path', nargs='?', action='store', default=None, 
-                        help='Repo name or path to the directory when the repository will be '
+                        help='Path to the directory where the repository will be '
                         'generated. If directory does not exist then will be created. '
+                        'In this path the directory named with repo-name parameter will be created. '
                         'Always enter with double quotes.')
     parser.add_argument('-c', '--config', dest='config', action='store', 
                         default=None, help='Path to the repository config file.')
@@ -109,10 +110,10 @@ def generate(args, cwd):
     else:
         if args.demo:
             config = settings.DEMO_CONFIG
-            repo_path = Path(cwd) / settings.DEMO_PROJECT_NAME
+            repo_path = Path(cwd)
             if repo_path.exists():
                 shutil.rmtree(repo_path, ignore_errors=True)
-            repo_path.mkdir(parents=True)
+            repo_path.mkdir(parents=True, exist_ok=True)
                 
         else:
             _logger.info('Start Python Repository Generator Wizard!')
@@ -139,15 +140,20 @@ def generate(args, cwd):
             config_dict['authors_type'] = wizard.choose_one(__name__, 
                                                             f'Select an {settings.FileName.AUTHORS} file type',
                                                             settings.ChangelogType)
+            if config_dict['is_git'] and config_dict['git_origin'] != '':
+                config_dict['repo_name'] = Path(config_dict['git_origin']).stem
+                _logger.info(f"Repository name: {config_dict['repo_name']}")
+            else:
+                config_dict['repo_name'] = wizard.get_data_and_valid(__name__, 
+                                                      'Enter repository name', [''])
         
             config = settings.Config(**config_dict)
-
-            if config_dict['is_git'] and config_dict['git_origin'] != '':
-                prompt_dir = Path(config_dict['git_origin']).stem
-            else:
-                prompt_dir = wizard.get_data(__name__, 
-                                             'Enter path to the directory where a repository '
-                                             'will be generated (relative or absolute)')
+            
+            prompt_dir = wizard.get_data(__name__, 
+                                         "Enter a path to the directory where a repository "
+                                         "will be generated (relative or absolute). "
+                                         "Enter '.' to generate in the current directory. "
+                                         "I this path a new directory named with repository name will be created")
                 
             repo_path = utils.get_dir_from_arg(prompt_dir)
 
@@ -155,7 +161,8 @@ def generate(args, cwd):
     args.sample_layout = config.is_sample_layout
     args.project_type = config.project_type
     
-    prepare.generate_repo(config, cwd=repo_path, options=args)
+    repo_generator_cwd = repo_path / config.repo_name
+    prepare.generate_repo(config, cwd=repo_generator_cwd, options=args)
 
 
 if __name__ == '__main__':

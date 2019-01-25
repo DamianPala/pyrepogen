@@ -129,6 +129,7 @@ class Config():
     short_description : str
     changelog_type : str
     authors_type : str
+    repo_name : str = '.'
     is_cloud : bool = None
     is_sample_layout : bool = None
     maintainer : str = ''
@@ -164,10 +165,10 @@ class Config():
         return dir(Config)
 
 
-DEMO_PROJECT_NAME = 'demo_project'
 DEMO_CONFIG = Config(
+    repo_name='demo_repo',
     project_type=ProjectType.PACKAGE.value,
-    project_name=DEMO_PROJECT_NAME,
+    project_name='demo_project',
     author='You',
     author_email='you@mail.com',
     short_description='This is demo project for demo purposes.',
@@ -260,6 +261,7 @@ REPOASSIST_FILES = [
 ]
 
 GEN_REPO_CONFIG_MANDATORY_FIELDS = [
+    'repo_name',
     'is_cloud',
     'is_sample_layout'
 ]

@@ -2,7 +2,6 @@
 # -*- coding: utf-8 -*-
 
 
-import os
 import subprocess
 import configparser
 import platform
@@ -52,11 +51,14 @@ def get_git_repo_tree(cwd='.'):
 
 
 def read_repo_config_file(path):
-    return _prepare_config(path, [settings.REPO_CONFIG_SECTION_NAME], is_repo_config_file=True)
-
+    config = _prepare_config(path, [settings.REPO_CONFIG_SECTION_NAME], is_repo_config_file=True)
+    _validate_config(config, extra_fields=settings.GEN_REPO_CONFIG_MANDATORY_FIELDS)
+    return config
 
 def get_repo_config_from_setup_cfg(path):
-    return _prepare_config(path, [settings.METADATA_CONFIG_SECTION_NAME, settings.GENERATOR_CONFIG_SECTION_NAME])
+    config = _prepare_config(path, [settings.METADATA_CONFIG_SECTION_NAME, settings.GENERATOR_CONFIG_SECTION_NAME])
+    _validate_config(config)
+    return config
 
 
 def _prepare_config(path, sections, is_repo_config_file=False):
@@ -73,7 +75,6 @@ def _prepare_config(path, sections, is_repo_config_file=False):
         config = settings.Config(**config_dict)
     except TypeError as e:
         raise exceptions.ConfigError(f'Invalid config file structure: {str(e)}', _logger)
-    _validate_config(config)
 
     return config
 
@@ -140,14 +141,14 @@ def _remove_junk_fields(config_dict):
 
 def _validate_config(config, extra_fields=[]):
     for field in extra_fields:
-        if getattr(config, field) is None:
-            raise exceptions.ConfigError(f'The {field} field is empty in the config!', _logger)
+        if getattr(config, field) == '' or getattr(config, field) is None:
+            raise exceptions.ConfigError(f"The {field.replace('_', '-')} field is empty in the config!", _logger)
 
     for field, value in config.__dict__.items():
         if field not in config.get_default_fields() and value == '':
-            raise exceptions.ConfigError(f'The {field} field is empty in the config!', _logger)
+            raise exceptions.ConfigError(f"The {field.replace('_', '-')} field is empty in the config!", _logger)
         
-        invalid_value_msg = f'The {field} field has invalid value: {value} in the config!'
+        invalid_value_msg = f"The {field.replace('_', '-')} field has invalid value: {value} in the config!"
         if field == 'project_type':
             valid_values = [item.value for item in settings.ProjectType]
             if value not in valid_values:

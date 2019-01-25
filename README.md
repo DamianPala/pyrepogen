@@ -62,13 +62,14 @@ In the case when you want to generate many repositories, using a predefined conf
 Configuration file could be created in many ways:
 
 1. Using following config file template and saved as `gen_repo.cfg` file
-2. Automatically generated in current working directory when you run Pyrepogen with only `repo_path` parameter.
+2. Automatically generated in current working directory when you run Pyrepogen with only a `repo_path` parameter.
 3. By copying from sources the `gen_repo.cfg` file.
 
 #### Config file template
 
 ```
 # Required parameters:
+repo-name = 
 # project-type values: package or module
 project-type = 
 project-name = 
@@ -93,15 +94,17 @@ git-origin =
 The next step is to run Pyrepogen with path where a repository will be generated:
 
 ```
-pyrepogen <path to repo you want to create>
+pyrepogen <path where you want to generate repo>
 ```
 
 > Always specify paths with double quotes when you type space - " " in it!
+>
+> In this specified path the directory named with repo-name parameter will be created. 
 
 When your config file is not in your current working directory or it has a different name, you can specify it using `-c` option:
 
 ```
-pyrepogen <path to repo you want to create> -c <path to config file>
+pyrepogen <path where you want to generate repo> -c <path to config file>
 ```
 
 #### Config file parameters
@@ -132,7 +135,7 @@ Following table describes some of the most interesting and exotic configuration 
 
 | Option        | Description                                                  |
 | ------------- | ------------------------------------------------------------ |
-| repo_path   | Repo name or path to the directory when the repository will be generated. If directory does not exist then will be created. Always enter with double quotes. |
+| repo_path   | Path to the directory where the repository will be generated. If directory does not exist then will be created. In this path the directory named with repo-name parameter will be created. Always enter with double quotes. |
 | &#x2011;c/&#x2011;&#x2011;config | Path to the repository config file. |
 | &#x2011;u/&#x2011;&#x2011;update | Path to the repository where Repoassist will be updated. |
 | &#x2011;q/&#x2011;&#x2011;quiet | Disable output. |
