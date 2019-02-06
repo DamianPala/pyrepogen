@@ -138,7 +138,7 @@ help:
 	@echo "	Update requirements.txt"
 	
 	@echo "make upload"
-	@echo "	Upload the release and client packages to the cloud server."
+	@echo "	Upload packages from artifacts to the cloud server."
 	
 	@echo "make list_cloud"
 	@echo "	List buckets on the cloud server."

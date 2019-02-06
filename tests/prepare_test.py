@@ -140,7 +140,7 @@ def test_generate_package_repo_SHOULD_generate_repo_tree_properly():
         'repoassist/utils.py',
         'repoassist/formatter.py',
         'repoassist/wizard.py',
-        'repoassist/cloud.py',
+        'repoassist/sicloudman.py',
         'repoassist/exceptions.py',
         'repoassist/prepare.py',
         'repoassist/clean.py',
@@ -148,6 +148,7 @@ def test_generate_package_repo_SHOULD_generate_repo_tree_properly():
         'repoassist/templates/CHANGELOG_prepared.md.j2',
         'repoassist/templates/AUTHORS_prepared.md.j2',
         'repoassist/templates/requirements-dev.txt.j2',
+        'repoassist/README.md',
         'cloud_credentials.txt',
     }
     
@@ -236,7 +237,7 @@ def test_generate_package_repo_SHOULD_generate_repo_tree_properly_WHEN_no_sample
         'repoassist/utils.py',
         'repoassist/formatter.py',
         'repoassist/wizard.py',
-        'repoassist/cloud.py',
+        'repoassist/sicloudman.py',
         'repoassist/exceptions.py',
         'repoassist/prepare.py',
         'repoassist/clean.py',
@@ -244,6 +245,7 @@ def test_generate_package_repo_SHOULD_generate_repo_tree_properly_WHEN_no_sample
         'repoassist/templates/CHANGELOG_prepared.md.j2',
         'repoassist/templates/AUTHORS_prepared.md.j2',
         'repoassist/templates/requirements-dev.txt.j2',
+        'repoassist/README.md',
         'cloud_credentials.txt',
     }
     
@@ -302,7 +304,7 @@ def test_generate_module_repo_SHOULD_generate_repo_tree_properly():
         'repoassist/utils.py',
         'repoassist/formatter.py',
         'repoassist/wizard.py',
-        'repoassist/cloud.py',
+        'repoassist/sicloudman.py',
         'repoassist/exceptions.py',
         'repoassist/prepare.py',
         'repoassist/clean.py',
@@ -310,6 +312,7 @@ def test_generate_module_repo_SHOULD_generate_repo_tree_properly():
         'repoassist/templates/CHANGELOG_prepared.md.j2',
         'repoassist/templates/AUTHORS_prepared.md.j2',
         'repoassist/templates/requirements-dev.txt.j2',
+        'repoassist/README.md',
         'cloud_credentials.txt',
     }
     
@@ -366,7 +369,7 @@ def test_generate_module_repo_SHOULD_generate_repo_tree_properly_WHEN_no_sample(
         'repoassist/utils.py',
         'repoassist/formatter.py',
         'repoassist/wizard.py',
-        'repoassist/cloud.py',
+        'repoassist/sicloudman.py',
         'repoassist/exceptions.py',
         'repoassist/prepare.py',
         'repoassist/clean.py',
@@ -374,6 +377,7 @@ def test_generate_module_repo_SHOULD_generate_repo_tree_properly_WHEN_no_sample(
         'repoassist/templates/CHANGELOG_prepared.md.j2',
         'repoassist/templates/AUTHORS_prepared.md.j2',
         'repoassist/templates/requirements-dev.txt.j2',
+        'repoassist/README.md',
         'cloud_credentials.txt',
     }
     

@@ -94,7 +94,7 @@ git-origin =
 The next step is to run Pyrepogen with path where a repository will be generated:
 
 ```
-pyrepogen <path where you want to generate repo>
+pyrepogen <path where you want to generate a repo>
 ```
 
 > Always specify paths with double quotes when you type space - " " in it!
@@ -104,7 +104,7 @@ pyrepogen <path where you want to generate repo>
 When your config file is not in your current working directory or it has a different name, you can specify it using `-c` option:
 
 ```
-pyrepogen <path where you want to generate repo> -c <path to config file>
+pyrepogen <path where you want to generate a repo> -c <path to config file>
 ```
 
 #### Config file parameters
@@ -119,6 +119,18 @@ Following table describes some of the most interesting and exotic configuration 
 | is&#x2011;sample&#x2011;layout | true - generate sample files; false - do not use this feature |
 | is&#x2011;git           | true - init Git repository; false - do not use this feature  |
 | git&#x2011;origin       | Specify an origin of your Git repository. Leave empty if you do not want to specify the remote origin. |
+
+### Types of repositories
+
+There are two types of repositories that Pyrepogen can generate: package and module
+
+#### Package repository
+
+This type of repository is a Python Package. Source files are stored in repository tree in the directory named from `project-name` parameter.
+
+#### Module repository
+
+Module repository is intended to developing a Standalone Python Module. In this case a source file is stored directly in the repository tree and named with name from `project-name` parameter.
 
 ### Repository generation flow
 
@@ -144,6 +156,39 @@ Following table describes some of the most interesting and exotic configuration 
 | &#x2011;v/&#x2011;&#x2011;version | Show version. |
 | --demo | Generate a demo repository in your current working directory. |
 
+## Repository structure
+
+Generated repository tree is prepared with a structure as following.
+
+```
+my_repository
+|-- docs
+|-- my_project
+|   (only in package repo type - directory for source code)
+|
+|-- repoassist
+|   (generated repoassist files by pyrepogen)
+|-- tests
+|
+|-- my_project.py
+|   (only in module repo type - source code file)
+|-- .gitignore
+|-- cloud_credentials.txt
+|   (only when cloud feature was choosen)
+|-- conftest.py
+|-- LICENSE
+|   (by default MIT License is generated)
+|-- Makefile
+|-- README.md
+|-- requirements.txt
+|-- requirements-dev.txt
+|-- setup.cfg
+|-- setup.py
+|-- TODO.md
+|-- tox.ini
+    (tox configuration file)
+```
+
 
 
 # Repoassist
@@ -156,16 +201,12 @@ Usage of this **Repoassist** is based on make targets from the command line. As 
 
 By typing the `make help` you will list all available targets with simple description.
 
-**DESCRIBE MODULE AND PACKAGE repo type**
-
-**DESCRIBE setup.cfg file**
-
 ### Available Targets
 
 #### Make requirements
 
 - Lists necessary environment requirements.
-- Installing [Meld Merge](http://meldmerge.org/) is strongly recommended to convenient source files interactive formatting.
+- Installing [Meld](http://meldmerge.org/) is strongly recommended to convenient source files interactive formatting.
 
 #### Make prepare
 
@@ -182,7 +223,7 @@ By typing the `make help` you will list all available targets with simple descri
 #### Make release
 
 - Generates a **source distribution package** and **wheel** based on source files added to repository tree.
-- Packages are generated using Python Build Reasonables (pbr).
+- Packages are generated using [Python Build Reasonables (pbr)](https://docs.openstack.org/pbr/latest/).
 - Wizard to simplifying and standardizing the generation process.
 - There are two ways to generate packages: release and regenerate.
 - Output packages are stored in `dist` directory.
@@ -202,6 +243,7 @@ By typing the `make help` you will list all available targets with simple descri
 ##### Extra features
 
 - System Text Editor is used to prepare release message rather than a command line to improve comfort of releasing process. Furthermore by default in Text Editor window are written commit messages since last release tag, ordered from last to first. You can use them to prepare more reliable release message.
+  - **Markdown syntax** can be easily used to prepare a great release message.
 - Repository check before release regarding work tree, uncommited changes etc.
 - Entered a release tag during the release process are automatically checked with compliance to **Semantic Version**.
 - Entered a release tag less than the previous is instantly cached and refused.
@@ -232,7 +274,7 @@ By typing the `make help` you will list all available targets with simple descri
 
 #### Make tox
 
-- Runs `tox`
+- Runs `tox` for testing.
 
 #### Make venv
 
@@ -241,12 +283,12 @@ By typing the `make help` you will list all available targets with simple descri
 #### Make format
 
 - Runs autopep8 formatter for the file specified as an argument.
-- Original file and formatted file are opened in Meld Merge in the merge mode to easy review changes and selectively applying them.
-  - Meld Merge is opened in three panes: (from left side) current file | final file | formatted file.
+- Original file and formatted file are opened in Meld in the merge mode to easy review changes and selectively applying them.
+  - Meld is opened in three panes: (from left side) current file | final file | formatted file.
   - After accepting or modifying changes you must save the final file.
 - File to format must be provided as argument for example: `make format <path to a file>`
 - Aggressive formatting settings are used in `autopep8` by default.
-- After closing the Meld Merge, a `flake8` report will be generated regarding to the formatted file.
+- After closing the Meld, a `flake8` report will be generated regarding to the formatted file.
 
 #### Make lint
 
@@ -279,36 +321,85 @@ By typing the `make help` you will list all available targets with simple descri
   - Python cache files
   - Pytest cache files
 
+### Cloud feature
+
+Repoassist has integrated a simple cloud manager for easy and convenient storage a generated source and binary distribution package on the cloud server. Generated files can be uploaded into a specified server using `ftp` connection and credentials from the `cloud_credentials.txt` file. It is recommended to not commit credentials file.
+
+Cloud feature availability can be selected during repository generation process. This feature is optional.
+
+#### cloud_credentials.txt file
+
+There are a few important parameters in this file:
+
+- `server` - your server address 
+- `username` - a ftp client username
+- `password` - a ftp client password
+- `main_bucket_path` - a directory where your files will be stored
+- `client_name` - a name of the client directory in the `main bucket`
+- `project_name` - a name of the project directory in the `main bucket` or `client` directory
+
+The final path, where files will be stored is constructed from the `main_bucket_path `, `client_name `, `project_name `. For instance where all of them is specified then the path will look like following:
+
+```
+<main_bucket_path>/<client_name>/<project_name>
+```
+
+If the `client_name` or `project_name` will be omitted (for example `client_name`) , final path is constructed like this:
+
+```
+<main_bucket_path>/<project_name>
+```
+
+Only the `main_bucket_path` path is mandatory.
+
+> `main_bucket_path`  must contain a parent directory e.g. `main_bucket_path = /fw_cloud` . Cannot be root('/'). If only the parent directory exists the rest directories will be created.
+
+#### Server Structure
+
+Two kind of files is generated during a releasing process: a source distribution and binary distribution package. These files are stored in separated buckets `source` and `binary` respectively. 
+
+#### Available targets
+
+##### Make upload
+
+- Uploads last generated source and binary distribution packages to the cloud server.
+- Confirms an existence of uploaded package on the server.
+
+##### Make list_cloud
+
+- Lists main bucket on the cloud server.
+
+##### Make download_package
+
+- Download specified package from the cloud server to the artifacts directory - `dist`
+- If a file already exists in an artifacts location it will not be overwritten and an appropriate warning will be printed. 
+
+
+
+TODO: describe versioning update mechanism
+
+## Q&A
+
+1. Q: How can I change the project name?
+   A: For package repo - rename package directory, for module repo - rename module. Finaly change a  `name` parameter in the [metadata] section in `setup.cfg` file.
+2. Q: Can I create git repository inside my project repository?
+   A: Yes you could but only as git submodule.
+3. Q: How can I connect given repository source distribution package with proper git commit?
+   A: In the source distribution package the latest git commit hash is stored in: `<project_name>.egg-info/pbr.json` as a `git_version` parameter.
+4. Q: What will happen if generate again a repository in the same directory?
+   A: Without `--force` option Repoassist directory will be overwritten. With `--force` option, all generated files will be updated.
 
 
 
 
 
+
+
+**DESCRIBE setup.cfg file**
 
 
 
 # === UNDER CONSTRUCTION ===
-# Features
-- collect requirements as makefile target
-- autonomus package with e.g. colreqs.py in generated repository as helper to makefile targets
-- 
+Update the requirements.txt file
 
-### release
-* Update the requirements.txt file
-
-Describe clean target
-
-Source distribution of module repo is made as package
-
-Regenerate release package has hash in package name if release tag is not on last commit
-When regenerate on the same commit as tag - dist will be overwritten and without a commit hash
-
-When you change project name in tree always change it in setup.cfg
-
-Repo inside parent repo without submodule is not allowed
-
-Commit hash is stored into .egg-info/pbr.json as git_version
-
-Describe mechanism regarding dev release tag only in dist not in git that is set when release on different commit than last release tag commit
-
-If generate repo in the same directory as is without force, repoassist is overwritten by default
+* Describe mechanism regarding dev release tag only in dist not in git that is set when release on different commit than last release tag commit

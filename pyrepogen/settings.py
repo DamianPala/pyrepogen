@@ -103,7 +103,7 @@ class FileName():
     EXCEPTIONS = 'exceptions.py'
     UTILS = 'utils.py'
     PYGITTOOLS = 'pygittools.py'
-    CLOUD = 'cloud.py'
+    SICLOUDMAN = 'sicloudman.py'
     WIZARD = 'wizard.py'
     FORMATTER = 'formatter.py'
     PREPARE = 'prepare.py'
@@ -111,6 +111,7 @@ class FileName():
     CLOUD_CREDENTIALS = 'cloud_credentials.txt'
     REQUIREMENTS = 'requirements.txt'
     REQUIREMENTS_DEV = 'requirements-dev.txt'
+    REPOASSIST_README = 'REPOASSIST_README.md'
 
 
 class Tools():
@@ -240,24 +241,26 @@ REPOASSIST_FILES = [
     RepoassistFileGenEntry(src=Path(FileName.EXCEPTIONS), dst=Path('.') / DirName.REPOASSIST / FileName.EXCEPTIONS, is_templ=False),
     RepoassistFileGenEntry(src=Path(FileName.UTILS), dst=Path('.') / DirName.REPOASSIST / FileName.UTILS, is_templ=False),
     RepoassistFileGenEntry(src=Path(FileName.PYGITTOOLS), dst=Path('.') / DirName.REPOASSIST / FileName.PYGITTOOLS, is_templ=False),
-    RepoassistFileGenEntry(src=Path(FileName.CLOUD), dst=Path('.') / DirName.REPOASSIST / FileName.CLOUD, is_templ=False),
+    RepoassistFileGenEntry(src=Path(FileName.SICLOUDMAN), dst=Path('.') / DirName.REPOASSIST / FileName.SICLOUDMAN, is_templ=False),
     RepoassistFileGenEntry(src=Path(FileName.WIZARD), dst=Path('.') / DirName.REPOASSIST / FileName.WIZARD, is_templ=False),
     RepoassistFileGenEntry(src=Path(FileName.FORMATTER), dst=Path('.') / DirName.REPOASSIST / FileName.FORMATTER, is_templ=False),
     RepoassistFileGenEntry(src=Path(FileName.PREPARE), dst=Path('.') / DirName.REPOASSIST / FileName.PREPARE, is_templ=False),
     RepoassistFileGenEntry(src=Path(FileName.CLEAN), dst=Path('.') / DirName.REPOASSIST / FileName.CLEAN, is_templ=False),
     RepoassistFileGenEntry(src=Path(FileName.REPOASSIST_CLI), dst=Path('.') / DirName.REPOASSIST / FileName.CLI, is_templ=False),
     RepoassistFileGenEntry(src=Path(DirName.TEMPLATES) / f'{FileName.CHANGELOG_GENERATED}{JINJA2_TEMPLATE_EXT}', 
-                           dst=Path('.') / DirName.REPOASSIST  / DirName.TEMPLATES / f'{FileName.CHANGELOG_GENERATED}{JINJA2_TEMPLATE_EXT}', 
+                           dst=Path('.') / DirName.REPOASSIST / DirName.TEMPLATES / f'{FileName.CHANGELOG_GENERATED}{JINJA2_TEMPLATE_EXT}', 
                            is_templ=False),
     RepoassistFileGenEntry(src=Path(DirName.TEMPLATES) / f'{FileName.CHANGELOG_PREPARED}{JINJA2_TEMPLATE_EXT}', 
-                           dst=Path('.') / DirName.REPOASSIST  / DirName.TEMPLATES / f'{FileName.CHANGELOG_PREPARED}{JINJA2_TEMPLATE_EXT}', 
+                           dst=Path('.') / DirName.REPOASSIST / DirName.TEMPLATES / f'{FileName.CHANGELOG_PREPARED}{JINJA2_TEMPLATE_EXT}', 
                            is_templ=False),
     RepoassistFileGenEntry(src=Path(DirName.TEMPLATES) / f'{FileName.AUTHORS_PREPARED}{JINJA2_TEMPLATE_EXT}', 
-                           dst=Path('.') / DirName.REPOASSIST  / DirName.TEMPLATES / f'{FileName.AUTHORS_PREPARED}{JINJA2_TEMPLATE_EXT}', 
+                           dst=Path('.') / DirName.REPOASSIST / DirName.TEMPLATES / f'{FileName.AUTHORS_PREPARED}{JINJA2_TEMPLATE_EXT}', 
                            is_templ=False),
     RepoassistFileGenEntry(src=Path(DirName.TEMPLATES) / f'{FileName.REQUIREMENTS_DEV}{JINJA2_TEMPLATE_EXT}', 
-                           dst=Path('.') / DirName.REPOASSIST  / DirName.TEMPLATES / f'{FileName.REQUIREMENTS_DEV}{JINJA2_TEMPLATE_EXT}', 
+                           dst=Path('.') / DirName.REPOASSIST / DirName.TEMPLATES / f'{FileName.REQUIREMENTS_DEV}{JINJA2_TEMPLATE_EXT}', 
                            is_templ=False),
+    RepoassistFileGenEntry(src=Path(DirName.TEMPLATES) / f'{FileName.REPOASSIST_README}{JINJA2_TEMPLATE_EXT}', 
+                       dst=Path('.') / DirName.REPOASSIST / f'{FileName.README}', is_templ=False),
 ]
 
 GEN_REPO_CONFIG_MANDATORY_FIELDS = [
