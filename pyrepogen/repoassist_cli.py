@@ -49,10 +49,11 @@ def main():
     if args.command:
         cwd = Path().cwd()
         command = args.command
-        cloud_manager = sicloudman.CloudManager(settings.DirName.DISTRIBUTION, 
-                                                [sicloudman.Bucket(name='release', keywords=['.tar.gz', '.whl'])], 
-                                                credentials_path=settings.FileName.CLOUD_CREDENTIALS, 
-                                                get_logger=logger.get_logger, 
+        cloud_manager = sicloudman.CloudManager(settings.DirName.DISTRIBUTION,
+                                                [sicloudman.Bucket(name='source', keywords=['.tar.gz']),
+                                                 sicloudman.Bucket(name='binary', keywords=['.whl'])],
+                                                credentials_path=settings.FileName.CLOUD_CREDENTIALS,
+                                                get_logger=logger.get_logger,
                                                 cwd=cwd)
 
         try:

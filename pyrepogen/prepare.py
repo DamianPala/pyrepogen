@@ -138,21 +138,45 @@ def _generate_repo_files(files_list, config, cwd, options=None):
 
 
 def update_repoassist(config, cwd, add_to_tree=None, options=None):
-    new_files = _generate_repoasist(config, cwd, options=options).new_files
+    current_repoassist_files = [path for path in set((Path(cwd) / settings.DirName.REPOASSIST).rglob('*')) 
+                                if path.is_file() and '__pycache__' not in path.__str__()]
+    paths = _generate_repoasist(config, cwd, options=options)
     
-    if new_files.__len__() > 0 and pygittools.is_work_tree(cwd):
+    files_to_remove = [file for file in current_repoassist_files if file not in paths.paths]
+    for file in files_to_remove:
+        if pygittools.is_in_work_tree(file, cwd=cwd):
+            try:
+                pygittools.remove(file, cwd=cwd)
+            except pygittools.PygittoolsError as e:
+                raise exceptions.GitRemoveError(f'Error occured while removing file '
+                                                f'{utils.get_rel_path(file, cwd)} from repository tree: {e}', 
+                                                _logger)
+            else:
+                _logger.info(f'{utils.get_rel_path(file, cwd)} file removed from repository tree.')
+        else:
+            file.unlink()
+            _logger.info(f'{utils.get_rel_path(file, cwd)} file removed.')
+    
+    if paths.new_files.__len__() > 0 and pygittools.is_work_tree(cwd):
         if add_to_tree is None:
             add_to_tree = wizard.choose_bool(__name__, 'There are new files in repoassist. '
                                              'Add them to the repository tree?')
     
-        for file in new_files:
+        for file in paths.new_files:
             if add_to_tree:
-                pygittools.add(file, cwd)
-                _logger.info(f'New {utils.get_rel_path(file, cwd)} file added to the repository tree.')
+                try:
+                    pygittools.add(file, cwd)
+                except pygittools.PygittoolsError as e:
+                    if 'following paths are ignored' not in e.__str__():
+                        raise exceptions.GitAddError(f'Error occured while adding file '
+                                                     f'{utils.get_rel_path(file, cwd)} into repository tree: {e}', 
+                                                     _logger)
+                else:
+                    _logger.info(f'New {utils.get_rel_path(file, cwd)} file added to the repository tree.')
             else:
                 _logger.info(f'New {utils.get_rel_path(file, cwd)} file added to the repoassist.')
                 
-    return new_files
+    return paths.new_files, files_to_remove
 
 
 def _generate_repoasist(config, cwd, options=None):

@@ -596,12 +596,13 @@ def test_update_repoassist_SHOULD_add_new_files_if_repoassist_empty(cwd):
     
     repoassist_templates_path.mkdir(exist_ok=True, parents=True)
     
-    new_files = prepare.update_repoassist(config, cwd, add_to_tree=False, options=options)
+    new_files, removed_files = prepare.update_repoassist(config, cwd, add_to_tree=False, options=options)
     
     repoassist_files = {item for item in repoassit_path.rglob('*') if item.is_file()}
     
     assert set(repoassist_files) == set(repoassist_paths_expected)
     assert set(new_files) == set(repoassist_paths_expected)
+    assert set(removed_files).__len__() == 0
 
 
 @pytest.mark.skipif(SKIP_ALL_MARKED, reason="Skipped on request")
@@ -619,7 +620,7 @@ def test_update_repoassist_SHOULD_overwrite_repoassist_files(cwd):
         
     assert (repoassit_path / settings.FileName.MAIN).read_text() == ''
     
-    new_files = prepare.update_repoassist(config, cwd, add_to_tree=False, options=options)
+    new_files, removed_files = prepare.update_repoassist(config, cwd, add_to_tree=False, options=options)
     
     repoassist_files = {item for item in repoassit_path.rglob('*') if item.is_file()}
     
@@ -627,10 +628,11 @@ def test_update_repoassist_SHOULD_overwrite_repoassist_files(cwd):
     
     assert set(repoassist_files) == set(repoassist_paths_expected)
     assert new_files.__len__() == 0
+    assert set(removed_files).__len__() == 0
     
     
 @pytest.mark.skipif(SKIP_ALL_MARKED, reason="Skipped on request")
-def test_update_repoassist_SHOULD_add_new_files_to_repo_tree(cwd):
+def test_update_repoassist_SHOULD_add_new_files_to_repo_tree_and_remove_old_from_tree_and_from_drive(cwd):
     config, options, repoassit_path, _ = update_repoassist_setup(cwd)
     
     pygittools.init(cwd)
@@ -642,23 +644,31 @@ def test_update_repoassist_SHOULD_add_new_files_to_repo_tree(cwd):
     
     (repoassit_path / settings.FileName.MAIN).unlink()
     (repoassit_path / settings.FileName.CLI).unlink()
+    (repoassit_path / 'dummy_file.txt').touch()
+    (repoassit_path / 'dummy_file2.txt').touch()
+    paths_to_git_add.append(repoassit_path / 'dummy_file.txt')
     
     for path in paths_to_git_add:
         pygittools.add(path, cwd)
         
     pygittools.commit('First Commit', cwd)
     repo_tree = utils.get_git_repo_tree(cwd)
+    pprint(repo_tree)
     
     assert set(repo_tree) != set(repoassist_paths_expected)
         
-    new_files = prepare.update_repoassist(config, cwd, add_to_tree=True, options=options)
+    new_files, removed_files = prepare.update_repoassist(config, cwd, add_to_tree=True, options=options)
     pprint(new_files)
     
     pygittools.commit('Second Commit', cwd)
+    paths_to_git_add.remove(repoassit_path / 'dummy_file.txt')
     
     assert repoassit_path / settings.FileName.MAIN in new_files
     assert repoassit_path / settings.FileName.CLI in new_files
+    assert repoassit_path / 'dummy_file.txt' in removed_files
+    assert repoassit_path / 'dummy_file2.txt' in removed_files
     assert new_files.__len__() == 2
+    assert removed_files.__len__() == 2
     
     repoassist_files = {item for item in repoassit_path.rglob('*') if item.is_file()}
      

@@ -68,6 +68,14 @@ def add(path, cwd='.'):
 
 
 @check_work_tree
+def remove(path, index_only=False, cwd='.'):
+    if index_only:
+        return _execute_cmd(['git', 'rm', '-rf', '--cached', '-q', str(path)], cwd=cwd)
+    else:
+        return _execute_cmd(['git', 'rm', '-rf', '-q', str(path)], cwd=cwd)
+
+
+@check_work_tree
 def get_origin(cwd='.'):
     return _execute_cmd(['git', 'config', '--get', 'remote.origin.url'], cwd=cwd)
 
@@ -81,9 +89,10 @@ def set_origin(url, cwd='.'):
 def is_origin_set(cwd='.'):
     try:
         _execute_cmd(['git', 'config', '--local', 'remote.origin.url'], cwd=cwd)
-        return True
     except CmdError:
         return False
+    else:
+        return True
 
 
 @check_work_tree
@@ -170,9 +179,10 @@ def list_repo_tree(cwd='.'):
 def is_any_commit(cwd='.'):
     try:
         _execute_cmd(['git', 'log'], cwd=cwd)
-        return True
     except CmdError:
-        return False    
+        return False
+    else:
+        return True
 
 
 @check_work_tree
@@ -188,7 +198,17 @@ def is_work_tree(cwd='.'):
             return False
     except CmdError:
         return False
-    
+
+
+@check_work_tree
+def is_in_work_tree(path, cwd='.'):
+    try:
+        _execute_cmd(['git', 'ls-files', '--error-unmatch', str(path)], cwd=cwd)
+    except CmdError:
+        return False
+    else:
+        return True
+
 
 @check_work_tree
 def are_uncommited_changes(cwd='.'):

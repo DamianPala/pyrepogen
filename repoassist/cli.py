@@ -11,7 +11,7 @@ from . import logger
 from . import colreqs
 from . import release
 from . import exceptions
-from . import cloud
+from . import sicloudman
 from . import formatter
 from . import clean
 from . import utils
@@ -43,12 +43,19 @@ def main():
     format_parser.add_argument('path', action='store', default=None, help='Path to the python source file.')
 
     args = parser.parse_args()
-    
+
     logger.set_level(_logger, args)
-    
+
     if args.command:
         cwd = Path().cwd()
         command = args.command
+        cloud_manager = sicloudman.CloudManager(settings.DirName.DISTRIBUTION,
+                                                [sicloudman.Bucket(name='source', keywords=['.tar.gz']),
+                                                 sicloudman.Bucket(name='binary', keywords=['.whl'])],
+                                                credentials_path=settings.FileName.CLOUD_CREDENTIALS,
+                                                get_logger=logger.get_logger,
+                                                cwd=cwd)
+
         try:
             if command == 'update_reqs':
                 config = utils.get_repo_config_from_setup_cfg(Path(cwd) / settings.FileName.SETUP_CFG)
@@ -64,11 +71,11 @@ def main():
             elif command == 'install':
                 release.make_install(options=args, cwd=cwd)
             elif command == 'upload':
-                cloud.upload_to_cloud(cwd)
+                cloud_manager.upload_artifacts()
             elif command == 'list_cloud':
-                cloud.list_cloud(cwd)
+                cloud_manager.list_cloud()
             elif command == 'download_package':
-                cloud.download_package(cwd)
+                cloud_manager.download_file()
             elif command == 'format':
                 formatter.format_file(args.path, cwd=cwd)
             elif command == 'coverage_report':
@@ -82,7 +89,7 @@ def main():
                 clean.clean(cwd)
             else:
                 _logger.error('Invalid command.')
-        except exceptions.PyRepoGenError as e:
+        except (exceptions.PyRepoGenError, sicloudman.SiCloudManError) as e:
             e.logger.error(str(e))
             sys.exit('Repoasist error!')
             
