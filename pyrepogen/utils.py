@@ -2,6 +2,7 @@
 # -*- coding: utf-8 -*-
 
 
+import webbrowser
 import subprocess
 import configparser
 import platform
@@ -264,3 +265,14 @@ def input_with_editor(msg=''):
         return filepath.read_text(encoding='utf-8')
     finally:
         filepath.unlink()
+
+
+def coverage_report(cwd='.'):
+    _logger.info('Open the coverage html report in the default system browser.')
+    
+    path_to_report = (Path(cwd).resolve() / settings.DirName.HTMLCOV / 'index.html')
+    if not path_to_report.exists():
+        raise exceptions.FileNotFoundError('Coverage html report file not exists!', _logger)
+    
+    url = f'file://{path_to_report.as_posix()}'
+    webbrowser.open(url)

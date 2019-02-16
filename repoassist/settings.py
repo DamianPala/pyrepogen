@@ -105,7 +105,7 @@ class FileName():
     PYGITTOOLS = 'pygittools.py'
     SICLOUDMAN = 'sicloudman.py'
     WIZARD = 'wizard.py'
-    FORMATTER = 'formatter.py'
+    FORMATTER = 'meldformat.py'
     PREPARE = 'prepare.py'
     CLEAN = 'clean.py'
     CLOUD_CREDENTIALS = 'cloud_credentials.txt'

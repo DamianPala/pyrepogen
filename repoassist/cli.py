@@ -12,7 +12,7 @@ from . import colreqs
 from . import release
 from . import exceptions
 from . import sicloudman
-from . import formatter
+from . import meldformat
 from . import clean
 from . import utils
 from . import settings
@@ -77,9 +77,11 @@ def main():
             elif command == 'download_package':
                 cloud_manager.download_file()
             elif command == 'format':
-                formatter.format_file(args.path, cwd=cwd)
+                meldformat.format_file(meldformat.Formatter.AUTOPEP8, args.path, 
+                                       setup_path=cwd / settings.FileName.SETUP_CFG, 
+                                       get_logger=logger.get_logger)
             elif command == 'coverage_report':
-                formatter.coverage_report(cwd)
+                utils.coverage_report(cwd)
             elif command == 'update':
                 if not shutil.which('pyrepogen'):
                     raise exceptions.RuntimeError('Pyrepogen not found. '

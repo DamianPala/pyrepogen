@@ -282,13 +282,24 @@ By typing the `make help` you will list all available targets with simple descri
 
 #### Make format
 
-- Runs autopep8 formatter for the file specified as an argument.
+- Runs Autopep8 formatter for the file specified as an argument.
+
 - Original file and formatted file are opened in Meld in the merge mode to easy review changes and selectively applying them.
-  - Meld is opened in three panes: (from left side) current file | final file | formatted file.
+  - Meld is opened in the three panes:
+
+  | NOT FORMATTED FILE | FINAL FILE | FORMATTED FILE |
+  | ------------------ | ---------- | -------------- |
+  | some code          | some code  | some code      |
+
   - After accepting or modifying changes you must save the final file.
+
 - File to format must be provided as argument for example: `make format <path to a file>`
-- Aggressive formatting settings are used in `autopep8` by default.
-- After closing the Meld, a `flake8` report will be generated regarding to the formatted file.
+
+- Aggressive formatting settings is used in `autopep8` by default.
+
+- After closing the Meld, a `flake8` report will be generated on the formatted file.
+
+- When the formatted file has changes only in line endings comparing to the original file then it is treated as no changes and merging process will not be started.
 
 #### Make lint
 
@@ -323,7 +334,7 @@ By typing the `make help` you will list all available targets with simple descri
 
 ### Cloud feature
 
-Repoassist has integrated a simple cloud manager for easy and convenient storage a generated source and binary distribution package on the cloud server. Generated files can be uploaded into a specified server using `ftp` connection and credentials from the `cloud_credentials.txt` file. It is recommended to not commit credentials file.
+Repoassist has integrated a simple cloud manager for easy and convenient storage a generated source and binary distribution package on the cloud server. Generated files can be uploaded into a specified server using `ftp` connection and credentials from the `cloud_credentials.txt` file. It is recommended to not commit the credentials file.
 
 Cloud feature availability can be selected during repository generation process. This feature is optional.
 

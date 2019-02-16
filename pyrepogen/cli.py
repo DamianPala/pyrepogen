@@ -18,11 +18,11 @@ from . import _logger
 
 def main():
     args = parse_args()
-    
+
     logger.set_level(_logger, args)
-    
+
     cwd = Path().cwd()
-        
+
     if args.version:
         print(__version__)
     else:
@@ -39,27 +39,27 @@ def main():
 def parse_args():
     parser = argparse.ArgumentParser(formatter_class=argparse.RawDescriptionHelpFormatter,
                                      description='Python Repo Generator')
-    parser.add_argument('repo_path', nargs='?', action='store', default=None, 
+    parser.add_argument('repo_path', nargs='?', action='store', default=None,
                         help='Path to the directory where the repository will be '
                         'generated. If directory does not exist then will be created. '
                         'In this path the directory named with repo-name parameter will be created. '
                         'Always enter with double quotes.')
-    parser.add_argument('-c', '--config', dest='config', action='store', 
+    parser.add_argument('-c', '--config', dest='config', action='store',
                         default=None, help='Path to the repository config file.')
-    parser.add_argument('-u', '--update', dest='update', action='store', 
+    parser.add_argument('-u', '--update', dest='update', action='store',
                         default=None, help='Path to the repository where Repoassist will be updated.')
-    parser.add_argument('-q', '--quiet', dest='quiet', action='store_true', 
+    parser.add_argument('-q', '--quiet', dest='quiet', action='store_true',
                         default=False, help='Disable output.')
-    parser.add_argument('-d', '--debug', dest='debug', action='store_true', 
+    parser.add_argument('-d', '--debug', dest='debug', action='store_true',
                         default=False, help='Enable debug output.')
-    parser.add_argument('-f', '--force', dest='force', action='store_true', 
+    parser.add_argument('-f', '--force', dest='force', action='store_true',
                         default=False, help='Override existing files.')
-    parser.add_argument('-v', '--version', dest='version', action='store_true', 
+    parser.add_argument('-v', '--version', dest='version', action='store_true',
                         default=False, help='Show version.')
-    parser.add_argument('--demo', dest='demo', action='store_true', 
+    parser.add_argument('--demo', dest='demo', action='store_true',
                         default=False, help='Generate a demo repository in your current working directory.')
     return parser.parse_args()
-    
+
 
 def update(args, add_to_tree=None):
     _logger.info('Update Repoassist in specified directory.')
@@ -79,12 +79,12 @@ def update(args, add_to_tree=None):
     options.cloud = config.is_cloud
     options.sample_layout = config.is_sample_layout
     options.project_type = config.project_type
-    
+
     prepare.update_repoassist(config, path_to_update.parent, add_to_tree=add_to_tree, options=options)
-    
+
     _logger.info(f'Repoassist has been updaten in directory: {path_to_update.parent}')
-    
-        
+
+
 def generate(args, cwd):
     if args.repo_path:
         repo_path = utils.get_dir_from_arg(args.repo_path)
@@ -92,9 +92,9 @@ def generate(args, cwd):
             _logger.info(f'Generate repository from specified predefined config file {args.config}.')
             config_path = utils.get_dir_from_arg(args.config)
             if not config_path.exists():
-                raise exceptions.FileNotFoundError(f'Rrepository config file not exists: {config_path}', 
+                raise exceptions.FileNotFoundError(f'Rrepository config file not exists: {config_path}',
                                                    _logger)
-            
+
             config = utils.read_repo_config_file(config_path)
         else:
             _logger.info(f'Generate repository from the predefined config file '
@@ -104,9 +104,9 @@ def generate(args, cwd):
                 _logger.error(f'Predefined repository config file {settings.FileName.REPO_CONFIG} not exists!')
                 prepare.generate_repo_config(cwd, options=args)
                 sys.exit()
-            
+
             config = utils.read_repo_config_file(config_path)
-            
+
     else:
         if args.demo:
             config = settings.DEMO_CONFIG
@@ -114,11 +114,11 @@ def generate(args, cwd):
             if repo_path.exists():
                 shutil.rmtree(repo_path, ignore_errors=True)
             repo_path.mkdir(parents=True, exist_ok=True)
-                
+
         else:
             _logger.info('Start Python Repository Generator Wizard!')
             config_dict = {}
-            
+
             config_dict['project_type'] = wizard.choose_one(__name__,
                                                             'Python package or standalone module layout?',
                                                             settings.ProjectType)
@@ -132,35 +132,35 @@ def generate(args, cwd):
             config_dict['author_email'] = wizard.get_data_and_valid(__name__, 'Enter author email', [''])
             config_dict['maintainer'] = wizard.get_data(__name__, 'Enter maintainer')
             config_dict['maintainer_email'] = wizard.get_data(__name__, 'Enter maintainer email')
-            config_dict['short_description'] = wizard.get_data_and_valid(__name__, 
+            config_dict['short_description'] = wizard.get_data_and_valid(__name__,
                                                                          'Enter short project description', [''])
             config_dict['home_page'] = wizard.get_data(__name__, 'Enter home page')
-            config_dict['changelog_type'] = wizard.choose_one(__name__, 'Select a changelog type', 
+            config_dict['changelog_type'] = wizard.choose_one(__name__, 'Select a changelog type',
                                                               settings.ChangelogType)
-            config_dict['authors_type'] = wizard.choose_one(__name__, 
+            config_dict['authors_type'] = wizard.choose_one(__name__,
                                                             f'Select an {settings.FileName.AUTHORS} file type',
                                                             settings.ChangelogType)
             if config_dict['is_git'] and config_dict['git_origin'] != '':
                 config_dict['repo_name'] = Path(config_dict['git_origin']).stem
                 _logger.info(f"Repository name: {config_dict['repo_name']}")
             else:
-                config_dict['repo_name'] = wizard.get_data_and_valid(__name__, 
-                                                      'Enter repository name', [''])
-        
+                config_dict['repo_name'] = wizard.get_data_and_valid(__name__,
+                                                                     'Enter repository name', [''])
+
             config = settings.Config(**config_dict)
-            
-            prompt_dir = wizard.get_data(__name__, 
+
+            prompt_dir = wizard.get_data(__name__,
                                          "Enter a path to the directory where a repository "
                                          "will be generated (relative or absolute). "
                                          "Enter '.' to generate in the current directory. "
                                          "I this path a new directory named with repository name will be created")
-                
+
             repo_path = utils.get_dir_from_arg(prompt_dir)
 
     args.cloud = config.is_cloud
     args.sample_layout = config.is_sample_layout
     args.project_type = config.project_type
-    
+
     repo_generator_cwd = repo_path / config.repo_name
     prepare.generate_repo(config, cwd=repo_generator_cwd, options=args)
 

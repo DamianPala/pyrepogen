@@ -12,11 +12,12 @@ from . import colreqs
 from . import release
 from . import exceptions
 from . import sicloudman
-from . import formatter
+from . import meldformat
 from . import clean
 from . import utils
 from . import settings
 from . import _logger
+from . import reltools
 
 
 def main():
@@ -77,9 +78,11 @@ def main():
             elif command == 'download_package':
                 cloud_manager.download_file()
             elif command == 'format':
-                formatter.format_file(args.path, cwd=cwd)
+                meldformat.format_file(meldformat.Formatter.AUTOPEP8, args.path, 
+                                       setup_path=cwd / settings.FileName.SETUP_CFG, 
+                                       get_logger=logger.get_logger)
             elif command == 'coverage_report':
-                formatter.coverage_report(cwd)
+                utils.coverage_report(cwd)
             elif command == 'update':
                 if not shutil.which('pyrepogen'):
                     raise exceptions.RuntimeError('Pyrepogen not found. '
@@ -89,7 +92,7 @@ def main():
                 clean.clean(cwd)
             else:
                 _logger.error('Invalid command.')
-        except (exceptions.PyRepoGenError, sicloudman.SiCloudManError) as e:
+        except (exceptions.PyRepoGenError, sicloudman.SiCloudManError, meldformat.MeldFormatError) as e:
             e.logger.error(str(e))
             sys.exit('Repoasist error!')
             
