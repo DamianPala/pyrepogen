@@ -92,7 +92,7 @@ def main():
                 clean.clean(cwd)
             else:
                 _logger.error('Invalid command.')
-        except (exceptions.PyRepoGenError, sicloudman.SiCloudManError, meldformat.MeldFormatError) as e:
+        except (exceptions.PyRepoGenError, sicloudman.SiCloudManError, meldformat.MeldFormatError, reltools.RelToolsError) as e:
             e.logger.error(str(e))
             sys.exit('Repoasist error!')
             
