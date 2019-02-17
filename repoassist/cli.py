@@ -17,6 +17,7 @@ from . import clean
 from . import utils
 from . import settings
 from . import _logger
+from . import reltools
 
 
 def main():
@@ -91,7 +92,7 @@ def main():
                 clean.clean(cwd)
             else:
                 _logger.error('Invalid command.')
-        except (exceptions.PyRepoGenError, sicloudman.SiCloudManError) as e:
+        except (exceptions.PyRepoGenError, sicloudman.SiCloudManError, meldformat.MeldFormatError) as e:
             e.logger.error(str(e))
             sys.exit('Repoasist error!')
             

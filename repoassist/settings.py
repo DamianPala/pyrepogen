@@ -79,6 +79,7 @@ class FileName():
     CHANGELOG_GENERATED = 'CHANGELOG_generated.md'
     CHANGELOG_PREPARED = 'CHANGELOG_prepared.md'
     AUTHORS = 'AUTHORS'
+    AUTHORS_GENERATED = 'AUTHORS_generated.md'
     AUTHORS_PREPARED = 'AUTHORS_prepared.md'
     GITIGNORE = '.gitignore'
     README = 'README.md'

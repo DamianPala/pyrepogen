@@ -3,6 +3,7 @@
 
 
 import os
+import re
 import inspect
 import subprocess
 from pathlib import Path
@@ -30,7 +31,12 @@ class ValueError(PygittoolsError):
 class TagNotFoundError(PygittoolsError):
     pass
 
+
 class NotInWorkTreeError(PygittoolsError):
+    pass
+
+
+class NoAuthorsError(PygittoolsError):
     pass
 
 
@@ -262,7 +268,30 @@ def get_commit_msgs_from_last_tag(cwd='.'):
         msg_list = _execute_cmd(['git', 'log', '--pretty=%B', 'HEAD'], cwd=cwd).split('\n')
     msg_list.reverse()
 
-    return '\n'.join(msg_list) 
+    return '\n'.join(msg_list)
+
+
+@check_work_tree
+def get_authors(cwd='.'):
+    ignore_emails = '((jenkins|zuul)@review|infra@lists|jenkins@openstack)'
+    
+    try:
+        authors = _execute_cmd(['git', 'log', '--format=%aN <%aE>'], cwd=cwd).split('\n')
+    except CmdError:
+        raise NoAuthorsError('No authors found.', returncode=1)
+    else:
+        authors = [a for a in authors if not re.search(ignore_emails, a)]
+    
+        co_authors_out = _execute_cmd(['git', 'log'], cwd=cwd)
+        co_authors = re.findall('Co-authored-by:.+', co_authors_out,
+                                re.MULTILINE)
+        co_authors = [signed.split(":", 1)[1].strip()
+                      for signed in co_authors if signed]
+    
+        authors += co_authors
+        authors = sorted(set(authors))
+    
+    return authors
 
 
 def _execute_cmd(args, ssh_key=None, cwd='.'):
