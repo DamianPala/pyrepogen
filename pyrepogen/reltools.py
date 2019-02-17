@@ -251,7 +251,7 @@ def _input_with_editor(msg=''):
         cmd = 'open'
         options = []
         
-    fd, filepath = tempfile.mkstemp(suffix='.txt', text=True)
+    fd, filepath = tempfile.mkstemp(prefix='Release Message Tempfile ', suffix='.txt', text=True)
     filepath = Path(filepath)
     
     with open(fd, 'wt', encoding='utf-8') as file:
