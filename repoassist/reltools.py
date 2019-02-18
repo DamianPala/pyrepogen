@@ -3,7 +3,6 @@
 
 
 import re
-import time
 import semver
 import jinja2
 import shutil
@@ -398,30 +397,34 @@ def commit_and_push_release_update(new_release_tag, new_release_msg, ssh_key=Non
     
     if push and pygittools.is_origin_set(cwd):
         if ssh_key and not ssh_key.exists():
-            raise FileNotFoundError(f'SSH key file not found. Please check {ssh_key.name} file.')
-        try:
-            pygittools.push_with_tags(ssh_key=ssh_key, cwd=cwd)
-        except pygittools.PygittoolsError as e:
-            _logger.error(f"git push error: {e}")
-            ssh_key = wizard.get_data(__name__, 'Enter path to a ssh key or leave empty to continue '
-                                      'and push with tags later manually')
-            if ssh_key:
-                if not ssh_key.exists():
-                    raise FileNotFoundError(f'SSH key file not found. Please check {ssh_key.name} file.')
-                    time.sleep(2)
-                else:
-                    try:
-                        pygittools.push_with_tags(ssh_key=ssh_key, cwd=cwd)
-                    except pygittools.PygittoolsError as e:
-                        _logger.error(f"git push error: {e}")
-                        time.sleep(2)
-                        _logger.info('New release data commited with tag set properly.')
-                    else:
-                        _logger.info('New release data commited with tag set and pushed properly.')
-            else:
-                _logger.info('New release data commited with tag set properly.')
+            _logger.error(f'SSH key file not found. Please check {ssh_key.name} file.')
+            wizard.get_data(__name__, 'Please push with tags later manually and press Enter to continue')
         else:
-            _logger.info('New release data commited with tag set and pushed properly.')
+            try:
+                pygittools.push_with_tags(ssh_key=ssh_key, cwd=cwd)
+            except pygittools.PygittoolsError as e:
+                _logger.error(f'git push error: {e}')
+                ssh_key = Path(wizard.get_data(__name__, 'Enter a path to the SSH key or leave empty to continue '
+                                               'and push with tags later manually'))
+                if ssh_key:
+                    if not ssh_key.exists():
+                        _logger.error(f'SSH key file not found. Please check {ssh_key.name} file.')
+                        wizard.get_data(__name__, 'Please push with tags later manually '
+                                        'and press Enter to continue')
+                    else:
+                        try:
+                            pygittools.push_with_tags(ssh_key=ssh_key, cwd=cwd)
+                        except pygittools.PygittoolsError as e:
+                            _logger.error(f'git push error: {e}')
+                            wizard.get_data(__name__, 'Please push with tags later manually '
+                                            'and press Enter to continue')
+                            _logger.info('New release data commited with tag set properly.')
+                        else:
+                            _logger.info('New release data commited with tag set and pushed properly.')
+                else:
+                    _logger.info('New release data commited with tag set properly.')
+            else:
+                _logger.info('New release data commited with tag set and pushed properly.')
     else:
         _logger.info('New release data commited with tag set properly.')
     
@@ -643,4 +646,3 @@ def _is_path_in_dirs(path, dirs):
             return False if rel.__str__() == '.' else True
     
     return False
-
