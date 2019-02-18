@@ -3,6 +3,7 @@
 
 
 import re
+import time
 import semver
 import jinja2
 import shutil
@@ -402,9 +403,23 @@ def commit_and_push_release_update(new_release_tag, new_release_msg, ssh_key=Non
             pygittools.push_with_tags(ssh_key=ssh_key, cwd=cwd)
         except pygittools.PygittoolsError as e:
             _logger.error(f"git push error: {e}")
-            _logger.info('!!!IMPORTANT!!! Please check repository origin or credentials and push changes '
-                         'WITH TAGS manually! Releasing process is continued.')
-            _logger.info('New release data commited with tag set properly.')
+            ssh_key = wizard.get_data(__name__, 'Enter path to a ssh key or leave empty to continue '
+                                      'and push with tags later manually')
+            if ssh_key:
+                if not ssh_key.exists():
+                    raise FileNotFoundError(f'SSH key file not found. Please check {ssh_key.name} file.')
+                    time.sleep(2)
+                else:
+                    try:
+                        pygittools.push_with_tags(ssh_key=ssh_key, cwd=cwd)
+                    except pygittools.PygittoolsError as e:
+                        _logger.error(f"git push error: {e}")
+                        time.sleep(2)
+                        _logger.info('New release data commited with tag set properly.')
+                    else:
+                        _logger.info('New release data commited with tag set and pushed properly.')
+            else:
+                _logger.info('New release data commited with tag set properly.')
         else:
             _logger.info('New release data commited with tag set and pushed properly.')
     else:
