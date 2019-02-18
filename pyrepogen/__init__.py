@@ -10,7 +10,7 @@ from pathlib import Path
 from . import logger
 
 
-__version__ = '0.1.2'
+__version__ = '0.2.0'
 _logger = logger.create_logger()
 PARDIR = Path(__file__).parent
 MIN_PYTHON = (3, 7)
