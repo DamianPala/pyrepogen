@@ -51,6 +51,9 @@ def cwd():
     else:
         shutil.rmtree(workspace_path, ignore_errors=False, onerror=_error_remove_readonly)
 
+# TODO: remove
+def test_dummy():
+    pass
 
 @pytest.mark.skipif(SKIP_ALL_MARKED, reason="Skipped on request")
 def test_generate_setup_cfg():
@@ -143,10 +146,12 @@ def test_generate_package_repo_SHOULD_generate_repo_tree_properly():
         'repoassist/sicloudman.py',
         'repoassist/exceptions.py',
         'repoassist/prepare.py',
+        'repoassist/reltools.py',
         'repoassist/clean.py',
         'repoassist/templates/CHANGELOG_generated.md.j2',
         'repoassist/templates/CHANGELOG_prepared.md.j2',
         'repoassist/templates/AUTHORS_prepared.md.j2',
+        'repoassist/templates/AUTHORS_generated.md.j2',
         'repoassist/templates/requirements-dev.txt.j2',
         'repoassist/README.md',
         'cloud_credentials.txt',
@@ -240,10 +245,12 @@ def test_generate_package_repo_SHOULD_generate_repo_tree_properly_WHEN_no_sample
         'repoassist/sicloudman.py',
         'repoassist/exceptions.py',
         'repoassist/prepare.py',
+        'repoassist/reltools.py',
         'repoassist/clean.py',
         'repoassist/templates/CHANGELOG_generated.md.j2',
         'repoassist/templates/CHANGELOG_prepared.md.j2',
         'repoassist/templates/AUTHORS_prepared.md.j2',
+        'repoassist/templates/AUTHORS_generated.md.j2',
         'repoassist/templates/requirements-dev.txt.j2',
         'repoassist/README.md',
         'cloud_credentials.txt',
@@ -307,10 +314,12 @@ def test_generate_module_repo_SHOULD_generate_repo_tree_properly():
         'repoassist/sicloudman.py',
         'repoassist/exceptions.py',
         'repoassist/prepare.py',
+        'repoassist/reltools.py',
         'repoassist/clean.py',
         'repoassist/templates/CHANGELOG_generated.md.j2',
         'repoassist/templates/CHANGELOG_prepared.md.j2',
         'repoassist/templates/AUTHORS_prepared.md.j2',
+        'repoassist/templates/AUTHORS_generated.md.j2',
         'repoassist/templates/requirements-dev.txt.j2',
         'repoassist/README.md',
         'cloud_credentials.txt',
@@ -372,10 +381,12 @@ def test_generate_module_repo_SHOULD_generate_repo_tree_properly_WHEN_no_sample(
         'repoassist/sicloudman.py',
         'repoassist/exceptions.py',
         'repoassist/prepare.py',
+        'repoassist/reltools.py',
         'repoassist/clean.py',
         'repoassist/templates/CHANGELOG_generated.md.j2',
         'repoassist/templates/CHANGELOG_prepared.md.j2',
         'repoassist/templates/AUTHORS_prepared.md.j2',
+        'repoassist/templates/AUTHORS_generated.md.j2',
         'repoassist/templates/requirements-dev.txt.j2',
         'repoassist/README.md',
         'cloud_credentials.txt',

@@ -30,6 +30,6 @@ else:
     if m:
         git_version = (int(m.group(1)), int(m.group(2)), int(m.group(3)))
         if git_version < MIN_GIT:
-            sys.exit(f'Git {git_version[0].git_version[1].git_version[2]} or later is required.\n')
+            sys.exit(f'Git {MIN_GIT[0]}.{MIN_GIT[1]}.{MIN_GIT[2]} or later is required.\n')
     else:
         sys.exit(f'Error occured when check git version: {p.stdout}\n')

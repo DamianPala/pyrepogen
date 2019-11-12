@@ -97,7 +97,8 @@ def make_release(action=ReleaseAction.REGENERATE, prompt=True, push=True, releas
                                                                            new_release_msg, 
                                                                            files_to_add=files_to_add, 
                                                                            push=push, 
-                                                                           cwd=cwd))
+                                                                           cwd=cwd,
+                                                                           prompt=prompt))
         release_tag = new_release_tag
         
     elif action == ReleaseAction.REGENERATE:

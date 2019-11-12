@@ -53,6 +53,10 @@ def _error_remove_readonly(_action, name, _exc):
     os.remove(name)
 
 
+# TODO: remove
+def test_dummy():
+    pass
+
 @pytest.mark.skipif(SKIP_ALL_MARKED, reason="Skipped on request")
 def test_make_release_SHOULD_release_module_properly():
     cwd = TESTS_SETUPS_PATH / 'test_make_release_SHOULD_release_module_properly'

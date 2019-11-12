@@ -6,13 +6,14 @@ import sys
 import shutil
 import argparse
 from pathlib import Path
+
 from . import logger
 from . import wizard
 from . import exceptions
 from . import utils
 from . import settings
 from . import prepare
-from . import (__version__)
+from . import __version__
 from . import _logger
 
 
@@ -150,10 +151,10 @@ def generate(args, cwd):
             config = settings.Config(**config_dict)
 
             prompt_dir = wizard.get_data(__name__,
-                                         "Enter a path to the directory where a repository "
+                                         "Enter a path to a directory where a repository "
                                          "will be generated (relative or absolute). "
                                          "Enter '.' to generate in the current directory. "
-                                         "I this path a new directory named with repository name will be created")
+                                         "In this path a new directory named with repository name will be created")
 
             repo_path = utils.get_dir_from_arg(prompt_dir)
 

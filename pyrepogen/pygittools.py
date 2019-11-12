@@ -122,6 +122,27 @@ def push_with_tags(ssh_key=None, cwd='.'):
 
 
 @check_work_tree
+def pull(ssh_key=None, origin=None, verbose=True, cwd='.'):
+    cmd = ['git', 'pull']
+    if origin:
+        cmd.append('origin')
+        cmd.append(origin)
+    if not verbose:
+        cmd.append('-q')
+    
+    return _execute_cmd(cmd, ssh_key=ssh_key, cwd=cwd)
+
+
+@check_work_tree
+def reset(reset_type, verbose=True, cwd='.'):
+    cmd = ['git', 'reset', f'--{reset_type}']
+    if not verbose:
+        cmd.append('-q')
+    
+    return _execute_cmd(cmd, cwd=cwd)
+
+
+@check_work_tree
 def revert(commit_rollback, cwd='.'):
     return _execute_cmd(['git', 'reset', '--hard', 'HEAD~{}'.format(commit_rollback)], cwd=cwd)
 
@@ -207,6 +228,19 @@ def is_work_tree(cwd='.'):
 
 
 @check_work_tree
+def is_repo_root(cwd='.'):
+    try:
+        toplevel = _execute_cmd(['git', 'rev-parse', '--show-toplevel'], cwd=cwd)
+    except CmdError:
+        return False
+    else:
+        if Path(toplevel).resolve() == Path().cwd().resolve():
+            return True
+        else:
+            return False
+
+
+@check_work_tree
 def is_in_work_tree(path, cwd='.'):
     try:
         _execute_cmd(['git', 'ls-files', '--error-unmatch', str(path)], cwd=cwd)
@@ -245,6 +279,16 @@ def get_changelog(report_format=None, cwd='.'):
 
 
 @check_work_tree
+def add_submodule(url, dst, ssh_key=None, cwd='.'):
+    return _execute_cmd(["git", "submodule", "add", url, Path(dst).as_posix()], ssh_key=ssh_key, cwd=cwd)
+
+
+@check_work_tree
+def init_submodule(cwd='.'):
+    return _execute_cmd(["git", "submodule", "init"], cwd=cwd)
+
+
+@check_work_tree
 def update_all_submodules(ssh_key=None, cwd='.'):
     return _execute_cmd(["git", "submodule", "update", "--recursive", "--remote"], ssh_key=ssh_key, cwd=cwd)
 
@@ -252,6 +296,12 @@ def update_all_submodules(ssh_key=None, cwd='.'):
 @check_work_tree
 def deinit_all_submodules(cwd='.'):
     return _execute_cmd(["git", "submodule", "deinit", "--force", "--all"], cwd=cwd)
+
+
+@check_work_tree
+def remove_submodule_section_form_gitmodules(submodule_rel_path, cwd='.'):
+    submodule_rel_path = Path(submodule_rel_path).as_posix()
+    return _execute_cmd(["git", "config", "-f", ".gitmodules", "--remove-section", f'submodule.{submodule_rel_path}'], cwd=cwd)
 
 
 @check_work_tree

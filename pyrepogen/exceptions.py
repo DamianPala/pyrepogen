@@ -4,7 +4,7 @@
 
 class PyRepoGenError(Exception):
     def __init__(self, msg, logger):
-        super().__init__(msg)
+        super().__init__(f'[{self.__class__.__name__}]: {msg}')
         self.logger = logger
 
 class ExecuteCmdError(PyRepoGenError):

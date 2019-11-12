@@ -355,7 +355,7 @@ def _get_latest_tag(suggested_initial_release_tag, cwd):
 
 
 def commit_and_push_release_update(new_release_tag, new_release_msg, ssh_key=None, 
-                                   files_to_add=None, push=True, cwd='.', debug=None):
+                                   files_to_add=None, push=True, cwd='.', prompt=True, debug=None):
     if push:
         _logger.info('Commit updated release files, set tag and push...')
     else:
@@ -398,26 +398,30 @@ def commit_and_push_release_update(new_release_tag, new_release_msg, ssh_key=Non
     if push and pygittools.is_origin_set(cwd):
         if ssh_key and not ssh_key.exists():
             _logger.error(f'SSH key file not found. Please check {ssh_key.name} file.')
-            wizard.get_data(__name__, 'Please push with tags later manually and press Enter to continue')
+            if prompt:
+                wizard.get_data(__name__, 'Please push with tags later manually and press Enter to continue')
         else:
             try:
                 pygittools.push_with_tags(ssh_key=ssh_key, cwd=cwd)
             except pygittools.PygittoolsError as e:
                 _logger.error(f'git push error: {e}')
-                ssh_key = Path(wizard.get_data(__name__, 'Enter a path to the SSH key or leave empty to continue '
-                                               'and push with tags later manually'))
+                if prompt:
+                    ssh_key = Path(wizard.get_data(__name__, 'Enter a path to the SSH key or leave empty to continue '
+                                                   'and push with tags later manually'))
                 if ssh_key:
                     if not ssh_key.exists():
                         _logger.error(f'SSH key file not found. Please check {ssh_key.name} file.')
-                        wizard.get_data(__name__, 'Please push with tags later manually '
-                                        'and press Enter to continue')
+                        if prompt:
+                            wizard.get_data(__name__, 'Please push with tags later manually '
+                                            'and press Enter to continue')
                     else:
                         try:
                             pygittools.push_with_tags(ssh_key=ssh_key, cwd=cwd)
                         except pygittools.PygittoolsError as e:
                             _logger.error(f'git push error: {e}')
-                            wizard.get_data(__name__, 'Please push with tags later manually '
-                                            'and press Enter to continue')
+                            if prompt:
+                                wizard.get_data(__name__, 'Please push with tags later manually '
+                                                'and press Enter to continue')
                             _logger.info('New release data commited with tag set properly.')
                         else:
                             _logger.info('New release data commited with tag set and pushed properly.')
@@ -593,7 +597,7 @@ def prepare_archive(archive_name, dst_dir, files, files_root='.', add_extra_file
     
     copy_list = _prepare_copy_list(files)
     for path in copy_list:
-        dst = temp_dir / path.relative_to(files_root)
+        dst = temp_dir / path.resolve().relative_to(Path(files_root).resolve())
         if path.is_dir():
             if not dst.exists():
                 shutil.copytree(path, dst)
