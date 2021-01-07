@@ -1,5 +1,39 @@
-PYTHON     := python
+UNAME_S := $(shell sh -c uname -s 2>/dev/null || echo not)
+ifeq ('$(findstring Linux,$(UNAME_S))', 'Linux')
+	OS_DETECTED := Linux
+	OS_TYPE     := Linux
+else ifeq ('$(findstring CYGWIN,$(UNAME_S))', 'CYGWIN')
+	OS_DETECTED := Cygwin
+	OS_TYPE     := Windows
+else ifeq ('$(findstring MINGW,$(UNAME_S))', 'MINGW')
+	OS_DETECTED := Mingw
+	OS_TYPE     := Windows
+else ifeq ('$(findstring not,$(UNAME_S))$(OS)', 'notWindows_NT')
+	OS_DETECTED := Windows
+	OS_TYPE     := Windows
+else
+	OS_DETECTED := Unknown
+	OS_TYPE     := Unknown
+endif
+
+ifeq ($(OS_DETECTED),Linux)
+    PYTHON := python3
+endif
+ifeq ($(OS_DETECTED),Cygwin)
+    PYTHON := py -3
+endif
+ifeq ($(OS_DETECTED),Mingw)
+    PYTHON := py -3
+endif
+ifeq ($(OS_DETECTED),Windows)
+    PYTHON := py -3
+endif
+ifeq ($(OS_DETECTED),Unknown)
+    PYTHON := python3
+endif
+
 TEST_PATH  := ./tests
+VENV_DIR   := venv
 
 
 ifeq (release,$(firstword $(MAKECMDGOALS)))

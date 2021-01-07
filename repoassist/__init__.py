@@ -21,7 +21,7 @@ if sys.version_info < MIN_PYTHON:
     sys.exit('Python %s.%s or later is required.\n' % MIN_PYTHON)
 
 try:
-    p = subprocess.run(('git', '--version'), shell=True, check=True,
+    p = subprocess.run(('git', '--version'), check=True,
                        stdout=subprocess.PIPE, stderr=subprocess.STDOUT, encoding='utf-8')
 
     m = re.search(r'(\d+)\.(\d+)\.(\d+)', p.stdout)

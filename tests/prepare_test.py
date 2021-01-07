@@ -1,5 +1,7 @@
+#!/usr/bin/env python
+# -*- coding: utf-8 -*-
 
-import sys
+
 import pytest
 import inspect
 import shutil
@@ -43,17 +45,15 @@ def _error_remove_readonly(_action, name, _exc):
     
     
 @pytest.fixture()
-def cwd():
+def cwd(request):
     workspace_path = Path(tempfile.mkdtemp())
+    failed_before = request.session.testsfailed
     yield workspace_path
-    if getattr(sys, 'last_value'):
-        print(f'Test workspace path: {workspace_path}')
+    if request.session.testsfailed != failed_before:
+        print(f'Tests workspace path: {workspace_path}')
     else:
         shutil.rmtree(workspace_path, ignore_errors=False, onerror=_error_remove_readonly)
 
-# TODO: remove
-def test_dummy():
-    pass
 
 @pytest.mark.skipif(SKIP_ALL_MARKED, reason="Skipped on request")
 def test_generate_setup_cfg():

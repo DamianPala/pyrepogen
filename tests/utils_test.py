@@ -1,9 +1,13 @@
+#!/usr/bin/env python
+# -*- coding: utf-8 -*-
+
 
 import pytest
 import inspect
 import stat
 import shutil
 import time
+import platform
 from pathlib import Path
 from pprint import pprint
 
@@ -334,10 +338,19 @@ get_dest_dir_testdata = [
     (r"repo", (Path().cwd() / "repo").as_posix()),
     (r"dir1/repo", (Path().cwd() / "dir1/repo").as_posix()),
     (r"./repo", (Path().cwd() / "repo").as_posix()),
-    (r"dir1\repo", (Path().cwd() / "dir1/repo").as_posix()),
-    (r"C:\dir1\repo", Path("C:/dir1/repo").as_posix()),
-    (r"C:/dir1/repo", Path("C:/dir1/repo").as_posix()),
+    (r"dir1\repo", (Path().cwd() / "dir1/repo").as_posix())
 ]
+
+if platform.system() == 'Windows':
+    get_dest_dir_testdata += ([
+        (r"C:\dir1\repo", Path("C:/dir1/repo").as_posix()),
+        (r"C:/dir1/repo", Path("C:/dir1/repo").as_posix())
+    ])
+else:
+    get_dest_dir_testdata += ([
+        (r"/dir1\repo", Path("/dir1/repo").as_posix()),
+        (r"/dir1/repo", Path("/dir1/repo").as_posix())
+    ])    
 
 @pytest.mark.skipif(SKIP_ALL_MARKED, reason="Skipped on request")
 @pytest.mark.parametrize("path, expected", get_dest_dir_testdata)

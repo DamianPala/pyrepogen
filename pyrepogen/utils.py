@@ -7,7 +7,7 @@ import subprocess
 import configparser
 import platform
 import tempfile
-from pathlib import Path
+from pathlib import Path, PureWindowsPath
 from collections import namedtuple
 
 from . import pygittools
@@ -192,7 +192,7 @@ def get_project_module_path(config, cwd='.'):
 
 
 def get_dir_from_arg(prompt_dir):
-    return (Path().cwd() / str(prompt_dir).strip('\"')).resolve()
+    return (Path().cwd() / PureWindowsPath(str(prompt_dir).strip('\"')).as_posix()).resolve()
 
 
 def get_latest_file(path):

@@ -4,6 +4,7 @@
 
 import os
 import re
+import sys
 from pathlib import Path
 from enum import Enum
 
@@ -132,7 +133,7 @@ def _run_setup_cmd(cmd, release_tag=None, cwd='.'):
         os.environ['PBR_VERSION'] = release_tag
     else:
         _logger.info('Release tag will be set by pbr automatically.')
-    result = utils.execute_cmd([settings.Tools.PYTHON, setup_path.__str__()] + cmd, cwd)
+    result = utils.execute_cmd([sys.executable, setup_path.__str__()] + cmd, cwd)
     for line in result.splitlines():
         _logger.info(line)
         

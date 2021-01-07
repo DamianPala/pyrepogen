@@ -120,7 +120,6 @@ class Tools():
     FILE_FORMATTER = 'autopep8'
     LINTER = 'flake8'
     MERGE_TOOL = 'Meld Merge'
-    PYTHON = 'python'
 
 
 @dataclasses.dataclass

@@ -1,3 +1,6 @@
+#!/usr/bin/env python
+# -*- coding: utf-8 -*-
+
 
 import pytest
 import inspect
@@ -53,10 +56,6 @@ def _error_remove_readonly(_action, name, _exc):
     os.remove(name)
 
 
-# TODO: remove
-def test_dummy():
-    pass
-
 @pytest.mark.skipif(SKIP_ALL_MARKED, reason="Skipped on request")
 def test_make_release_SHOULD_release_module_properly():
     cwd = TESTS_SETUPS_PATH / 'test_make_release_SHOULD_release_module_properly'
@@ -105,6 +104,8 @@ def test_make_release_SHOULD_release_module_properly():
             pass
     pygittools.commit("Initial Commit", cwd)
     pygittools.set_tag('0.1.0', "First Release", cwd)
+    
+    time.sleep(1) # Sleep for different release time than previous
     
     archive_name = release.make_release(action=release.ReleaseAction.MAKE_RELEASE,
                                         prompt=False, 
@@ -187,6 +188,8 @@ def test_make_release_SHOULD_release_package_properly():
             pass
     pygittools.commit("Initial Commit", cwd)
     pygittools.set_tag('0.1.0', "First Release", cwd)
+    
+    time.sleep(1) # Sleep for different release time than previous
     
     archive_name = release.make_release(action=release.ReleaseAction.MAKE_RELEASE,
                                         prompt=False, 
@@ -271,6 +274,8 @@ def test_make_release_SHOULD_release_package_properly_WHEN_origin_not_reached():
     pygittools.commit("Initial Commit", cwd)
     pygittools.set_tag('0.1.0', "First Release", cwd)
     
+    time.sleep(1) # Sleep for different release time than previous
+    
     archive_name = release.make_release(action=release.ReleaseAction.MAKE_RELEASE,
                                         prompt=False,
                                         push=True,
@@ -332,6 +337,8 @@ def test_make_release_SHOULD_regenerate_package_properly_on_the_same_commit():
     pygittools.commit("Initial Commit", cwd)
     pygittools.set_tag('0.1.0', "First Release", cwd)
     
+    time.sleep(1) # Sleep for different release time than previous
+    
     archive_name = release.make_release(action=release.ReleaseAction.MAKE_RELEASE,
                                         prompt=False, 
                                         push=False,
@@ -379,6 +386,8 @@ def test_make_release_SHOULD_regenerate_package_properly_on_the_different_commit
         pygittools.add(path, cwd)
     pygittools.commit("Initial Commit", cwd)
     pygittools.set_tag('0.1.0', "First Release", cwd)
+    
+    time.sleep(1) # Sleep for different release time than previous
     
     release.make_release(action=release.ReleaseAction.MAKE_RELEASE,
                                         prompt=False, 
